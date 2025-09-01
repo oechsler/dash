@@ -1,0 +1,108 @@
+package components
+
+type ModalUpsertSubmitActionType string
+
+const (
+	ModalUpsertSubmitActionPost ModalUpsertSubmitActionType = "post"
+	ModalUpsertSubmitActionPut  ModalUpsertSubmitActionType = "put"
+)
+
+type ModalUpserInputIconTypes []string
+
+type ModalUpsertInputIcon struct {
+    Type string
+    Name string
+}
+
+	type ModalUpsertInput struct {
+		ModalInput
+		SubmitLabel      string
+		SubmitAction     string
+		SubmitActionType ModalUpsertSubmitActionType
+		DisplayName      string
+		IconTypes        ModalUpserInputIconTypes
+		Icon             ModalUpsertInputIcon
+		Url              string
+	}
+
+templ modalUpsertForm(input ModalUpsertInput) {
+	switch input.SubmitActionType {
+		case ModalUpsertSubmitActionPost:
+			<form class="flex flex-col gap-4" hx-post={ input.SubmitAction } hx-target="#modal" hx-swap="outerHTML">
+				{ children... }
+			</form>
+		case ModalUpsertSubmitActionPut:
+			<form class="flex flex-col gap-4" hx-put={ input.SubmitAction } hx-target="#modal" hx-swap="outerHTML">
+				{ children... }
+			</form>
+	}
+}
+
+templ ModalUpsert(input ModalUpsertInput) {
+	@Modal(input.ModalInput) {
+		@modalUpsertForm(input) {
+			<div class="form-group">
+				<label for="name" class="text-secondary text-sm">
+					Name <span class="text-tertiary">*</span>
+				</label>
+				<input
+					type="text"
+					id="name"
+					name="display_name"
+					class="mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80"
+					value={ input.DisplayName }
+					placeholder="Enter name"
+					required
+				/>
+			</div>
+			<div class="form-group">
+				<label for="icon-name" class="text-secondary text-sm">
+					Icon <span class="text-tertiary">*</span>
+				</label>
+				<div class="flex flex-col gap-2">
+					<div class="flex gap-2">
+						<label for="icon-type" class="text-secondary text-sm sr-only">Icon Type <span class="text-tertiary">*</span></label>
+						<select
+							name="icon_type"
+							id="icon-type"
+							class="mt-1 block w-24 rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80"
+							required
+						>
+							for _, iconType := range input.IconTypes {
+								<option value={ iconType } selected?={ iconType == input.Icon.Type }>{ iconType }</option>
+							}
+						</select>
+						<input
+							type="text"
+							id="icon-name"
+							name="icon_name"
+							class="mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80"
+							value={ input.Icon.Name }
+							placeholder="Enter icon name"
+							required
+						/>
+					</div>
+				</div>
+				<div class="mt-4 text-secondary text-xs">
+					Find icons at <a href="https://fonts.google.com/icons?icon.set=Material+Icons&icon.style=Filled" target="_blank" class="text-tertiary hover:underline">Google Material Icons</a> or <a href="https://simpleicons.org" target="_blank" class="text-tertiary hover:underline">Simple Icons</a>.
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="url" class="text-secondary text-sm">URL <span class="text-tertiary">*</span></label>
+				<input
+					type="url"
+					id="url"
+					name="url"
+					class="mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80"
+					value={ input.Url }
+					placeholder="Enter URL"
+					required
+				/>
+			</div>
+			{ children... }
+			<div class="flex justify-end gap-2">
+				<button type="submit" class="px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer">{ input.SubmitLabel }</button>
+			</div>
+		}
+	}
+}

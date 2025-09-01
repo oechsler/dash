@@ -1,0 +1,91 @@
+package partials
+
+import (
+	"dash/templ/components"
+	"fmt"
+)
+
+type CategoriesEditInputBookmark struct {
+	ID          uint
+	DisplayName string
+	IconType    string
+	Icon        string
+}
+
+type CategoriesEditInput struct {
+	ID          uint
+	DisplayName string
+	Bookmarks   []CategoriesEditInputBookmark
+}
+
+templ CategoriesEdit(inputs []CategoriesEditInput) {
+	if len(inputs) == 0 {
+		<li class="text-tertiary">No categories yet</li>
+	} else {
+		for _, input := range inputs {
+			<li id={ "category-" + fmt.Sprint(input.ID) } class="p-0">
+				<div class="flex items-center gap-4">
+					<h3 class="text-md text-tertiary uppercase font-medium">{ input.DisplayName }</h3>
+					<div class="flex items-center gap-2">
+						<button
+							class="flex items-center text-tertiary text-2xl hover:text-tertiary/80 transition-colors duration-200 cursor-pointer"
+							hx-get={ "/categories/modal/edit/" + fmt.Sprint(input.ID) }
+							hx-target="body"
+							hx-swap="beforeend"
+						>
+							<span class="material-icons-round">edit</span>
+						</button>
+						<button
+							class="flex items-center text-tertiary text-2xl hover:text-secondary transition-colors duration-200 cursor-pointer"
+							hx-get={ "/categories/modal/delete/" + fmt.Sprint(input.ID) }
+							hx-target="body"
+							hx-swap="beforeend"
+						>
+							<span class="material-icons-round">delete</span>
+						</button>
+						<button
+							class="flex items-center text-tertiary text-2xl hover:text-tertiary/80 transition-colors duration-200 cursor-pointer"
+							hx-get={ "/bookmarks/modal/create/" + fmt.Sprint(input.ID) }
+							hx-target="body"
+							hx-swap="beforeend"
+						>
+							<span class="material-icons-round">add</span>
+						</button>
+					</div>
+				</div>
+				<ul class="mt-2">
+					if len(input.Bookmarks) == 0 {
+						<li class="text-secondary">No bookmarks yet</li>
+					} else {
+						for _, bookmark := range input.Bookmarks {
+							<li id={ "bookmark-" + fmt.Sprint(bookmark.ID) } class="flex items-center gap-4">
+								<div class="flex items-center gap-2 text-secondary">
+ 								<div class="text-xl">
+										<span class={ components.IconClass(bookmark.IconType, bookmark.Icon) }>{ components.IconText(bookmark.IconType, bookmark.Icon) }</span>
+									</div>
+									<h3 class="mr-2">{ bookmark.DisplayName }</h3>
+									<button
+										class="flex items-center text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 cursor-pointer mr-2"
+										hx-get={ "/bookmarks/modal/edit/" + fmt.Sprint(bookmark.ID) }
+										hx-target="body"
+										hx-swap="beforeend"
+									>
+										<span class="material-icons-round">edit</span>
+									</button>
+ 								<button
+ 									class="flex items-center text-secondary text-2xl hover:text-tertiary transition-colors duration-200 cursor-pointer"
+										hx-get={ "/bookmarks/modal/delete/" + fmt.Sprint(bookmark.ID) }
+										hx-target="body"
+										hx-swap="beforeend"
+									>
+										<span class="material-icons-round">delete</span>
+									</button>
+								</div>
+							</li>
+						}
+					}
+				</ul>
+			</li>
+		}
+	}
+}

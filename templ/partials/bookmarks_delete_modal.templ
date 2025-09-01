@@ -1,0 +1,24 @@
+package partials
+
+import (
+	"dash/templ/components"
+
+	"fmt"
+)
+
+type BookmarksDeleteModalInput struct {
+	ID          uint
+	DisplayName string
+}
+
+func bookmarksEditDeleteInput(input BookmarksDeleteModalInput) components.ModalDeleteInput {
+	return components.ModalDeleteInput{
+		DisplayName:  input.DisplayName,
+		ResourceName: "bookmark",
+		DeleteAction: "/bookmarks/" + fmt.Sprint(input.ID),
+	}
+}
+
+templ BookmarksDeleteModal(input BookmarksDeleteModalInput) {
+	@components.ModalDelete(bookmarksEditDeleteInput(input))
+}

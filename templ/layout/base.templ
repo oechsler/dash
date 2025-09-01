@@ -1,0 +1,54 @@
+package layout
+
+type Theme struct {
+	Primary   string
+	Secondary string
+	Tertiary  string
+}
+
+type BaseInput struct {
+	Title    string
+	Language string
+	Theme    Theme
+}
+
+templ Base(input BaseInput) {
+	<!DOCTYPE html>
+	<html lang={ input.Language }>
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ input.Title }</title>
+			<script src="/static/js/htmx.min.js" type="text/javascript"></script>
+			<script src="/static/js/tailwind.min.js" type="text/javascript"></script>
+			<link href="/static/css/material-icons.min.css" rel="stylesheet" type="text/css"/>
+			<link href="/static/css/simple-icons.min.css" rel="stylesheet" type="text/css"/>
+			<link rel="icon" href="/favicon.ico"/>
+			@templ.Raw(`
+			    <style>
+			        /* Ensure Tailwind text-* utilities control icon sizes */
+			        .material-icons,
+			        .material-icons-outlined,
+			        .material-icons-round,
+			        .material-icons-sharp,
+			        .material-icons-two-tone {
+			            font-size: inherit;
+			            line-height: 1;
+			        }
+			    </style>
+			`)
+			@templ.Raw(`
+			    <style type="text/tailwindcss">
+			        @theme {
+			            --color-primary: ` + input.Theme.Primary + `;
+			            --color-secondary: ` + input.Theme.Secondary + `;
+			            --color-tertiary: ` + input.Theme.Tertiary + `;
+			        }
+			    </style>
+			`)
+		</head>
+		<body class="p-8 text-tertiary bg-primary">
+			{ children... }
+		</body>
+	</html>
+}

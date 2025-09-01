@@ -1,0 +1,21 @@
+package partials
+
+type DashboardTitleBookmarksInput struct {
+	EditMode bool
+}
+
+templ DashboardTitleBookmarks(input DashboardTitleBookmarksInput) {
+	<div id="bookmarks-title" class="flex items-center gap-4 mb-4">
+		<h2 class="text-xl uppercase font-semibold text-secondary">Bookmarks</h2>
+		if input.EditMode {
+			<button
+				class="flex items-center gap-2 text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 cursor-pointer"
+				hx-get="/categories/modal/create"
+				hx-target="body"
+				hx-swap="beforeend"
+			>
+				<span class="material-icons-round">add</span>
+			</button>
+		}
+	</div>
+}

@@ -1,0 +1,54 @@
+package partials
+
+import (
+	"dash/templ/components"
+	"fmt"
+)
+
+type ApplicationsEditInput struct {
+	ID          uint
+	IconType    string
+	Icon        string
+	DisplayName string
+	Domain      string
+}
+
+templ ApplicationsEdit(inputs []ApplicationsEditInput) {
+	if len(inputs) == 0 {
+		<li class="text-tertiary">No applications yet</li>
+	} else {
+		for _, input := range inputs {
+			<li id={ "application-" + fmt.Sprint(input.ID) } class="list-item md:grid-item">
+				<div class="p-3 flex items-center justify-between text-secondary rounded-xl bg-tertiary/10">
+					<div class="flex items-center gap-4">
+ 					<div class="text-4xl">
+							<span class={ components.IconClass(input.IconType, input.Icon) }>{ components.IconText(input.IconType, input.Icon) }</span>
+						</div>
+						<div>
+							<h3 class="text-sm uppercase font-semibold">{ input.DisplayName }</h3>
+							<h4 class="text-sm text-tertiary">{ input.Domain }</h4>
+						</div>
+					</div>
+					<div class="flex gap-2">
+						<button
+							class="flex text-2xl items-center justify-center p-2 rounded-xl bg-tertiary/10 hover:bg-tertiary/30 transition-all duration-200 cursor-pointer"
+							hx-get={ "/applications/modal/edit/" + fmt.Sprint(input.ID) }
+							hx-target="body"
+							hx-swap="beforeend"
+						>
+							<span class="material-icons-round">edit</span>
+						</button>
+						<button
+							class="flex text-2xl items-center justify-center p-2 rounded-xl bg-tertiary/10 hover:bg-tertiary hover:text-primary transition-all duration-200 cursor-pointer"
+							hx-get={ "/applications/modal/delete/" + fmt.Sprint(input.ID) }
+							hx-target="body"
+							hx-swap="beforeend"
+						>
+							<span class="material-icons-round">delete</span>
+						</button>
+					</div>
+				</div>
+			</li>
+		}
+	}
+}

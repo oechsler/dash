@@ -1,0 +1,42 @@
+package components
+
+type ModalDeleteInput struct {
+	DisplayName  string
+	ResourceName string
+	DeleteAction string
+}
+
+func modalDeleteInput(input ModalDeleteInput) ModalInput {
+	return ModalInput{
+		Title: "Confirm delete",
+	}
+}
+
+templ ModalDelete(input ModalDeleteInput) {
+	@Modal(modalDeleteInput(input)) {
+		<div class="flex flex-col gap-6">
+			<p class="text-secondary whitespace-pre-line">
+				Are you sure you want to delete the <strong>{ input.DisplayName }</strong>
+				{ input.ResourceName }? <strong>This action cannot be undone!</strong>
+			</p>
+			<div class="flex justify-end gap-2">
+				<button
+					class="px-4 py-2 rounded-lg bg-primary border border-tertiary text-tertiary hover:border-tertiary/80 hover:text-tertiary/80 transition-colors duration-200 cursor-pointer"
+					hx-get="/dashboard/modal/close"
+					hx-target="#modal"
+					hx-swap="outerHTML"
+				>
+					Cancel
+				</button>
+				<button
+					class="px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors cursor-pointer"
+					hx-delete={ input.DeleteAction }
+					hx-target="#modal"
+					hx-swap="outerHTML"
+				>
+					Delete
+				</button>
+			</div>
+		</div>
+	}
+}

@@ -1,0 +1,35 @@
+package partials
+
+import "dash/templ/components"
+
+func categoriesCreateModalInput() components.ModalInput {
+	return components.ModalInput{
+		Title: "Create a new category",
+	}
+}
+
+templ CategoriesCreateModal() {
+	@components.Modal(categoriesCreateModalInput()) {
+		<form class="flex flex-col gap-4" hx-post="/categories" hx-target="#modal" hx-swap="outerHTML">
+			<div class="form-group">
+				<label for="display-name" class="text-secondary text-sm">
+					Name <span class="text-tertiary">*</span>
+				</label>
+				<input
+					type="text"
+					id="display-name"
+					name="display_name"
+					class="mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80"
+					placeholder="Enter name"
+					required
+				/>
+			</div>
+			<div id="shelved-form-group">
+			   @CategoriesShelvedModalButton(CategoriesShelvedModalButtonInput{ IsShelved: false })
+			</div>
+			<button type="submit" class="bg-tertiary/80 text-primary mt-2 py-2 px-4 rounded hover:bg-tertiary transition-colors duration-200 cursor-pointer">
+				Create
+			</button>
+		</form>
+	}
+}

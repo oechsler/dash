@@ -1,0 +1,24 @@
+package partials
+
+import (
+	"dash/templ/components"
+
+	"fmt"
+)
+
+type ApppplicationsDeleteModalInput struct {
+	ID              uint
+	DisplayName     string
+}
+
+func applicationsEditDeleteInput(input ApppplicationsDeleteModalInput) components.ModalDeleteInput {
+	return components.ModalDeleteInput{
+	    DisplayName: input.DisplayName,
+	    ResourceName: "application",
+		DeleteAction:     "/applications/" + fmt.Sprint(input.ID),
+	}
+}
+
+templ ApplicationsDeleteModal(input ApppplicationsDeleteModalInput) {
+	@components.ModalDelete(applicationsEditDeleteInput(input))
+}

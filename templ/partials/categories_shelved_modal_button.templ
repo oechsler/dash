@@ -1,0 +1,43 @@
+package partials
+
+import "fmt"
+
+type CategoriesShelvedModalButtonInput struct {
+	IsShelved bool
+}
+
+templ CategoriesShelvedModalButton(input CategoriesShelvedModalButtonInput) {
+	<div class="form-group" id="shelved-form-group">
+		<label for="is-shelved-toggle" class="text-secondary text-sm">Shelved</label>
+		<div class="mt-2 flex items-center justify-start">
+			<input
+				type="hidden"
+				name="is_shelved"
+				id="is-shelved-value"
+				value={ fmt.Sprint(input.IsShelved) }
+			/>
+			<button
+				type="button"
+				id="is-shelved-toggle"
+				hx-get={ "/categories/modal/shelved/" + fmt.Sprint(!input.IsShelved) }
+				hx-target="#shelved-form-group"
+				hx-swap="innerHTML"
+				class={ "inline-flex items-center text-xl gap-2 px-4 p-2 rounded-lg border cursor-pointer " +
+					func() string {
+						if input.IsShelved {
+							return "text-primary bg-tertiary/80 border-tertiary/80 hover:bg-tertiary hover:border-tertiary"
+						}
+						return "text-secondary bg-primary border-tertiary hover:border-tertiary/80 hover:text-secondary/80"
+					}() }
+				aria-pressed={ fmt.Sprint(input.IsShelved) }
+			>
+                <span class="material-icons-round">
+                    { func() string { if input.IsShelved { return "bookmark" }; return "bookmark_border" }() }
+                </span>
+				<span class="text-sm">
+					{ func() string { if input.IsShelved { return "Shelved" }; return "Not shelved" }() }
+				</span>
+			</button>
+		</div>
+	</div>
+}

@@ -1,0 +1,34 @@
+package partials
+
+import "dash/templ/components"
+
+type ApplicationsCreateModalInput struct {
+    IconTypes components.ModalUpserInputIconTypes
+}
+
+func applicationsCreateModalInput(input ApplicationsCreateModalInput) components.ModalUpsertInput {
+	return components.ModalUpsertInput{
+		ModalInput: components.ModalInput{
+			Title: "Create a new application",
+		},
+		SubmitAction:     "/applications",
+		SubmitActionType: components.ModalUpsertSubmitActionPost,
+		SubmitLabel:      "Create",
+		IconTypes: input.IconTypes,
+	}
+}
+
+templ ApplicationsCreateModal(input ApplicationsCreateModalInput) {
+	@components.ModalUpsert(applicationsCreateModalInput(input)) {
+		<div class="form-group">
+			<label for="visible-to-groups" class="text-secondary text-sm">Visible to groups</label>
+			<input
+				type="text"
+				id="visible-to-groups"
+				name="visible_to_groups"
+				class="mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80"
+				placeholder="Enter list of groups (eg. admin user ...)"
+			/>
+		</div>
+	}
+}

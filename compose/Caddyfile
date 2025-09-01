@@ -1,0 +1,38 @@
+:8080 {
+    handle /oauth2/* {
+        reverse_proxy oauth2-proxy:4180 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Uri {uri}
+        }
+    }
+
+    handle /static/* {
+        reverse_proxy dash:3000
+    }
+    handle /session/login {
+        reverse_proxy dash:3000
+    }
+    handle /session/login/callback {
+        reverse_proxy dash:3000
+    }
+    handle /session/logout/callback {
+        reverse_proxy dash:3000
+    }
+
+    handle {
+        forward_auth oauth2-proxy:4180 {
+            uri /oauth2/auth
+
+            header_up X-Real-IP {remote_host}
+
+            copy_headers Authorization
+
+            @error status 401
+            handle_response @error {
+                redir * /session/login?rd={uri}
+            }
+        }
+
+        reverse_proxy dash:3000
+    }
+}

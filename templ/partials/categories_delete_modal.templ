@@ -1,0 +1,24 @@
+package partials
+
+import (
+	"dash/templ/components"
+
+	"fmt"
+)
+
+type CategoriesDeleteModalInput struct {
+	ID              uint
+	DisplayName     string
+}
+
+func categoriesEditDeleteInput(input CategoriesDeleteModalInput) components.ModalDeleteInput {
+	return components.ModalDeleteInput{
+	    DisplayName: input.DisplayName,
+	    ResourceName: "category",
+		DeleteAction:     "/categories/" + fmt.Sprint(input.ID),
+	}
+}
+
+templ CategoriesDeleteModal(input CategoriesDeleteModalInput) {
+	@components.ModalDelete(categoriesEditDeleteInput(input))
+}

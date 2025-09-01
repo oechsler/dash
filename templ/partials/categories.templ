@@ -1,0 +1,53 @@
+package partials
+
+import (
+	"dash/templ/components"
+	"fmt"
+)
+
+type CategoriesInputBookmark struct {
+	ID          uint
+	Url         string
+	IconType    string
+	Icon        string
+	DisplayName string
+}
+
+type CategoriesInput struct {
+	ID          uint
+	DisplayName string
+	Bookmarks   []CategoriesInputBookmark
+}
+
+templ Categories(inputs []CategoriesInput) {
+	if len(inputs) == 0 {
+		<li class="text-tertiary">No categories yet</li>
+	} else {
+		for _, input := range inputs {
+			<li id={ "category-" + fmt.Sprint(input.ID) } class="p-0">
+				<div class="flex items-center justify-between">
+					<h3 class="text-md text-tertiary uppercase font-medium">{ input.DisplayName }</h3>
+				</div>
+				<ul class="mt-2">
+					if len(input.Bookmarks) == 0 {
+						<li class="text-secondary">No bookmarks yet</li>
+					} else {
+						for _, bookmark := range input.Bookmarks {
+							<li id={ "bookmark-" + fmt.Sprint(bookmark.DisplayName) }>
+								<a
+									href={ bookmark.Url }
+									class="flex items-center gap-2 text-secondary hover:pl-2 hover:underline hover:text-secondary transition-all duration-200"
+								>
+ 								<div class="text-xl">
+										<span class={ components.IconClass(bookmark.IconType, bookmark.Icon) }>{ components.IconText(bookmark.IconType, bookmark.Icon) }</span>
+									</div>
+									<h3>{ bookmark.DisplayName }</h3>
+								</a>
+							</li>
+						}
+					}
+				</ul>
+			</li>
+		}
+	}
+}

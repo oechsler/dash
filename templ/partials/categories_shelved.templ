@@ -1,0 +1,51 @@
+package partials
+
+import (
+	"fmt"
+	"dash/templ/components"
+)
+
+	type CategoriesShelvedInputBookmark struct {
+		ID          uint
+		Url         string
+		IconType    string
+		Icon        string
+		DisplayName string
+		Domain      string
+	}
+
+type CategoriesShelvedInput struct {
+	ID          uint
+	DisplayName string
+	Bookmarks   []CategoriesShelvedInputBookmark
+}
+
+templ CategoriesShelved(inputs []CategoriesShelvedInput) {
+	for _, input := range inputs {
+		<section id={ "shelved-category-" + fmt.Sprint(input.ID) } class="mt-12 lg:mt-16">
+			<h2 class="text-xl uppercase font-semibold text-secondary mb-4">{ input.DisplayName }</h2>
+			<ul class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2">
+				if len(input.Bookmarks) == 0 {
+					<li class="text-tertiary">No bookmarks yet</li>
+				} else {
+					for _, b := range input.Bookmarks {
+						<li id={ "bookmark-" + fmt.Sprint(b.ID) } class="list-item md:grid-item">
+							<a
+								href={ b.Url }
+								class="p-3 flex items-center gap-4 text-secondary rounded-xl hover:bg-tertiary/10 transition-all duration-200"
+							>
+ 						<div class="text-4xl">
+								<span class={ components.IconClass(b.IconType, b.Icon) }>{ components.IconText(b.IconType, b.Icon) }</span>
+							</div>
+								<div>
+									<h3 class="text-sm uppercase font-semibold">{ b.DisplayName }</h3>
+									<h4 class="text-sm text-tertiary">{ b.Domain }</h4>
+								</div>
+							</a>
+						</li>
+					}
+				}
+			</ul>
+		</section>
+	}
+}

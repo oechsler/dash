@@ -1,0 +1,26 @@
+package partials
+
+type ModalCloseReloadTrigger string
+
+const (
+	ModalCloseReloadApps       ModalCloseReloadTrigger = "apps-list"
+	ModalCloseReloadCategories ModalCloseReloadTrigger = "categories-list"
+)
+
+type ModalCloseReloadInput struct {
+	Trigger ModalCloseReloadTrigger
+}
+
+templ ModalCloseReload(input ModalCloseReloadInput) {
+	<div id="modal" hx-get="/dashboard/modal/close" hx-trigger="load" hx-target="#modal" hx-swap="outerHTML">
+		switch input.Trigger {
+			case ModalCloseReloadApps:
+				<div hx-get="/applications/edit" hx-trigger="load" hx-target="#apps-list" hx-swap="innerHTML"></div>
+				<div hx-get="/applications/edit" hx-trigger="load" hx-target="#apps-list" hx-swap="innerHTML"></div>
+			case ModalCloseReloadCategories:
+				<div hx-get="/categories/edit" hx-trigger="load" hx-target="#categories-list" hx-swap="innerHTML"></div>
+				<div hx-get="/categories/edit" hx-trigger="load" hx-target="#categories-list" hx-swap="innerHTML"></div>
+				<div hx-get="/categories/shelved/edit" hx-trigger="load" hx-target="#shelved-sections" hx-swap="innerHTML"></div>
+		}
+	</div>
+}

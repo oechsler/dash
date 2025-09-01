@@ -1,0 +1,27 @@
+package partials
+
+import "dash/templ/components"
+
+type BookmarksCreateModalInput struct {
+	CategoryID uint
+	CategoryDisplayName string
+	IconTypes       components.ModalUpserInputIconTypes
+}
+
+func bookmarksCreateModalInput(input BookmarksCreateModalInput) components.ModalUpsertInput {
+	return components.ModalUpsertInput{
+		ModalInput: components.ModalInput{
+			Title: "Create a new bookmark in " + input.CategoryDisplayName + " category",
+		},
+		SubmitAction:     "/bookmarks",
+		SubmitActionType: components.ModalUpsertSubmitActionPost,
+		SubmitLabel:      "Create",
+		IconTypes:        input.IconTypes,
+	}
+}
+
+templ BookmarksCreateModal(input BookmarksCreateModalInput) {
+	@components.ModalUpsert(bookmarksCreateModalInput(input)) {
+		<input type="hidden" name="category_id" value={ input.CategoryID }/>
+	}
+}

@@ -1,0 +1,51 @@
+# Golang
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build output
+*.test
+*.out
+
+# Go build directories and files
+bin/
+build/
+dist/
+release/
+
+# Go workspace and cache
+.gowork.sum
+.go.work
+vendor/
+# Module download cache (usually outside repo, but some tools place local cache)
+.gocache/
+
+# Coverage reports
+coverage.*
+*.cover
+*.coverprofile
+coverage/
+
+# Profiling data
+cpu.pprof
+mem.pprof
+*.pprof
+
+# Editor/IDE
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Static: ignore everything except generate.go
+static/*
+!static/generate.go
