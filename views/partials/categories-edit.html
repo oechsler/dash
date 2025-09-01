@@ -1,0 +1,45 @@
+{{range .}}
+<li id="category-{{.id}}" class="p-0">
+    <div class="flex items-center gap-4">
+        <h3 class="text-md text-tertiary uppercase font-medium">{{.display_name}}</h3>
+        <div class="flex gap-2">
+            <button class="text-tertiary hover:text-tertiary/80 transition-colors duration-200 cursor-pointer"
+                    hx-get="/categories/modal/edit/{{.id}}" hx-target="body" hx-swap="beforeend">
+                <span class="material-icons text-xl">edit</span>
+            </button>
+            <button class="text-tertiary hover:text-secondary transition-colors duration-200 cursor-pointer"
+                    hx-get="/categories/modal/delete/{{.id}}" hx-target="body" hx-swap="beforeend">
+                <span class="material-icons text-xl">delete</span>
+            </button>
+            <button class="text-tertiary hover:text-tertiary/80 transition-colors duration-200 cursor-pointer"
+                    hx-get="/bookmarks/modal/create/{{.id}}" hx-target="body" hx-swap="beforeend">
+                <span class="material-icons text-xl">add</span>
+            </button>
+        </div>
+    </div>
+    <ul class="mt-2">
+        {{range .bookmarks}}
+        <li id="bookmark-{{.id}}" class="flex items-center gap-4">
+            <div class="flex items-center gap-2 text-secondary">
+                <div>
+                    <span class="material-icons text-xl">{{.icon}}</span>
+                </div>
+                <h3>{{.display_name}}</h3>
+                <button class="text-secondary hover:text-secondary/80 transition-colors duration-200 cursor-pointer"
+                        hx-get="/bookmarks/modal/edit/{{.id}}" hx-target="body" hx-swap="beforeend">
+                    <span class="material-icons text-xl">edit</span>
+                </button>
+                <button class="text-secondary hover:text-tertiary transition-colors duration-200 cursor-pointer"
+                        hx-get="/bookmarks/modal/delete/{{.id}}" hx-target="body" hx-swap="beforeend">
+                    <span class="material-icons text-xl">delete</span>
+                </button>
+            </div>
+        </li>
+        {{else}}
+        <li class="text-secondary">No bookmarks yet</li>
+        {{end}}
+    </ul>
+</li>
+{{else}}
+<li class="text-tertiary">No categories yet</li>
+{{end}}

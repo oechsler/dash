@@ -1,0 +1,22 @@
+{{range .}}
+<li id="category-{{.id}}" class="p-0">
+    <h3 class="text-md text-tertiary uppercase font-medium">{{.display_name}}</h3>
+    <ul class="mt-2">
+        {{range .bookmarks}}
+        <li id="bookmark-{{.id}}">
+            <a href="{{.url}}"
+               class="flex items-center gap-2 text-secondary hover:pl-2 hover:underline hover:text-secondary transition-all duration-200">
+                <div>
+                    <span class="material-icons text-xl">{{.icon}}</span>
+                </div>
+                <h3>{{.display_name}}</h3>
+            </a>
+        </li>
+        {{else}}
+        <li class="text-secondary">No bookmarks yet</li>
+        {{end}}
+    </ul>
+</li>
+{{else}}
+<li class="text-tertiary">No categories yet</li>
+{{end}}

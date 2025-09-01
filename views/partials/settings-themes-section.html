@@ -1,0 +1,58 @@
+<hr class="my-6 border-tertiary"/>
+<div id="themes-section">
+    <h2 class="text-lg font-semibold mb-4 text-secondary">Themes</h2>
+    <ul class="space-y-2">
+        {{range .themes}}
+        <li class="flex items-center justify-between p-3 rounded-xl bg-tertiary/10">
+            <div class="flex items-center gap-3">
+                <span class="inline-block w-4 h-4 rounded" style="background: {{.Primary}}"></span>
+                <span class="inline-block w-4 h-4 rounded" style="background: {{.Secondary}}"></span>
+                <span class="inline-block w-4 h-4 rounded" style="background: {{.Tertiary}}"></span>
+                <span class="text-sm text-tertiary">{{.Name}}</span>
+            </div>
+            <div class="flex items-center">
+                {{if .Deletable}}
+                <form hx-post="/themes/{{.ID}}/delete" hx-target="#themes-section" hx-swap="outerHTML">
+                    <button class="px-4 h-9 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm">Delete</button>
+                </form>
+                {{else}}
+                <button class="px-4 h-9 rounded-lg invisible text-sm" aria-hidden="true">Delete</button>
+                {{end}}
+            </div>
+        </li>
+        {{end}}
+    </ul>
+
+    <form hx-post="/themes" hx-target="#themes-section" hx-swap="outerHTML"
+          class="mt-4 flex items-center justify-between gap-2 p-3 rounded-xl bg-tertiary/10">
+        <label class="flex-1">
+            <input name="name" placeholder="Name"
+                   class="p-2 h-9 w-full rounded-lg bg-primary border border-tertiary text-secondary text-sm"/>
+        </label>
+        <label class="flex-1">
+            <input name="primary" placeholder="#0ea5e9"
+                   class="p-2 h-9 w-full rounded-lg bg-primary border border-tertiary text-secondary text-sm"/>
+        </label>
+        <label class="flex-1">
+            <input name="secondary" placeholder="#22c55e"
+                   class="p-2 h-9 w-full rounded-lg bg-primary border border-tertiary text-secondary text-sm"/>
+        </label>
+        <label class="flex-1">
+            <input name="tertiary" placeholder="#f59e0b"
+                   class="p-2 h-9 w-full rounded-lg bg-primary border border-tertiary text-secondary text-sm"/>
+        </label>
+        <button class="px-4 h-9 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer whitespace-nowrap text-sm">
+            Add theme
+        </button>
+    </form>
+</div>
+{{with .settings}}
+<div id="settings-theme-select" hx-swap-oob="outerHTML">
+    <label class="block text-sm font-medium text-secondary">Theme</label>
+    <select name="ThemeID" class="mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80">
+        {{range $.themes}}
+        <option value="{{.ID}}" {{if eq $.settings.ThemeID .ID}}selected{{end}}>{{.Name}}</option>
+        {{end}}
+    </select>
+</div>
+{{end}}

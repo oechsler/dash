@@ -1,0 +1,16 @@
+<div class="form-group">
+    <label for="is-shelved-toggle" class="text-secondary text-sm">Shelved</label>
+    <div class="mt-2 flex items-center justify-start">
+        <input type="hidden" name="is_shelved" id="is-shelved-value" value="{{ .is_shelved }}">
+        <button type="button"
+                id="is-shelved-toggle"
+                hx-get="/categories/modal/shelved/{{ not .is_shelved }}"
+                hx-target="#shelved-form-group"
+                hx-swap="innerHTML"
+                class="inline-flex items-center gap-2 px-4 p-2 rounded-lg border {{ if .is_shelved }}text-primary bg-tertiary/80 border-tertiary/80 hover:bg-tertiary hover:border-tertiary{{ else }}text-secondary bg-primary border-tertiary hover:border-tertiary/80 hover:text-secondary/80{{ end }} transition-colors duration-200 cursor-pointer leading-none"
+                aria-pressed="{{ .is_shelved }}">
+            <span class="material-icons text-xl">{{ if .is_shelved }}bookmark{{ else }}bookmark_border{{ end }}</span>
+            <span class="text-sm">{{ if .is_shelved }}Shelved{{ else }}Not shelved{{ end }}</span>
+        </button>
+    </div>
+</div>

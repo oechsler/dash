@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <title>Dash</title>
+
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/tailwind.min.js"></script>
+    <style type="text/tailwindcss">
+      @theme {
+        --color-primary: {{with .theme}}{{.Primary}}{{else}}#0ea5e9{{end}};
+        --color-secondary: {{with .theme}}{{.Secondary}}{{else}}#22c55e{{end}};
+        --color-tertiary: {{with .theme}}{{.Tertiary}}{{else}}#f59e0b{{end}};
+      }
+    </style>
+
+    <link href="/static/css/material-icons.css" rel="stylesheet">
+</head>
+<body class="p-8 text-tertiary bg-primary">
+<div class="container mx-auto">
+    <nav class="flex justify-end items-center text-sm gap-4">
+        <a href="/profile" class="flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors duration-200">
+            <img src="{{.user.picture}}" alt="Profile" class="w-6 h-6 rounded-full">
+            <span>{{.user.display_name}}</span>
+        </a>
+        <a href="#" class="text-secondary hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1" hx-get="/settings/modal" hx-target="body" hx-swap="beforeend">
+            <span class="material-icons">settings</span>
+        </a>
+        <a href="/session/logout" class="text-secondary hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1">
+            <span class="material-icons">logout</span>
+        </a>
+    </nav>
+    <hr class="border-tertiary mt-4"/>
+    <main>
+        <p class="text-sm uppercase text-tertiary mt-8 mb-4">
+            <time>{{ .date }}</time>
+        </p>
+        <h1 class="text-4xl leading-[1.1] font-semibold text-secondary lg:text-5xl">{{ .greeting }}</h1>
+        <section id="apps" class="mt-12 lg:mt-16">
+            <div hx-get="/applications" hx-trigger="load" hx-target="#apps-list" hx-swap="innerHTML"></div>
+            <div id="apps-title" hx-get="/dashboard/title/applications" hx-trigger="load" hx-swap="outerHTML"></div>
+            <ul id="apps-list" class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2"></ul>
+        </section>
+        <div id="shelved-sections">
+            <div hx-get="/categories/shelved" hx-trigger="load" hx-target="#shelved-sections" hx-swap="innerHTML"></div>
+        </div>
+        <section id="bookmarks" class="mt-12 lg:mt-16">
+            <div id="bookmarks-title" hx-get="/dashboard/title/bookmarks" hx-trigger="load" hx-swap="outerHTML"></div>
+            <div hx-get="/categories" hx-trigger="load" hx-target="#categories-list" hx-swap="innerHTML"></div>
+            <ul id="categories-list" class="space-y-6 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-8"></ul>
+        </section>
+    </main>
+    <aside class="fixed bottom-8 right-8 flex flex-col gap-4">
+        <div hx-get="/dashboard/edit" hx-trigger="load" hx-swap="innerHTML"></div>
+    </aside>
+</div>
+</body>
+</html>

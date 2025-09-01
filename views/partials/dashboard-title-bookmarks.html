@@ -1,0 +1,13 @@
+{{if .edit_mode}}
+<div id="bookmarks-title" class="flex items-center gap-4 mb-4">
+    <h2 class="text-xl uppercase font-semibold text-secondary">Bookmarks</h2>
+    <button class="flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors duration-200 cursor-pointer"
+            hx-get="/categories/modal/create" hx-target="body" hx-swap="beforeend">
+        <span class="material-icons text-xl">add</span>
+    </button>
+</div>
+{{else}}
+<div id="bookmarks-title" class="flex items-center gap-4 mb-4">
+    <h2 class="text-xl uppercase font-semibold text-secondary">Bookmarks</h2>
+</div>
+{{end}}

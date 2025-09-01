@@ -1,0 +1,22 @@
+{{range $i, $app := .}}
+{{if eq $i 0}}
+<div class="hidden" hx-get="/dashboard/title/applications" hx-trigger="load" hx-target="#apps-title" hx-swap="delete" hx-swap-oob="true"></div>
+{{end}}
+<li id="application-{{$app.id}}" class="list-item md:grid-item">
+    <a href="{{$app.url}}"
+       class="p-3 flex items-center gap-4 text-secondary rounded-xl hover:bg-tertiary/10 transition-all duration-200">
+        <div>
+            <span class="material-icons text-4xl">{{$app.icon}}</span>
+        </div>
+        <div>
+            <h3 class="text-sm uppercase font-semibold">{{$app.display_name}}</h3>
+            <h4 class="text-sm text-tertiary">{{$app.domain}}</h4>
+        </div>
+    </a>
+</li>
+{{else}}
+<section id="apps" hx-swap-oob="outerHTML" class="mt-12 lg:mt-16 hidden">
+    <div id="apps-title"></div>
+    <ul id="apps-list" class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2"></ul>
+</section>
+{{end}}

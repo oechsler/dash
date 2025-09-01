@@ -1,0 +1,23 @@
+{{range .}}
+<section id="shelved-category-{{.id}}" class="mt-12 lg:mt-16">
+    <h2 class="text-xl uppercase font-semibold text-secondary mb-4">{{.display_name}}</h2>
+    <ul class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2">
+        {{range .bookmarks}}
+        <li id="bookmark-{{.id}}" class="list-item md:grid-item">
+            <a href="{{.url}}"
+               class="p-3 flex items-center gap-4 text-secondary rounded-xl hover:bg-tertiary/10 transition-all duration-200">
+                <div>
+                    <span class="material-icons text-4xl">{{.icon}}</span>
+                </div>
+                <div>
+                    <h3 class="text-sm uppercase font-semibold">{{.display_name}}</h3>
+                    <h4 class="text-sm text-tertiary">{{.domain}}</h4>
+                </div>
+            </a>
+        </li>
+        {{else}}
+        <li class="text-tertiary">No bookmarks yet</li>
+        {{end}}
+    </ul>
+</section>
+{{end}}

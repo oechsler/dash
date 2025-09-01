@@ -1,0 +1,8 @@
+<div id="modal" hx-get="/dashboard/modal/close" hx-trigger="load" hx-target="#modal" hx-swap="outerHTML">
+    {{if eq .trigger "apps-list"}}
+    <div hx-get="/applications/edit" hx-trigger="load" hx-target="#apps-list" hx-swap="innerHTML"></div>
+    {{else if eq .trigger "categories-list"}}
+    <div hx-get="/categories/edit" hx-trigger="load" hx-target="#categories-list" hx-swap="innerHTML"></div>
+    <div hx-get="/categories/shelved/edit" hx-trigger="load" hx-target="#shelved-sections" hx-swap="innerHTML"></div>
+    {{end}}
+</div>

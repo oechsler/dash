@@ -1,0 +1,31 @@
+<div hx-swap="outerHTML" id="edit-toggle">
+    {{ if .edit_mode }}
+    <button class="w-12 h-12 shadow-xl text-primary bg-tertiary/80 rounded-xl flex items-center justify-center hover:bg-tertiary transition-colors duration-200 cursor-pointer"
+            hx-get="/dashboard/edit/off" hx-target="#edit-toggle" hx-swap="outerHTML">
+        <span class="material-icons text-2xl">done</span>
+    </button>
+    {{ if .is_admin }}
+    <section id="apps" hx-swap-oob="outerHTML" class="mt-12 lg:mt-16">
+        <div id="apps-title"></div>
+        <ul id="apps-list" class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2"></ul>
+    </section>
+    <div hx-get="/dashboard/title/applications/edit" hx-trigger="load" hx-target="#apps-title" hx-swap="outerHTML"></div>
+    <div hx-get="/applications/edit" hx-trigger="load" hx-target="#apps-list" hx-swap="innerHTML"></div>
+    {{ end }}
+    <div hx-get="/categories/shelved/edit" hx-trigger="load" hx-target="#shelved-sections" hx-swap="innerHTML"></div>
+    <div hx-get="/dashboard/title/bookmarks/edit" hx-trigger="load" hx-target="#bookmarks-title" hx-swap="outerHTML"></div>
+    <div hx-get="/categories/edit" hx-trigger="load" hx-target="#categories-list" hx-swap="innerHTML"></div>
+    {{ else }}
+    <button class="w-12 h-12 shadow-xl text-tertiary bg-tertiary/10 rounded-xl flex items-center justify-center hover:bg-tertiary/20 transition-colors duration-200 cursor-pointer"
+            hx-get="/dashboard/edit/on" hx-target="#edit-toggle" hx-swap="outerHTML">
+        <span class="material-icons text-2xl">edit</span>
+    </button>
+    {{ if .with_trigger }}
+    <div hx-get="/dashboard/title/applications" hx-trigger="load" hx-target="#apps-title" hx-swap="outerHTML"></div>
+    <div hx-get="/applications" hx-trigger="load" hx-target="#apps-list" hx-swap="innerHTML"></div>
+    <div hx-get="/categories/shelved" hx-trigger="load" hx-target="#shelved-sections" hx-swap="innerHTML"></div>
+    <div hx-get="/dashboard/title/bookmarks" hx-trigger="load" hx-target="#bookmarks-title" hx-swap="outerHTML"></div>
+    <div hx-get="/categories" hx-trigger="load" hx-target="#categories-list" hx-swap="innerHTML"></div>
+    {{ end }}
+    {{ end }}
+</div>

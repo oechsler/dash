@@ -1,0 +1,26 @@
+<div id="modal" class="fixed inset-0 bg-primary/70 backdrop-blur-xs h-full w-full flex items-start justify-center md:items-center overflow-y-auto">
+    <div class="relative mt-6 md:mt-0 py-4 px-6 border border-tertiary w-11/12 md:w-[28rem] shadow-xl rounded-xl bg-primary max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mt-3 pb-3">
+            <p class="text-lg font-bold text-secondary mr-12 md:mr-24">Confirm delete</p>
+            <button class="text-tertiary hover:text-tertiary/80 transition-colors duration-200  cursor-pointer" hx-get="/dashboard/modal/close" hx-target="#modal"
+                    hx-swap="outerHTML">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div id="modal-content" class="mt-3 pb-3">
+            <div class="flex flex-col gap-6">
+                <p class="text-secondary whitespace-pre-line">Are you sure you want to delete the <strong>{{.display_name}}</strong>
+                    category? <strong>This action cannot be undone!</strong></p>
+                <div class="flex justify-end gap-2">
+                    <button class="px-4 py-2 rounded-lg bg-primary border border-tertiary text-tertiary hover:border-tertiary/80 hover:text-tertiary/80 transition-colors duration-200 cursor-pointer"
+                            hx-get="/dashboard/modal/close" hx-target="#modal" hx-swap="outerHTML">Cancel
+                    </button>
+                    <button class="px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors cursor-pointer"
+                            hx-delete="/categories/{{.id}}" hx-target="#modal" hx-swap="outerHTML">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

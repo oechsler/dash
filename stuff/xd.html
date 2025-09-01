@@ -1,0 +1,23 @@
+<!--{{template "partials/modal.html" (dict "title" "Confirm Delete" "data" .)}}
+{{define "modal-body"}}
+<div class="flex flex-col gap-6">
+    <p class="text-slate-300">
+        Are you sure you want to delete {{with .data}}{{if .name}}<span class="font-semibold">"{{.name}}"</span>{{else}}this
+        item{{end}}{{end}}? This action cannot be undone.</p>
+    <div class="flex justify-end gap-2">
+        <button class="px-4 py-2 rounded-lg bg-slate-700 text-slate-200 hover:bg-slate-600 transition-colors"
+                hx-get="/dashboard/modal/close" hx-target="#modal" hx-swap="outerHTML">Cancel
+        </button>
+        <button class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-500 transition-colors"
+                {{with .data}}
+                hx-delete="{{.path}}"
+                hx-target="{{.target}}"
+                hx-swap="{{.swap}}"
+                hx-headers='{"X-Mode":"{{.mode}}"}'
+                {{end}}
+                hx-on:afterRequest="document.getElementById('modal') && document.getElementById('modal').remove()">
+            Delete
+        </button>
+    </div>
+</div>
+{{end}}-->

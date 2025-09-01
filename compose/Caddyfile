@@ -1,0 +1,38 @@
+:3001 {
+    handle /static/* {
+        reverse_proxy host:3000
+    }
+    handle /session/login {
+        reverse_proxy host:3000
+    }
+    handle /session/login/callback {
+        reverse_proxy host:3000
+    }
+    handle /session/logout/callback {
+        reverse_proxy host:3000
+    }
+
+    handle /oauth2/* {
+        reverse_proxy oauth2-proxy:4180 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Uri {uri}
+        }
+    }
+
+    handle {
+        forward_auth oauth2-proxy:4180 {
+            uri /oauth2/auth
+
+            header_up X-Real-IP {remote_host}
+
+            copy_headers Authorization X-Auth-Request-Access-Token X-Auth-Request-User X-Auth-Request-Groups X-Auth-Request-Email X-Auth-Request-Preferred-Username
+
+            @error status 401
+            handle_response @error {
+                redir * /session/login?rd={uri}
+            }
+        }
+
+        reverse_proxy host:3000
+    }
+}

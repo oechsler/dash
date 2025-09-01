@@ -1,0 +1,27 @@
+{{range .}}
+<li id="application-{{.id}}" class="list-item md:grid-item">
+    <div class="p-3 flex items-center justify-between text-secondary rounded-xl bg-tertiary/10">
+        <div class="flex items-center gap-4">
+            <div>
+                <span class="material-icons text-4xl">{{.icon}}</span>
+            </div>
+            <div>
+                <h3 class="text-sm uppercase font-semibold">{{.display_name}}</h3>
+                <h4 class="text-sm text-tertiary">{{.domain}}</h4>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button class="flex items-center justify-center p-2 rounded-xl bg-tertiary/10 hover:bg-tertiary/30 transition-all duration-200 cursor-pointer"
+                    hx-get="/applications/modal/edit/{{.id}}" hx-target="body" hx-swap="beforeend">
+                <span class="material-icons">edit</span>
+            </button>
+            <button class="flex items-center justify-center p-2 rounded-xl bg-tertiary/10 hover:bg-tertiary hover:text-primary transition-all duration-200 cursor-pointer"
+                    hx-get="/applications/modal/delete/{{.id}}" hx-target="body" hx-swap="beforeend">
+                <span class="material-icons">delete</span>
+            </button>
+        </div>
+    </div>
+</li>
+{{else}}
+<li class="text-tertiary">No applications</li>
+{{end}}

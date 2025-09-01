@@ -1,0 +1,37 @@
+<!--
+{{template "partials/modal.html" (dict "title" "Edit" "data" .)}}
+{{define "modal-body"}}
+<form class="flex flex-col gap-4">
+    <div class="form-group">
+        <label class="text-slate-400 text-sm">Title</label>
+        <input type="text" class="w-full mt-2 p-2 bg-slate-700 rounded text-slate-300"
+               placeholder="Enter title">
+    </div>
+    <div class="form-group">
+        <label class="text-slate-400 text-sm">Icon</label>
+        <input type="text" class="w-full mt-2 p-2 bg-slate-700 rounded text-slate-300"
+               placeholder="Enter icon name (eg. mdi:home)">
+    </div>
+    <div class="form-group">
+        <label class="text-slate-400 text-sm">Description</label>
+        <input type="text" class="w-full mt-2 p-2 bg-slate-700 rounded text-slate-300"
+               placeholder="Enter description (optional)">
+    </div>
+    <div class="form-group">
+        <label class="text-slate-400 text-sm">URL</label>
+        <input type="url" class="w-full mt-2 p-2 bg-slate-700 rounded text-slate-300"
+               placeholder="Enter URL">
+    </div>
+    <div class="form-group">
+        <label class="text-slate-400 text-sm">Category</label>
+        <select class="w-full mt-2 p-2 bg-slate-700 rounded text-slate-300">
+            <option value="">Select category</option>
+            <option value="1">Work</option>
+            <option value="2">Personal</option>
+            <option value="3">Development</option>
+        </select>
+    </div>
+    <button type="submit" class="bg-blue-600 text-white mt-2 py-2 px-4 rounded hover:bg-blue-700">Save
+    </button>
+</form>
+{{end}}-->
