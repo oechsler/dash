@@ -42,7 +42,7 @@ templ SettingsModalThemeSection(input SettingsModalThemeSectionInput) {
 					<div class="flex items-center w-full sm:w-auto sm:ml-auto">
 						if t.Deletable {
 							<button
-								hx-get={ "/themes/" + fmt.Sprint(t.ID) }
+								hx-delete={ "/themes/" + fmt.Sprint(t.ID) }
 								hx-target="#themes-section"
 								hx-swap="outerHTML"
 								class="px-4 h-9 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm border border-transparent w-full sm:w-auto"
