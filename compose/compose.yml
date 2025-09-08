@@ -1,15 +1,19 @@
 services:
   dash:
-    # Uncomment the following lines to build the image locally
-    # instead of pulling from registry
-    # build:
-    #   context: ..
-    #   dockerfile: docker/Dockerfile
+    # ---
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    # ---
     image: ghcr.io/oechsler/dash:latest
     container_name: dash
     restart: unless-stopped
     volumes:
       - dash_data:/data:rw
+    environment:
+      OAUTH2_ADMIN_GROUP: "<OAUTH_ADMIN_GROUP>"
+      OAUTH2_PROFILE_URL: "<OAUTH_PROFILE_URL>"
+      OAUTH2_END_SESSION_URL: "<OAUTH_END_SESSION_URL>"
   
   oauth2-proxy:
     image: quay.io/oauth2-proxy/oauth2-proxy:latest

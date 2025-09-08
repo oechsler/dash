@@ -6,10 +6,10 @@ import (
 	"dash/domain/usecase"
 	"dash/domain/validation"
 	"dash/endpoint"
+	"dash/environment"
 	"log"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +18,7 @@ import (
 )
 
 var (
+	env                             *environment.Env
 	app                             *fiber.App
 	db                              *gorm.DB
 	dashboardRepo                   *repo.GormDashboardRepo
@@ -55,21 +56,11 @@ var (
 )
 
 func init() {
+	env = environment.NewEnv()
+
 	var err error
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		// Default next to the executable (e.g., /dash/dash.db inside container)
-		exe, err2 := os.Executable()
-		if err2 != nil {
-			// Fallback to working directory if executable path cannot be resolved
-			dbPath = "dash.db"
-		} else {
-			dbPath = filepath.Join(filepath.Dir(exe), "dash.db")
-		}
-	}
-	if dir := filepath.Dir(dbPath); dir != "." && dir != "" {
-		_ = os.MkdirAll(dir, 0o755)
-	}
+	dbPath := env.String("DB_PATH", "./dash.db")
+	log.Printf("connecting to database: %s", dbPath)
 	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{
 		PrepareStmt: true,
 	})
@@ -164,10 +155,11 @@ func main() {
 	)
 	defer cancel()
 
-	endpoint.Session(app)
-	endpoint.Favicon(app)
+	endpoint.Session(env, app)
+	endpoint.Favicon(env, app)
 
 	endpoint.Dashboard(endpoint.DashboardDeps{
+		Env:                env,
 		App:                app,
 		GetUserDashboard:   getUserDashboardUseCase,
 		GetUserSettings:    getUserSettingsUseCase,
@@ -176,6 +168,7 @@ func main() {
 	})
 
 	endpoint.Application(endpoint.ApplicationDeps{
+		Env:                   env,
 		App:                   app,
 		CreateApplication:     applicationCreateUseCase,
 		DeleteApplication:     applicationDeleteUseCase,
@@ -187,6 +180,7 @@ func main() {
 	})
 
 	endpoint.Category(endpoint.CategoryDeps{
+		Env:                      env,
 		App:                      app,
 		GetUserCategories:        getUserCategoriesUseCase,
 		GetUserShelvedCategories: getUserShelvedCategoriesUseCase,
@@ -197,6 +191,7 @@ func main() {
 	})
 
 	endpoint.Bookmark(endpoint.BookmarkDeps{
+		Env:                   env,
 		App:                   app,
 		GetUserBookmark:       getUserBookmarkUseCase,
 		GetUserCategory:       getUserCategoryUseCase,
@@ -207,6 +202,7 @@ func main() {
 	})
 
 	endpoint.Setting(endpoint.SettingDeps{
+		Env:                env,
 		App:                app,
 		GetUserSettings:    getUserSettingsUseCase,
 		UpdateUserSettings: updateUserSettingsUseCase,
@@ -215,6 +211,7 @@ func main() {
 	})
 
 	endpoint.Theme(endpoint.ThemeDeps{
+		Env:             env,
 		App:             app,
 		ListUserThemes:  listUserThemesUseCase,
 		CreateUserTheme: createUserThemeUseCase,
@@ -227,7 +224,7 @@ func main() {
 			log.Printf("server error: %v\n", err)
 		}
 	}()
-	log.Println("server listening on :3000")
+	log.Println("server listening on 0.0.0.0:3000")
 
 	<-interruptCtx.Done()
 

@@ -3,6 +3,7 @@ package endpoint
 import (
 	"dash/domain/model"
 	"dash/domain/usecase"
+	"dash/environment"
 	"dash/middleware"
 	"dash/templ/partials"
 	"errors"
@@ -29,6 +30,7 @@ const (
 )
 
 type CategoryDeps struct {
+	Env                      *environment.Env
 	App                      *fiber.App
 	GetUserCategories        *usecase.GetUserCategories
 	GetUserShelvedCategories *usecase.GetUserShelvedCategories
@@ -41,7 +43,7 @@ type CategoryDeps struct {
 func Category(deps CategoryDeps) {
 	router := deps.App.
 		Group("/categories").
-		Use(middleware.GetUserFromIdToken)
+		Use(middleware.GetUserFromIdToken(deps.Env))
 
 	router.
 		Use(middleware.HtmxOnly).

@@ -2,6 +2,7 @@ package endpoint
 
 import (
 	"dash/domain/usecase"
+	"dash/environment"
 	"dash/middleware"
 	"dash/templ/components"
 	"dash/templ/partials"
@@ -22,6 +23,7 @@ const (
 )
 
 type BookmarkDeps struct {
+	Env                   *environment.Env
 	App                   *fiber.App
 	GetUserCategory       *usecase.GetUserCategory
 	GetUserBookmark       *usecase.GetUserBookmark
@@ -34,7 +36,7 @@ type BookmarkDeps struct {
 func Bookmark(deps BookmarkDeps) {
 	router := deps.App.
 		Group("/bookmarks").
-		Use(middleware.GetUserFromIdToken)
+		Use(middleware.GetUserFromIdToken(deps.Env))
 
 	router.
 		Use(middleware.HtmxOnly).

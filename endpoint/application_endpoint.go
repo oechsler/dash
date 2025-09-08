@@ -3,6 +3,7 @@ package endpoint
 import (
 	"dash/domain/model"
 	"dash/domain/usecase"
+	"dash/environment"
 	"dash/middleware"
 	"dash/templ/components"
 	"dash/templ/partials"
@@ -26,6 +27,7 @@ const (
 )
 
 type ApplicationDeps struct {
+	Env                   *environment.Env
 	App                   *fiber.App
 	GetUserApplications   *usecase.GetUserApplications
 	ListApplications      *usecase.ListApplications
@@ -39,7 +41,7 @@ type ApplicationDeps struct {
 func Application(deps ApplicationDeps) {
 	router := deps.App.
 		Group("/applications").
-		Use(middleware.GetUserFromIdToken)
+		Use(middleware.GetUserFromIdToken(deps.Env))
 
 	router.
 		Use(middleware.HtmxOnly).

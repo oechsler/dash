@@ -3,6 +3,7 @@ package endpoint
 import (
 	"dash/domain/model"
 	"dash/domain/usecase"
+	"dash/environment"
 	"dash/middleware"
 	"dash/templ/partials"
 	"strconv"
@@ -17,6 +18,7 @@ const (
 )
 
 type ThemeDeps struct {
+	Env             *environment.Env
 	App             *fiber.App
 	ListUserThemes  *usecase.ListUserThemes
 	CreateUserTheme *usecase.CreateUserTheme
@@ -27,7 +29,7 @@ type ThemeDeps struct {
 func Theme(deps ThemeDeps) {
 	router := deps.App.
 		Group("/").
-		Use(middleware.GetUserFromIdToken)
+		Use(middleware.GetUserFromIdToken(deps.Env))
 
 	router.
 		Use(middleware.HtmxOnly).

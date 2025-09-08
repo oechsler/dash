@@ -1,6 +1,7 @@
 package endpoint
 
 import (
+	"dash/environment"
 	"net/url"
 	"strings"
 
@@ -14,7 +15,10 @@ const (
 	SessionLogoutCallbackRoute = "SessionLogoutCallbackRoute"
 )
 
-func Session(app *fiber.App) {
+func Session(
+	env *environment.Env,
+	app *fiber.App,
+) {
 	router := app.Group("/session")
 
 	router.Get("/login", func(c *fiber.Ctx) error {
@@ -66,9 +70,14 @@ func Session(app *fiber.App) {
 		authorizationHeader := c.Get("Authorization")
 		idToken, _ := strings.CutPrefix(authorizationHeader, "Bearer ")
 
-		endSessionUrl, err := url.Parse("https://id.at.oechsler.it/api/oidc/end-session")
+		endSessionUrlString := env.String("OAUTH2_END_SESSION_URL", "")
+		endSessionUrl, err := url.Parse(endSessionUrlString)
 		if err != nil {
-			return err
+			signOutUrl, err := url.Parse(c.BaseURL() + "/oauth2/sign_out")
+			if err != nil {
+				return err
+			}
+			return c.Redirect(signOutUrl.String(), fiber.StatusFound)
 		}
 
 		sessionLogoutCallbackRouteUrl, err := c.GetRouteURL(SessionLogoutCallbackRoute, fiber.Map{})

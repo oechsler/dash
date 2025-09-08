@@ -2,6 +2,7 @@ package endpoint
 
 import (
 	"bytes"
+	"dash/environment"
 	"dash/middleware"
 	"encoding/binary"
 	"image"
@@ -22,14 +23,17 @@ import (
 
 // Favicon registers a route that serves a circular-cropped user picture as an .ico at /favicon.ico.
 // If no user or no picture is available, it responds with 204 No Content.
-func Favicon(app *fiber.App) {
-	app.Get("/favicon.ico", middleware.GetUserFromIdToken, func(c *fiber.Ctx) error {
-		user, ok := middleware.GetCurrentUser(c)
-		if !ok || user.Picture == "" {
+func Favicon(env *environment.Env, app *fiber.App) {
+	app.Get("/favicon.ico", middleware.GetUserFromIdToken(env), func(c *fiber.Ctx) error {
+		user, authorized := middleware.GetCurrentUser(c)
+		if !authorized {
 			return c.SendStatus(fiber.StatusNoContent)
 		}
 
-		img, err := fetchAndDecodeImage(user.Picture)
+		if user.Picture == nil {
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+		img, err := fetchAndDecodeImage(*user.Picture)
 		if err != nil {
 			return c.SendStatus(fiber.StatusNoContent)
 		}

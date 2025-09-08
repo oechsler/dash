@@ -3,6 +3,7 @@ package endpoint
 import (
 	"dash/domain/model"
 	"dash/domain/usecase"
+	"dash/environment"
 	"dash/middleware"
 	"dash/templ/partials"
 
@@ -25,6 +26,7 @@ var availableTimeZones = []fiber.Map{
 }
 
 type SettingDeps struct {
+	Env                *environment.Env
 	App                *fiber.App
 	GetUserSettings    *usecase.GetUserSettings
 	UpdateUserSettings *usecase.UpdateUserSettings
@@ -35,7 +37,7 @@ type SettingDeps struct {
 func Setting(deps SettingDeps) {
 	router := deps.App.
 		Group("/").
-		Use(middleware.GetUserFromIdToken)
+		Use(middleware.GetUserFromIdToken(deps.Env))
 
 	router.
 		Use(middleware.HtmxOnly).

@@ -2,6 +2,7 @@ package endpoint
 
 import (
 	"dash/domain/usecase"
+	"dash/environment"
 	"dash/middleware"
 	"dash/templ/layout"
 	"dash/templ/page"
@@ -22,6 +23,7 @@ const (
 )
 
 type DashboardDeps struct {
+	Env                *environment.Env
 	App                *fiber.App
 	GetUserDashboard   *usecase.GetUserDashboard
 	GetUserSettings    *usecase.GetUserSettings
@@ -32,7 +34,7 @@ type DashboardDeps struct {
 func Dashboard(deps DashboardDeps) {
 	router := deps.App.
 		Group("/").
-		Use(middleware.GetUserFromIdToken)
+		Use(middleware.GetUserFromIdToken(deps.Env))
 
 	router.Get("/", func(c *fiber.Ctx) error {
 		user, authorized := middleware.GetCurrentUser(c)
@@ -74,6 +76,7 @@ func Dashboard(deps DashboardDeps) {
 			User: page.UserInfo{
 				Picture:     user.Picture,
 				DisplayName: user.DisplayName,
+				ProfileUrl:  user.ProfileUrl,
 			},
 			Date:     dashboard.Greeting.Date,
 			Greeting: dashboard.Greeting.Message,
