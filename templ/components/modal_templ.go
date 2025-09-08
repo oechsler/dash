@@ -33,7 +33,7 @@ func Modal(input ModalInput) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"modal\" class=\"fixed inset-0 bg-primary/70 backdrop-blur-xs h-full w-full flex items-start justify-center md:items-center overflow-y-auto\"><div class=\"relative mt-6 md:mt-0 py-4 px-6 border border-tertiary w-11/12 md:w-[28rem] shadow-xl rounded-xl bg-primary max-h-[90vh] overflow-y-auto\"><div class=\"flex justify-between items-center mt-3 pb-3 gap-2\"><div class=\"min-w-0\"><p class=\"text-lg font-bold text-secondary break-all\">")
+  templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"modal\" class=\"fixed inset-0 bg-primary/70 backdrop-blur-xs h-full w-full flex items-start justify-center md:items-center overflow-y-auto\"><div class=\"relative mt-6 md:mt-0 py-4 px-6 border border-tertiary w-11/12 md:w-[28rem] shadow-xl rounded-xl bg-primary max-h-[90vh] overflow-y-auto\"><div class=\"flex justify-between items-center mt-3 pb-3 gap-2\"><div class=\"min-w-0\"><p class=\"text-lg font-bold text-secondary break-words\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

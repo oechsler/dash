@@ -53,7 +53,7 @@ func ModalDelete(input ModalDeleteInput) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col gap-6\"><p class=\"text-secondary whitespace-pre-line\">Are you sure you want to delete the <strong>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex flex-col gap-6\"><p class=\"text-secondary whitespace-pre-line break-words\">Are you sure you want to delete the <strong>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

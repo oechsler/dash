@@ -15,7 +15,7 @@ func modalDeleteInput(input ModalDeleteInput) ModalInput {
 templ ModalDelete(input ModalDeleteInput) {
 	@Modal(modalDeleteInput(input)) {
 		<div class="flex flex-col gap-6">
-			<p class="text-secondary whitespace-pre-line">
+			<p class="text-secondary whitespace-pre-line break-words">
 				Are you sure you want to delete the <strong>{ input.DisplayName }</strong>
 				{ input.ResourceName }? <strong>This action cannot be undone!</strong>
 			</p>
