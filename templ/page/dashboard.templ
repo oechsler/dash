@@ -18,24 +18,24 @@ type DashboardInput struct {
 templ Dashboard(input DashboardInput) {
 	@layout.Base(input.BaseInput) {
 		<div class="container mx-auto">
-			<nav class="flex justify-end items-center text-sm gap-4">
+			<nav class="flex justify-end items-center text-2xl gap-4">
 				if input.User.ProfileUrl == nil {
 					<div class="flex items-center gap-2 text-secondary">
 						if input.User.Picture == nil {
-							<span class="material-icons-round w-6 h-6 rounded-full">person</span>
+							<span class="material-icons-round w-6 h-6 rounded-full">account_circle</span>
 						} else {
 							<img src={ *input.User.Picture } alt="Profile" class="w-6 h-6 rounded-full"/>
 						}
-						<span>{ input.User.DisplayName }</span>
+						<span class="text-sm">{ input.User.DisplayName }</span>
 					</div>
 				} else {
 					<a href={ *input.User.ProfileUrl } class="flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors duration-200">
 						if input.User.Picture == nil {
-							<span class="material-icons-round w-6 h-6 rounded-full">person</span>
+							<span class="material-icons-round w-6 h-6 rounded-full">account_circle</span>
 						} else {
 							<img src={ *input.User.Picture } alt="Profile" class="w-6 h-6 rounded-full"/>
 						}
-						<span>{ input.User.DisplayName }</span>
+						<span class="text-sm">{ input.User.DisplayName }</span>
 					</a>
 				}
 				<button class="text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1 cursor-pointer" hx-get="/settings/modal" hx-target="body" hx-swap="beforeend">

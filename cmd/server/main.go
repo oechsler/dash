@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/sqlite"
@@ -143,6 +144,28 @@ func init() {
 	app = fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 		ReadBufferSize:        1024 * 1024 * 1,
+	})
+	app.Use(func(c *fiber.Ctx) error {
+		start := time.Now()
+		err := c.Next()
+
+		ip := c.IP()
+		latency := time.Since(start)
+		status := c.Response().StatusCode()
+		method := c.Method()
+		path := c.Path()
+		userAgent := c.Get("User-Agent")
+
+		log.Printf("[%d] %s %s - %v - %s - %s",
+			status,
+			method,
+			path,
+			latency,
+			ip,
+			userAgent,
+		)
+
+		return err
 	})
 	app.Static("/static", "./static")
 }
