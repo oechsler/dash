@@ -19,17 +19,17 @@ templ ApplicationsEdit(inputs []ApplicationsEditInput) {
 	} else {
 		for _, input := range inputs {
 			<li id={ "application-" + fmt.Sprint(input.ID) } class="list-item md:grid-item">
-				<div class="p-3 flex items-center justify-between text-secondary rounded-xl bg-tertiary/10">
+				<div class="p-3 flex flex-wrap items-center justify-between gap-2 text-secondary rounded-xl bg-tertiary/10">
 					<div class="flex items-center gap-4">
  					<div class="text-4xl">
 							<span class={ components.IconClass(input.IconType, input.Icon) }>{ components.IconText(input.IconType, input.Icon) }</span>
 						</div>
-						<div>
-							<h3 class="text-sm uppercase font-semibold">{ input.DisplayName }</h3>
-							<h4 class="text-sm text-tertiary">{ input.Domain }</h4>
-						</div>
+ 					<div class="min-w-0">
+ 						<h3 class="text-sm uppercase font-semibold break-all">{ input.DisplayName }</h3>
+ 						<h4 class="text-sm text-tertiary break-all">{ input.Domain }</h4>
+ 					</div>
 					</div>
-					<div class="flex gap-2">
+					<div class="flex gap-2 ml-auto">
 						<button
 							class="flex text-2xl items-center justify-center p-2 rounded-xl bg-tertiary/10 hover:bg-tertiary/30 transition-all duration-200 cursor-pointer"
 							hx-get={ "/applications/modal/edit/" + fmt.Sprint(input.ID) }

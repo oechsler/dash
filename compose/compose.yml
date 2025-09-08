@@ -11,8 +11,11 @@ services:
     volumes:
       - dash_data:/data:rw
     environment:
+      # Admin group name for authorization purposes
       OAUTH2_ADMIN_GROUP: "<OAUTH_ADMIN_GROUP>"
+      # URL to redirect to for user profile information
       OAUTH2_PROFILE_URL: "<OAUTH_PROFILE_URL>"
+      # URL for ending the OAuth2 session/logout
       OAUTH2_END_SESSION_URL: "<OAUTH_END_SESSION_URL>"
   
   oauth2-proxy:
@@ -22,23 +25,35 @@ services:
     depends_on:
       - dash
     environment:
+      # Address and port for OAuth2 proxy to listen on
       OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:4180"
+      # OAuth2 callback URL for authentication flow
       OAUTH2_PROXY_REDIRECT_URL: "<OAUTH_REDIRECT_URL>"
+      # Allowed domains for OAuth2 authentication
       OAUTH2_PROXY_WHITELIST_DOMAINS: "<OAUTH_WHITELISTED_DOMAINS>"
 
+      # OpenID Connect provider configuration
       OAUTH2_PROXY_PROVIDER: oidc
       OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: "<OAUTH_PROVIDER_NAME>"
       OAUTH2_PROXY_OIDC_ISSUER_URL: "<OAUTH_ISSUER_URL>"
       OAUTH2_PROXY_CLIENT_ID: "<OAUTH_CLIENT_ID>"
       OAUTH2_PROXY_CLIENT_SECRET: "<OAUTH_CLIENT_SECRET>"
+      # OAuth scopes to request
       OAUTH2_PROXY_SCOPE: "openid profile email groups"
+      # PKCE code challenge method
       OAUTH2_PROXY_CODE_CHALLENGE_METHOD: "S256"
 
+      # Allow all email domains
       OAUTH2_PROXY_EMAIL_DOMAINS: "*"
 
+      # Cookie settings for session management
+      OAUTH2_PROXY_COOKIE_SECURE: "true"
+      OAUTH2_PROXY_COOKIE_NAME: "__Secure_dash"
       OAUTH2_PROXY_COOKIE_DOMAIN: "<COOKIE_DOMAIN>"
-      OAUTH2_PROXY_COOKIE_NAME: "_dash"
+      OAUTH2_PROXY_COOKIE_EXPIRE: "0"
       OAUTH2_PROXY_COOKIE_SECRET: "<COOKIE_SECRET>"
+
+      # Reverse proxy and authentication header settings
       OAUTH2_PROXY_REVERSE_PROXY: "true"
       OAUTH2_PROXY_SET_XAUTHREQUEST: "true"
       OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: "true"

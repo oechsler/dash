@@ -9,14 +9,16 @@ type DashboardEditInput struct {
 templ DashboardEdit(input DashboardEditInput) {
 	<div hx-swap="outerHTML" id="edit-toggle">
 		if input.EditMode {
-			<button
-				class="w-12 h-12 text-2xl shadow-xl text-primary bg-tertiary/80 rounded-xl flex items-center justify-center hover:bg-tertiary transition-colors duration-200 cursor-pointer"
-				hx-get="/dashboard/edit/off"
-				hx-target="#edit-toggle"
-				hx-swap="outerHTML"
-			>
-				<span class="material-icons-round">done</span>
-			</button>
+			<div class="w-12 h-12 rounded-xl bg-primary p-0 shadow-xl">
+				<button
+					class="w-full h-full text-2xl text-primary bg-tertiary/80 rounded-xl flex items-center justify-center hover:bg-tertiary transition-colors duration-200 cursor-pointer"
+					hx-get="/dashboard/edit/off"
+					hx-target="#edit-toggle"
+					hx-swap="outerHTML"
+				>
+					<span class="material-icons-round">done</span>
+				</button>
+			</div>
 			if input.IsAdmin {
 				<section id="apps" hx-swap-oob="outerHTML" class="mt-12 lg:mt-16">
 					<div id="apps-title"></div>
@@ -29,14 +31,16 @@ templ DashboardEdit(input DashboardEditInput) {
 			<div hx-get="/dashboard/title/bookmarks/edit" hx-trigger="load" hx-target="#bookmarks-title" hx-swap="outerHTML"></div>
 			<div hx-get="/categories/edit" hx-trigger="load" hx-target="#categories-list" hx-swap="innerHTML"></div>
 		} else {
-			<button
-				class="w-12 h-12 text-2xl shadow-xl text-tertiary bg-tertiary/10 rounded-xl flex items-center justify-center hover:bg-tertiary/20 transition-colors duration-200 cursor-pointer"
-				hx-get="/dashboard/edit/on"
-				hx-target="#edit-toggle"
-				hx-swap="outerHTML"
-			>
-				<span class="material-icons-round">edit</span>
-			</button>
+			<div class="w-12 h-12 rounded-xl bg-primary p-0 shadow-xl">
+				<button
+					class="w-full h-full text-2xl text-tertiary bg-tertiary/10 rounded-xl flex items-center justify-center hover:bg-tertiary/20 transition-colors duration-200 cursor-pointer"
+					hx-get="/dashboard/edit/on"
+					hx-target="#edit-toggle"
+					hx-swap="outerHTML"
+				>
+					<span class="material-icons-round">edit</span>
+				</button>
+			</div>
 			if input.WithTrigger {
 				<div hx-get="/dashboard/title/applications" hx-trigger="load" hx-target="#apps-title" hx-swap="outerHTML"></div>
 				<div hx-get="/applications" hx-trigger="load" hx-target="#apps-list" hx-swap="innerHTML"></div>

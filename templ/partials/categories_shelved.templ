@@ -23,7 +23,9 @@ type CategoriesShelvedInput struct {
 templ CategoriesShelved(inputs []CategoriesShelvedInput) {
 	for _, input := range inputs {
 		<section id={ "shelved-category-" + fmt.Sprint(input.ID) } class="mt-12 lg:mt-16">
-			<h2 class="text-xl uppercase font-semibold text-secondary mb-4">{ input.DisplayName }</h2>
+ 		<div class="min-w-0 mb-4">
+				<h2 class="text-xl uppercase font-semibold text-secondary break-all">{ input.DisplayName }</h2>
+			</div>
 			<ul class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2">
 				if len(input.Bookmarks) == 0 {
 					<li class="text-tertiary">No bookmarks yet</li>
@@ -37,10 +39,10 @@ templ CategoriesShelved(inputs []CategoriesShelvedInput) {
  						<div class="text-4xl">
 								<span class={ components.IconClass(b.IconType, b.Icon) }>{ components.IconText(b.IconType, b.Icon) }</span>
 							</div>
-								<div>
-									<h3 class="text-sm uppercase font-semibold">{ b.DisplayName }</h3>
-									<h4 class="text-sm text-tertiary">{ b.Domain }</h4>
-								</div>
+  						<div class="min-w-0">
+  							<h3 class="text-sm uppercase font-semibold break-all">{ b.DisplayName }</h3>
+  							<h4 class="text-sm text-tertiary break-all">{ b.Domain }</h4>
+  						</div>
 							</a>
 						</li>
 					}

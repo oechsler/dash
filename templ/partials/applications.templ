@@ -29,9 +29,9 @@ templ Applications(inputs []ApplicationsInput) {
 					<div class="text-4xl">
 						<span class={ components.IconClass(input.IconType, input.Icon) }>{ components.IconText(input.IconType, input.Icon) }</span>
 					</div>
-					<div>
-						<h3 class="text-sm uppercase font-semibold">{ input.DisplayName }</h3>
-						<h4 class="text-sm text-tertiary">{ input.Domain }</h4>
+					<div class="min-w-0">
+						<h3 class="text-sm uppercase font-semibold break-all">{ input.DisplayName }</h3>
+						<h4 class="text-sm text-tertiary break-all">{ input.Domain }</h4>
 					</div>
 				</a>
 			</li>

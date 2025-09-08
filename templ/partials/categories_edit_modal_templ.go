@@ -93,7 +93,7 @@ func CategoriesEditModal(input CategoriesEditModalInput) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><button type=\"submit\" class=\"bg-tertiary/80 text-primary mt-2 py-2 px-4 rounded hover:bg-tertiary transition-colors duration-200 cursor-pointer\">Create</button></form>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><button type=\"submit\" class=\"bg-tertiary/80 text-primary mt-2 py-2 px-4 rounded hover:bg-tertiary transition-colors duration-200 cursor-pointer\">Save</button></form>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

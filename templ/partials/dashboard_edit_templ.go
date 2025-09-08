@@ -40,7 +40,7 @@ func DashboardEdit(input DashboardEditInput) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if input.EditMode {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button class=\"w-12 h-12 text-2xl shadow-xl text-primary bg-tertiary/80 rounded-xl flex items-center justify-center hover:bg-tertiary transition-colors duration-200 cursor-pointer\" hx-get=\"/dashboard/edit/off\" hx-target=\"#edit-toggle\" hx-swap=\"outerHTML\"><span class=\"material-icons-round\">done</span></button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"w-12 h-12 rounded-xl bg-primary p-0 shadow-xl\"><button class=\"w-full h-full text-2xl text-primary bg-tertiary/80 rounded-xl flex items-center justify-center hover:bg-tertiary transition-colors duration-200 cursor-pointer\" hx-get=\"/dashboard/edit/off\" hx-target=\"#edit-toggle\" hx-swap=\"outerHTML\"><span class=\"material-icons-round\">done</span></button></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -55,7 +55,7 @@ func DashboardEdit(input DashboardEditInput) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<button class=\"w-12 h-12 text-2xl shadow-xl text-tertiary bg-tertiary/10 rounded-xl flex items-center justify-center hover:bg-tertiary/20 transition-colors duration-200 cursor-pointer\" hx-get=\"/dashboard/edit/on\" hx-target=\"#edit-toggle\" hx-swap=\"outerHTML\"><span class=\"material-icons-round\">edit</span></button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div class=\"w-12 h-12 rounded-xl bg-primary p-0 shadow-xl\"><button class=\"w-full h-full text-2xl text-tertiary bg-tertiary/10 rounded-xl flex items-center justify-center hover:bg-tertiary/20 transition-colors duration-200 cursor-pointer\" hx-get=\"/dashboard/edit/on\" hx-target=\"#edit-toggle\" hx-swap=\"outerHTML\"><span class=\"material-icons-round\">edit</span></button></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

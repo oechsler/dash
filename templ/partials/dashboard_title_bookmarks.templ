@@ -5,16 +5,18 @@ type DashboardTitleBookmarksInput struct {
 }
 
 templ DashboardTitleBookmarks(input DashboardTitleBookmarksInput) {
-	<div id="bookmarks-title" class="flex items-center gap-4 mb-4">
-		<h2 class="text-xl uppercase font-semibold text-secondary">Bookmarks</h2>
+	<div id="bookmarks-title" class="flex flex-wrap items-center justify-between gap-4 mb-4">
+		<div class="min-w-0">
+			<h2 class="text-xl uppercase font-semibold text-secondary break-all">Bookmarks</h2>
+		</div>
 		if input.EditMode {
 			<button
-				class="flex items-center gap-2 text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 cursor-pointer"
+				class="ml-auto flex items-center gap-2 text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 cursor-pointer"
 				hx-get="/categories/modal/create"
 				hx-target="body"
 				hx-swap="beforeend"
 			>
-				<span class="material-icons-round">add</span>
+				<span class="material-icons-round">add_circle</span>
 			</button>
 		}
 	</div>

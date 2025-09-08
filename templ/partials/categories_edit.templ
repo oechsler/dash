@@ -24,8 +24,10 @@ templ CategoriesEdit(inputs []CategoriesEditInput) {
 	} else {
 		for _, input := range inputs {
 			<li id={ "category-" + fmt.Sprint(input.ID) } class="p-0">
-				<div class="flex items-center gap-4">
-					<h3 class="text-md text-tertiary uppercase font-medium">{ input.DisplayName }</h3>
+				<div class="flex items-center justify-between gap-4">
+					<div class="min-w-0">
+ 					<h3 class="text-md text-tertiary uppercase font-medium break-all">{ input.DisplayName }</h3>
+					</div>
 					<div class="flex items-center gap-2">
 						<button
 							class="flex items-center text-tertiary text-2xl hover:text-tertiary/80 transition-colors duration-200 cursor-pointer"
@@ -49,7 +51,7 @@ templ CategoriesEdit(inputs []CategoriesEditInput) {
 							hx-target="body"
 							hx-swap="beforeend"
 						>
-							<span class="material-icons-round">add</span>
+							<span class="material-icons-round">add_circle</span>
 						</button>
 					</div>
 				</div>
@@ -58,22 +60,26 @@ templ CategoriesEdit(inputs []CategoriesEditInput) {
 						<li class="text-secondary">No bookmarks yet</li>
 					} else {
 						for _, bookmark := range input.Bookmarks {
-							<li id={ "bookmark-" + fmt.Sprint(bookmark.ID) } class="flex items-center gap-4">
+							<li id={ "bookmark-" + fmt.Sprint(bookmark.ID) } class="flex items-center justify-between gap-4">
 								<div class="flex items-center gap-2 text-secondary">
- 								<div class="text-xl">
+									<div class="text-xl">
 										<span class={ components.IconClass(bookmark.IconType, bookmark.Icon) }>{ components.IconText(bookmark.IconType, bookmark.Icon) }</span>
 									</div>
-									<h3 class="mr-2">{ bookmark.DisplayName }</h3>
+  							<div class="min-w-0">
+  								<h3 class="break-all mr-2">{ bookmark.DisplayName }</h3>
+  							</div>
+								</div>
+								<div class="flex items-center gap-2">
 									<button
-										class="flex items-center text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 cursor-pointer mr-2"
+										class="flex items-center text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 cursor-pointer"
 										hx-get={ "/bookmarks/modal/edit/" + fmt.Sprint(bookmark.ID) }
 										hx-target="body"
 										hx-swap="beforeend"
 									>
 										<span class="material-icons-round">edit</span>
 									</button>
- 								<button
- 									class="flex items-center text-secondary text-2xl hover:text-tertiary transition-colors duration-200 cursor-pointer"
+									<button
+										class="flex items-center text-secondary text-2xl hover:text-tertiary transition-colors duration-200 cursor-pointer"
 										hx-get={ "/bookmarks/modal/delete/" + fmt.Sprint(bookmark.ID) }
 										hx-target="body"
 										hx-swap="beforeend"

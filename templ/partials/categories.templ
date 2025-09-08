@@ -26,7 +26,9 @@ templ Categories(inputs []CategoriesInput) {
 		for _, input := range inputs {
 			<li id={ "category-" + fmt.Sprint(input.ID) } class="p-0">
 				<div class="flex items-center justify-between">
-					<h3 class="text-md text-tertiary uppercase font-medium">{ input.DisplayName }</h3>
+					<div class="min-w-0">
+						<h3 class="text-md text-tertiary uppercase font-medium break-all">{ input.DisplayName }</h3>
+					</div>
 				</div>
 				<ul class="mt-2">
 					if len(input.Bookmarks) == 0 {
@@ -34,15 +36,17 @@ templ Categories(inputs []CategoriesInput) {
 					} else {
 						for _, bookmark := range input.Bookmarks {
 							<li id={ "bookmark-" + fmt.Sprint(bookmark.DisplayName) }>
-								<a
-									href={ bookmark.Url }
-									class="flex items-center gap-2 text-secondary hover:pl-2 hover:underline hover:text-secondary transition-all duration-200"
-								>
+ 							<a
+ 								href={ bookmark.Url }
+ 								class="flex items-center gap-2 text-secondary hover:pl-2 hover:underline hover:text-secondary transition-all duration-200"
+ 							>
  								<div class="text-xl">
-										<span class={ components.IconClass(bookmark.IconType, bookmark.Icon) }>{ components.IconText(bookmark.IconType, bookmark.Icon) }</span>
-									</div>
-									<h3>{ bookmark.DisplayName }</h3>
-								</a>
+ 									<span class={ components.IconClass(bookmark.IconType, bookmark.Icon) }>{ components.IconText(bookmark.IconType, bookmark.Icon) }</span>
+ 								</div>
+  							<div class="min-w-0">
+  								<h3 class="break-all">{ bookmark.DisplayName }</h3>
+  							</div>
+ 							</a>
 							</li>
 						}
 					}

@@ -1,14 +1,21 @@
+# Listen on port 8080
 :8080 {
+    # Handle OAuth2 proxy authentication endpoints
     handle /oauth2/* {
         reverse_proxy oauth2-proxy:4180 {
+            # Pass client IP address to backend
             header_up X-Real-IP {remote_host}
+            # Pass original request URI
             header_up X-Forwarded-Uri {uri}
         }
     }
 
+    # Serve static assets without authentication
     handle /static/* {
         reverse_proxy dash:3000
     }
+    
+    # Authentication-related endpoints that bypass auth check
     handle /session/login {
         reverse_proxy dash:3000
     }
@@ -19,20 +26,27 @@
         reverse_proxy dash:3000
     }
 
+    # Default handler for all other routes
     handle {
+        # Forward all requests through OAuth2 proxy for authentication
         forward_auth oauth2-proxy:4180 {
             uri /oauth2/auth
 
+            # Pass client IP to OAuth2 proxy
             header_up X-Real-IP {remote_host}
 
+            # Copy authentication headers from OAuth2 proxy response
             copy_headers Authorization X-Auth-Request-User X-Auth-Request-Groups X-Auth-Request-Email X-Auth-Request-Preferred-Username
 
+            # Handle unauthorized requests
             @error status 401
             handle_response @error {
+                # Redirect to login page with return destination
                 redir * /session/login?rd={uri}
             }
         }
 
+        # Proxy authenticated requests to dash
         reverse_proxy dash:3000
     }
 }

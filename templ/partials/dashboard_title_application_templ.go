@@ -35,12 +35,12 @@ func DashboardTitleApplications(input DashboardTitleApplicationsInput) templ.Com
 		}
 		ctx = templ.ClearChildren(ctx)
 		if !input.EditMode || input.IsAdmin {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"apps-title\" class=\"flex items-center gap-4 mb-4\"><h2 class=\"text-xl uppercase font-semibold text-secondary\">Applications</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"apps-title\" class=\"flex flex-wrap items-center justify-between gap-4 mb-4\"><div class=\"min-w-0\"><h2 class=\"text-xl uppercase font-semibold text-secondary break-all\">Applications</h2></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if input.EditMode && input.IsAdmin {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button class=\"flex items-center gap-2 text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 cursor-pointer\" hx-get=\"/applications/modal/create\" hx-target=\"body\" hx-swap=\"beforeend\"><span class=\"material-icons-round\">add</span></button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button class=\"ml-auto flex items-center gap-2 text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 cursor-pointer\" hx-get=\"/applications/modal/create\" hx-target=\"body\" hx-swap=\"beforeend\"><span class=\"material-icons-round\">add_circle</span></button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
