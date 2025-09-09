@@ -214,15 +214,16 @@ func main() {
 	})
 
 	endpoint.Bookmark(endpoint.BookmarkDeps{
-		Env:                   env,
-		App:                   app,
-		GetUserBookmark:       getUserBookmarkUseCase,
-		GetUserCategory:       getUserCategoryUseCase,
-		GetUserCategories:     getUserCategoriesUseCase,
-		BookmarkCreate:        bookmarkCreateUseCase,
-		BookmarkUpdate:        bookmarkUpdateUseCase,
-		BookmarkDelete:        bookmarkDeleteUseCase,
-		GetAvailableIconTypes: getAvailableIconTypesUseCase,
+		Env:                      env,
+		App:                      app,
+		GetUserBookmark:          getUserBookmarkUseCase,
+		GetUserCategory:          getUserCategoryUseCase,
+		GetUserCategories:        getUserCategoriesUseCase,
+		GetUserShelvedCategories: getUserShelvedCategoriesUseCase,
+		BookmarkCreate:           bookmarkCreateUseCase,
+		BookmarkUpdate:           bookmarkUpdateUseCase,
+		BookmarkDelete:           bookmarkDeleteUseCase,
+		GetAvailableIconTypes:    getAvailableIconTypesUseCase,
 	})
 
 	endpoint.Setting(endpoint.SettingDeps{

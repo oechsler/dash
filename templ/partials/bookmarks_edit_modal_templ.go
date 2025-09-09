@@ -10,7 +10,6 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"dash/templ/components"
-
 	"fmt"
 )
 
@@ -77,7 +76,7 @@ func BookmarksEditModal(input BookmarksEditModalInput) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"form-group\"><label for=\"category-id\" class=\"text-secondary text-sm\">Category</label><select id=\"category-id\" name=\"category_id\" class=\"mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"form-group\"><label for=\"category-id\" class=\"text-secondary text-sm\">Category</label> <select id=\"category-id\" name=\"category_id\" class=\"mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -88,7 +87,7 @@ func BookmarksEditModal(input BookmarksEditModalInput) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var3 string
-					templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(c.ID)
+					templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(c.ID))
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/bookmarks_edit_modal.templ`, Line: 45, Col: 38}
 					}
@@ -103,7 +102,7 @@ func BookmarksEditModal(input BookmarksEditModalInput) templ.Component {
 					var templ_7745c5c3_Var4 string
 					templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(c.DisplayName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/bookmarks_edit_modal.templ`, Line: 45, Col: 66}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/bookmarks_edit_modal.templ`, Line: 45, Col: 65}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 					if templ_7745c5c3_Err != nil {
@@ -119,9 +118,9 @@ func BookmarksEditModal(input BookmarksEditModalInput) templ.Component {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var5 string
-					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(c.ID)
+					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(c.ID))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/bookmarks_edit_modal.templ`, Line: 47, Col: 35}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/bookmarks_edit_modal.templ`, Line: 47, Col: 38}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 					if templ_7745c5c3_Err != nil {
@@ -134,7 +133,7 @@ func BookmarksEditModal(input BookmarksEditModalInput) templ.Component {
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(c.DisplayName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/bookmarks_edit_modal.templ`, Line: 47, Col: 63}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/bookmarks_edit_modal.templ`, Line: 47, Col: 56}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {

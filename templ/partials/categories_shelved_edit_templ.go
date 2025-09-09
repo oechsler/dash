@@ -138,7 +138,7 @@ func CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) templ.Component 
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"list-item md:grid-item h-full\"><div class=\"p-3 h-full flex flex-wrap items-center justify-between gap-2 text-secondary rounded-xl bg-tertiary/10\"><div class=\"flex items-center gap-4\"><div class=\"text-4xl\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"list-item md:grid-item h-full\"><div class=\"p-3 h-full flex flex-wrap items-start justify-between gap-2 text-secondary rounded-xl bg-tertiary/10\"><div class=\"flex items-center gap-4\"><div class=\"text-4xl\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -167,7 +167,7 @@ func CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) templ.Component 
 					var templ_7745c5c3_Var10 string
 					templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(components.IconText(b.IconType, b.Icon))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/categories_shelved_edit.templ`, Line: 65, Col: 107}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/categories_shelved_edit.templ`, Line: 65, Col: 108}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 					if templ_7745c5c3_Err != nil {
@@ -180,7 +180,7 @@ func CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) templ.Component 
 					var templ_7745c5c3_Var11 string
 					templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(b.DisplayName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/categories_shelved_edit.templ`, Line: 68, Col: 77}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/categories_shelved_edit.templ`, Line: 68, Col: 79}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 					if templ_7745c5c3_Err != nil {
@@ -193,7 +193,7 @@ func CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) templ.Component 
 					var templ_7745c5c3_Var12 string
 					templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(b.Domain)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/categories_shelved_edit.templ`, Line: 69, Col: 62}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `partials/categories_shelved_edit.templ`, Line: 69, Col: 64}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 					if templ_7745c5c3_Err != nil {

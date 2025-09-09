@@ -23,15 +23,16 @@ const (
 )
 
 type BookmarkDeps struct {
-	Env                   *environment.Env
-	App                   *fiber.App
-	GetUserCategory       *usecase.GetUserCategory
-	GetUserBookmark       *usecase.GetUserBookmark
-	GetUserCategories     *usecase.GetUserCategories
-	BookmarkCreate        *usecase.CreateUserBookmark
-	BookmarkUpdate        *usecase.UpdateUserBookmark
-	BookmarkDelete        *usecase.DeleteUserBookmark
-	GetAvailableIconTypes *usecase.GetAvailableIconTypes
+	Env                      *environment.Env
+	App                      *fiber.App
+	GetUserCategory          *usecase.GetUserCategory
+	GetUserBookmark          *usecase.GetUserBookmark
+	GetUserCategories        *usecase.GetUserCategories
+	GetUserShelvedCategories *usecase.GetUserShelvedCategories
+	BookmarkCreate           *usecase.CreateUserBookmark
+	BookmarkUpdate           *usecase.UpdateUserBookmark
+	BookmarkDelete           *usecase.DeleteUserBookmark
+	GetAvailableIconTypes    *usecase.GetAvailableIconTypes
 }
 
 func Bookmark(deps BookmarkDeps) {
@@ -241,6 +242,8 @@ func Bookmark(deps BookmarkDeps) {
 			}
 
 			categories, _ := deps.GetUserCategories.Execute(c.Context(), user.ID)
+			shelvedCategories, _ := deps.GetUserShelvedCategories.Execute(c.Context(), user.ID)
+			allCategories := append(categories, shelvedCategories...)
 			return middleware.Render(c, partials.BookmarksEditModal(partials.BookmarksEditModalInput{
 				ID: bookmark.ID,
 				IconTypes: func() components.ModalUpserInputIconTypes {
@@ -257,9 +260,9 @@ func Bookmark(deps BookmarkDeps) {
 				DisplayName: bookmark.DisplayName,
 				Url:         bookmark.Url,
 				CategoryID:  bookmark.CategoryID,
-				Categories:  func() []partials.BookmarksEditModalInputCategory {
-					res := make([]partials.BookmarksEditModalInputCategory, 0, len(categories))
-					for _, cat := range categories {
+				Categories: func() []partials.BookmarksEditModalInputCategory {
+					res := make([]partials.BookmarksEditModalInputCategory, 0, len(allCategories))
+					for _, cat := range allCategories {
 						res = append(res, partials.BookmarksEditModalInputCategory{ID: cat.ID, DisplayName: cat.DisplayName})
 					}
 					return res

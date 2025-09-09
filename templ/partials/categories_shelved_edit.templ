@@ -1,8 +1,8 @@
 package partials
 
 import (
-	"fmt"
 	"dash/templ/components"
+	"fmt"
 )
 
 type CategoriesShelvedEditInputBookmark struct {
@@ -22,7 +22,7 @@ type CategoriesShelvedEditInput struct {
 templ CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) {
 	for _, input := range inputs {
 		<section id={ "shelved-category-" + fmt.Sprint(input.ID) } class="mt-12 lg:mt-16">
-				<div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+			<div class="flex flex-wrap items-center justify-between gap-4 mb-4">
 				<div class="min-w-0">
 					<h2 class="text-xl uppercase font-semibold text-secondary break-all">{ input.DisplayName }</h2>
 				</div>
@@ -58,18 +58,18 @@ templ CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) {
 					<li class="text-tertiary">No bookmarks yet</li>
 				} else {
 					for _, b := range input.Bookmarks {
- 					<li id={ "bookmark-" + fmt.Sprint(b.ID) } class="list-item md:grid-item h-full">
- 						<div class="p-3 h-full flex flex-wrap items-center justify-between gap-2 text-secondary rounded-xl bg-tertiary/10">
+						<li id={ "bookmark-" + fmt.Sprint(b.ID) } class="list-item md:grid-item h-full">
+							<div class="p-3 h-full flex flex-wrap items-start justify-between gap-2 text-secondary rounded-xl bg-tertiary/10">
 								<div class="flex items-center gap-4">
- 								<div class="text-4xl">
-									<span class={ components.IconClass(b.IconType, b.Icon) }>{ components.IconText(b.IconType, b.Icon) }</span>
+									<div class="text-4xl">
+										<span class={ components.IconClass(b.IconType, b.Icon) }>{ components.IconText(b.IconType, b.Icon) }</span>
+									</div>
+									<div class="min-w-0">
+										<h3 class="text-sm uppercase font-semibold break-all">{ b.DisplayName }</h3>
+										<h4 class="text-sm text-tertiary break-all">{ b.Domain }</h4>
+									</div>
 								</div>
-  							<div class="min-w-0">
- 							<h3 class="text-sm uppercase font-semibold break-all">{ b.DisplayName }</h3>
-								<h4 class="text-sm text-tertiary break-all">{ b.Domain }</h4>
-							</div>
-								</div>
- 							<div class="flex gap-2 ml-auto">
+								<div class="flex gap-2 ml-auto">
 									<button
 										class="flex text-2xl items-center justify-center p-2 rounded-xl bg-tertiary/10 hover:bg-tertiary/30 transition-all duration-200 cursor-pointer"
 										hx-get={ "/bookmarks/modal/edit/" + fmt.Sprint(b.ID) }
