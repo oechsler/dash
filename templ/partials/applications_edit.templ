@@ -11,7 +11,6 @@ type ApplicationsEditInput struct {
 	Icon        string
 	DisplayName string
 	Domain      string
-	SpanRows2   bool // when true, item spans two grid rows on md+
 }
 
 templ ApplicationsEdit(inputs []ApplicationsEditInput) {
@@ -19,7 +18,7 @@ templ ApplicationsEdit(inputs []ApplicationsEditInput) {
 		<li class="text-tertiary">No applications yet</li>
 	} else {
 		for _, input := range inputs {
-			<li id={ "application-" + fmt.Sprint(input.ID) } class={ "list-item md:grid-item h-full " + templ.KV("md:row-span-2", input.SpanRows2) }>
+			<li id={ "application-" + fmt.Sprint(input.ID) } class="list-item md:grid-item h-full">
 				<div class="p-3 h-full flex flex-wrap items-center justify-between gap-2 text-secondary rounded-xl bg-tertiary/10">
 					<div class="flex items-center gap-4">
  					<div class="text-4xl">

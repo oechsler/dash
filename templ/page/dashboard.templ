@@ -54,7 +54,7 @@ templ Dashboard(input DashboardInput) {
 				<section id="apps" class="mt-12 lg:mt-16">
 					<div hx-get="/applications" hx-trigger="load" hx-target="#apps-list" hx-swap="innerHTML"></div>
 					<div id="apps-title" hx-get="/dashboard/title/applications" hx-trigger="load" hx-swap="outerHTML"></div>
-					<ul id="apps-list" class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:auto-rows-[minmax(0,_1fr)] md:grid-flow-dense items-stretch content-stretch gap-2"></ul>
+					<ul id="apps-list" class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2"></ul>
 				</section>
 				<div id="shelved-sections">
 					<div hx-get="/categories/shelved" hx-trigger="load" hx-target="#shelved-sections" hx-swap="innerHTML"></div>

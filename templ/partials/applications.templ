@@ -10,19 +10,18 @@ type ApplicationsInput struct {
 	Icon        string
 	DisplayName string
 	Domain      string
-	SpanRows2   bool // when true, item spans two grid rows on md+
 }
 
 templ Applications(inputs []ApplicationsInput) {
 	if len(inputs) == 0 {
 		<section id="apps" hx-swap-oob="outerHTML" class="mt-12 lg:mt-16 hidden">
 			<div id="apps-title"></div>
-			<ul id="apps-list" class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:auto-rows-[minmax(0,_1fr)] md:grid-flow-dense items-stretch content-stretch gap-2"></ul>
+			<ul id="apps-list" class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2"></ul>
 		</section>
 	} else {
 		<div class="hidden" hx-get="/dashboard/title/applications" hx-trigger="load" hx-target="#apps-title" hx-swap="delete" hx-swap-oob="true"></div>
 		for _, input := range inputs {
-			<li id={ "application-" + fmt.Sprint(input.ID) } class={ "list-item md:grid-item h-full " + templ.KV("md:row-span-2", input.SpanRows2) }>
+			<li id={ "application-" + fmt.Sprint(input.ID) } class="list-item md:grid-item">
 				<a
 					href={ input.Url }
 					class="p-3 flex items-center gap-4 text-secondary rounded-xl hover:bg-tertiary/10 transition-all duration-200"

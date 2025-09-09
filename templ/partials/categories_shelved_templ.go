@@ -20,7 +20,6 @@ type CategoriesShelvedInputBookmark struct {
 	Icon        string
 	DisplayName string
 	Domain      string
-	SpanRows2   bool
 }
 
 type CategoriesShelvedInput struct {
@@ -77,7 +76,7 @@ func CategoriesShelved(inputs []CategoriesShelvedInput) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-   templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h2></div><ul class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:auto-rows-[minmax(0,_1fr)] md:grid-flow-dense items-stretch content-stretch gap-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</h2></div><ul class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -101,15 +100,7 @@ func CategoriesShelved(inputs []CategoriesShelvedInput) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" class=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_VarClass = templ.Classes(templ.KV("list-item", true), templ.KV("md:grid-item", true), templ.KV("h-full", true), templ.KV("md:row-span-2", b.SpanRows2))
-					if _, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_VarClass.String()); templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><a href=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" class=\"list-item md:grid-item\"><a href=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

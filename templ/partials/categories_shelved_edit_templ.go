@@ -19,7 +19,6 @@ type CategoriesShelvedEditInputBookmark struct {
 	Icon        string
 	DisplayName string
 	Domain      string
-	SpanRows2   bool
 }
 
 type CategoriesShelvedEditInput struct {
@@ -115,7 +114,7 @@ func CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) templ.Component 
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-   templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-target=\"body\" hx-swap=\"beforeend\"><span class=\"material-icons-round\">add_circle</span></button></div></div><ul class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:auto-rows-[minmax(0,_1fr)] md:grid-flow-dense items-stretch content-stretch gap-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-target=\"body\" hx-swap=\"beforeend\"><span class=\"material-icons-round\">add_circle</span></button></div></div><ul class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:grid-rows-2 md:auto-rows-fr md:grid-flow-row-dense items-stretch content-stretch gap-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -139,15 +138,7 @@ func CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) templ.Component 
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"")
-					if templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					var templ_7745c5c3_VarClass = templ.Classes(templ.KV("list-item", true), templ.KV("md:grid-item", true), templ.KV("h-full", true), templ.KV("md:row-span-2", b.SpanRows2))
-					if _, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_VarClass.String()); templ_7745c5c3_Err != nil {
-						return templ_7745c5c3_Err
-					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"><div class=\"p-3 h-full flex flex-wrap items-center justify-between gap-2 text-secondary rounded-xl bg-tertiary/10\"><div class=\"flex items-center gap-4\"><div class=\"text-4xl\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"list-item md:grid-item h-full\"><div class=\"p-3 h-full flex flex-wrap items-center justify-between gap-2 text-secondary rounded-xl bg-tertiary/10\"><div class=\"flex items-center gap-4\"><div class=\"text-4xl\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
