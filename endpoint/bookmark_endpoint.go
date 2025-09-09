@@ -27,6 +27,7 @@ type BookmarkDeps struct {
 	App                   *fiber.App
 	GetUserCategory       *usecase.GetUserCategory
 	GetUserBookmark       *usecase.GetUserBookmark
+	GetUserCategories     *usecase.GetUserCategories
 	BookmarkCreate        *usecase.CreateUserBookmark
 	BookmarkUpdate        *usecase.UpdateUserBookmark
 	BookmarkDelete        *usecase.DeleteUserBookmark
@@ -239,6 +240,7 @@ func Bookmark(deps BookmarkDeps) {
 				return err
 			}
 
+			categories, _ := deps.GetUserCategories.Execute(c.Context(), user.ID)
 			return middleware.Render(c, partials.BookmarksEditModal(partials.BookmarksEditModalInput{
 				ID: bookmark.ID,
 				IconTypes: func() components.ModalUpserInputIconTypes {
@@ -255,6 +257,13 @@ func Bookmark(deps BookmarkDeps) {
 				DisplayName: bookmark.DisplayName,
 				Url:         bookmark.Url,
 				CategoryID:  bookmark.CategoryID,
+				Categories:  func() []partials.BookmarksEditModalInputCategory {
+					res := make([]partials.BookmarksEditModalInputCategory, 0, len(categories))
+					for _, cat := range categories {
+						res = append(res, partials.BookmarksEditModalInputCategory{ID: cat.ID, DisplayName: cat.DisplayName})
+					}
+					return res
+				}(),
 			}))
 		}).Name(BookmarkModalEditRoute)
 

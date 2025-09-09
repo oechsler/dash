@@ -44,8 +44,8 @@ func DashboardEdit(input DashboardEditInput) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if input.IsAdmin {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<section id=\"apps\" hx-swap-oob=\"outerHTML\" class=\"mt-12 lg:mt-16\"><div id=\"apps-title\"></div><ul id=\"apps-list\" class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2\"></ul></section><div hx-get=\"/dashboard/title/applications/edit\" hx-trigger=\"load\" hx-target=\"#apps-title\" hx-swap=\"outerHTML\"></div><div hx-get=\"/applications/edit\" hx-trigger=\"load\" hx-target=\"#apps-list\" hx-swap=\"innerHTML\"></div>")
+				if input.IsAdmin {
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<section id=\"apps\" hx-swap-oob=\"outerHTML\" class=\"mt-12 lg:mt-16\"><div id=\"apps-title\"></div><ul id=\"apps-list\" class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:grid-rows-2 md:auto-rows-fr md:grid-flow-row-dense items-stretch content-stretch gap-2\"></ul></section><div hx-get=\"/dashboard/title/applications/edit\" hx-trigger=\"load\" hx-target=\"#apps-title\" hx-swap=\"outerHTML\"></div><div hx-get=\"/applications/edit\" hx-trigger=\"load\" hx-target=\"#apps-list\" hx-swap=\"innerHTML\"></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

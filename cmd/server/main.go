@@ -218,6 +218,7 @@ func main() {
 		App:                   app,
 		GetUserBookmark:       getUserBookmarkUseCase,
 		GetUserCategory:       getUserCategoryUseCase,
+		GetUserCategories:     getUserCategoriesUseCase,
 		BookmarkCreate:        bookmarkCreateUseCase,
 		BookmarkUpdate:        bookmarkUpdateUseCase,
 		BookmarkDelete:        bookmarkDeleteUseCase,

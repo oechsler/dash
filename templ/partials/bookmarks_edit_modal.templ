@@ -1,18 +1,23 @@
 package partials
 
-import (
-	"dash/templ/components"
+	import (
+		"dash/templ/components"
+		"fmt"
+	)
 
-	"fmt"
-)
+	type BookmarksEditModalInputCategory struct {
+		ID          uint
+		DisplayName string
+	}
 
 	type BookmarksEditModalInput struct {
 		ID          uint
 		DisplayName string
-		IconTypes       components.ModalUpserInputIconTypes
-		Icon            components.ModalUpsertInputIcon
+		IconTypes   components.ModalUpserInputIconTypes
+		Icon        components.ModalUpsertInputIcon
 		Url         string
 		CategoryID  uint
+		Categories  []BookmarksEditModalInputCategory
 	}
 
 func bookmarksEditModalInput(input BookmarksEditModalInput) components.ModalUpsertInput {
@@ -32,6 +37,17 @@ func bookmarksEditModalInput(input BookmarksEditModalInput) components.ModalUpse
 
 templ BookmarksEditModal(input BookmarksEditModalInput) {
 	@components.ModalUpsert(bookmarksEditModalInput(input)) {
-		<input type="hidden" name="category_id" value={ input.CategoryID }/>
+		<div class="form-group">
+			<label for="category-id" class="text-secondary text-sm">Category</label>
+			<select id="category-id" name="category_id" class="mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80">
+				for _, c := range input.Categories {
+					if c.ID == input.CategoryID {
+						<option value={ fmt.Sprint(c.ID) } selected>{ c.DisplayName }</option>
+					} else {
+						<option value={ fmt.Sprint(c.ID) }>{ c.DisplayName }</option>
+					}
+				}
+			</select>
+		</div>
 	}
 }
