@@ -11,6 +11,7 @@ type CategoriesShelvedEditInputBookmark struct {
 	Icon        string
 	DisplayName string
 	Domain      string
+	SpanRows2   bool // when true, item spans two grid rows on md+
 }
 
 type CategoriesShelvedEditInput struct {
@@ -53,12 +54,12 @@ templ CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) {
 					</button>
 				</div>
 			</div>
-			<ul class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:grid-rows-2 md:auto-rows-fr md:grid-flow-row-dense items-stretch content-stretch gap-2">
+			<ul class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:auto-rows-[minmax(0,_1fr)] md:grid-flow-dense items-stretch content-stretch gap-2">
 				if len(input.Bookmarks) == 0 {
 					<li class="text-tertiary">No bookmarks yet</li>
 				} else {
 					for _, b := range input.Bookmarks {
- 					<li id={ "bookmark-" + fmt.Sprint(b.ID) } class="list-item md:grid-item h-full">
+ 					<li id={ "bookmark-" + fmt.Sprint(b.ID) } class={ "list-item md:grid-item h-full " + templ.KV("md:row-span-2", b.SpanRows2) }>
  						<div class="p-3 h-full flex flex-wrap items-center justify-between gap-2 text-secondary rounded-xl bg-tertiary/10">
 								<div class="flex items-center gap-4">
  								<div class="text-4xl">

@@ -254,7 +254,7 @@ func Category(deps CategoryDeps) {
 				return err
 			}
 
-			inputs := lo.Map(shelved, func(category model.Category, _ int) partials.CategoriesShelvedInput {
+   inputs := lo.Map(shelved, func(category model.Category, _ int) partials.CategoriesShelvedInput {
 				return partials.CategoriesShelvedInput{
 					ID:          category.ID,
 					DisplayName: category.DisplayName,
@@ -274,6 +274,10 @@ func Category(deps CategoryDeps) {
 							Domain: func() string {
 								bookmarkUrl, _ := url.Parse(bookmark.Url)
 								return bookmarkUrl.Host
+							}(),
+							SpanRows2: func() bool {
+								domain := func() string { u, _ := url.Parse(bookmark.Url); return u.Host }()
+								return len(bookmark.DisplayName) > 20 || len(domain) > 24
 							}(),
 						}
 					}),
@@ -314,6 +318,10 @@ func Category(deps CategoryDeps) {
 							Domain: func() string {
 								bookmarkUrl, _ := url.Parse(bookmark.Url)
 								return bookmarkUrl.Host
+							}(),
+							SpanRows2: func() bool {
+								domain := func() string { u, _ := url.Parse(bookmark.Url); return u.Host }()
+								return len(bookmark.DisplayName) > 20 || len(domain) > 24
 							}(),
 						}
 					}),

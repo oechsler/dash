@@ -56,7 +56,7 @@ func Application(deps ApplicationDeps) {
 				return err
 			}
 
-			inputs := lo.Map(apps, func(app model.AppLink, _ int) partials.ApplicationsInput {
+   inputs := lo.Map(apps, func(app model.AppLink, _ int) partials.ApplicationsInput {
 				return partials.ApplicationsInput{
 					ID:  app.ID,
 					Url: app.Url,
@@ -72,6 +72,10 @@ func Application(deps ApplicationDeps) {
 					Domain: func() string {
 						appUrl, _ := url.Parse(app.Url)
 						return appUrl.Host
+					}(),
+					SpanRows2: func() bool {
+						domain := func() string { u, _ := url.Parse(app.Url); return u.Host }()
+						return len(app.DisplayName) > 20 || len(domain) > 24
 					}(),
 				}
 			})
@@ -109,6 +113,10 @@ func Application(deps ApplicationDeps) {
 					Domain: func() string {
 						appUrl, _ := url.Parse(app.Url)
 						return appUrl.Host
+					}(),
+					SpanRows2: func() bool {
+						domain := func() string { u, _ := url.Parse(app.Url); return u.Host }()
+						return len(app.DisplayName) > 20 || len(domain) > 24
 					}(),
 				}
 			})

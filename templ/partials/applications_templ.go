@@ -18,6 +18,7 @@ type ApplicationsInput struct {
 	Icon        string
 	DisplayName string
 	Domain      string
+	SpanRows2   bool
 }
 
 func Applications(inputs []ApplicationsInput) templ.Component {
@@ -42,7 +43,7 @@ func Applications(inputs []ApplicationsInput) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(inputs) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"apps\" hx-swap-oob=\"outerHTML\" class=\"mt-12 lg:mt-16 hidden\"><div id=\"apps-title\"></div><ul id=\"apps-list\" class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2\"></ul></section>")
+   templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section id=\"apps\" hx-swap-oob=\"outerHTML\" class=\"mt-12 lg:mt-16 hidden\"><div id=\"apps-title\"></div><ul id=\"apps-list\" class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:auto-rows-[minmax(0,_1fr)] md:grid-flow-dense items-stretch content-stretch gap-2\"></ul></section>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -65,7 +66,15 @@ func Applications(inputs []ApplicationsInput) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"list-item md:grid-item\"><a href=\"")
+    templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_VarClass = templ.Classes(templ.KV("list-item", true), templ.KV("md:grid-item", true), templ.KV("h-full", true), templ.KV("md:row-span-2", input.SpanRows2))
+				if _, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_VarClass.String()); templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

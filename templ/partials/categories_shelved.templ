@@ -12,6 +12,7 @@ import (
 		Icon        string
 		DisplayName string
 		Domain      string
+		SpanRows2   bool // when true, item spans two grid rows on md+
 	}
 
 type CategoriesShelvedInput struct {
@@ -26,12 +27,12 @@ templ CategoriesShelved(inputs []CategoriesShelvedInput) {
  		<div class="min-w-0 mb-4">
 				<h2 class="text-xl uppercase font-semibold text-secondary break-all">{ input.DisplayName }</h2>
 			</div>
-			<ul class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2">
+			<ul class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:auto-rows-[minmax(0,_1fr)] md:grid-flow-dense items-stretch content-stretch gap-2">
 				if len(input.Bookmarks) == 0 {
 					<li class="text-tertiary">No bookmarks yet</li>
 				} else {
-					for _, b := range input.Bookmarks {
-						<li id={ "bookmark-" + fmt.Sprint(b.ID) } class="list-item md:grid-item">
+ 				for _, b := range input.Bookmarks {
+						<li id={ "bookmark-" + fmt.Sprint(b.ID) } class={ "list-item md:grid-item h-full " + templ.KV("md:row-span-2", b.SpanRows2) }>
 							<a
 								href={ b.Url }
 								class="p-3 flex items-center gap-4 text-secondary rounded-xl hover:bg-tertiary/10 transition-all duration-200"
