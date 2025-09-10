@@ -86,8 +86,12 @@ func Session(
 		}
 
 		q := endSessionUrl.Query()
-		q.Add("id_token_hint", idToken)
-		q.Add("post_logout_redirect_uri", c.BaseURL()+sessionLogoutCallbackRouteUrl)
+		if idToken == "" {
+			q.Add("id_token_hint", idToken)
+		}
+		if sessionLogoutCallbackRouteUrl != "" {
+			q.Add("post_logout_redirect_uri", c.BaseURL()+sessionLogoutCallbackRouteUrl)
+		}
 		endSessionUrl.RawQuery = q.Encode()
 
 		signOutUrl, err := url.Parse(c.BaseURL() + "/oauth2/sign_out")

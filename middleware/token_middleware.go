@@ -3,6 +3,7 @@ package middleware
 import (
 	"dash/environment"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -108,6 +109,18 @@ func GetUserFromIdToken(env *environment.Env) fiber.Handler {
 		})
 		claims := token.Claims.(jwt.MapClaims)
 
+		// Check if the token has expired
+		// This is the only validation check we do,
+		// proxy should do all other checks
+		if exp, ok := claims["exp"].(float64); ok {
+			if float64(time.Now().Unix()) > exp {
+				return c.Next()
+			}
+		} else {
+			return c.Next()
+		}
+
+		// Try extracting user data from claims
 		id, _ := claims["sub"].(string)
 		firstName, _ := claims["given_name"].(string)
 		lastName, _ := claims["family_name"].(string)
