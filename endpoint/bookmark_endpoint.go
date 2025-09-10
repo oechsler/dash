@@ -7,6 +7,7 @@ import (
 	"dash/templ/components"
 	"dash/templ/partials"
 	"errors"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -244,6 +245,9 @@ func Bookmark(deps BookmarkDeps) {
 			categories, _ := deps.GetUserCategories.Execute(c.Context(), user.ID)
 			shelvedCategories, _ := deps.GetUserShelvedCategories.Execute(c.Context(), user.ID)
 			allCategories := append(categories, shelvedCategories...)
+			sort.Slice(allCategories, func(i, j int) bool {
+				return allCategories[i].DisplayName < allCategories[j].DisplayName
+			})
 			return middleware.Render(c, partials.BookmarksEditModal(partials.BookmarksEditModalInput{
 				ID: bookmark.ID,
 				IconTypes: func() components.ModalUpserInputIconTypes {
