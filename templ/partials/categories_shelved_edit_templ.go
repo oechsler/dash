@@ -138,7 +138,7 @@ func CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) templ.Component 
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"list-item md:grid-item h-full\"><div class=\"p-3 h-full flex flex-wrap items-start justify-between gap-2 text-secondary rounded-xl bg-tertiary/10\"><div class=\"flex items-center gap-4\"><div class=\"text-4xl\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"list-item md:grid-item h-full\"><div class=\"p-3 h-full flex flex-wrap items-start justify-between gap-2 text-secondary rounded-xl bg-tertiary/10\"><div class=\"flex self-start items-center gap-4\"><div class=\"text-4xl\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -199,7 +199,7 @@ func CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) templ.Component 
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</h4></div></div><div class=\"flex gap-2 ml-auto\"><button class=\"flex text-2xl items-center justify-center p-2 rounded-xl bg-tertiary/10 hover:bg-tertiary/30 transition-all duration-200 cursor-pointer\" hx-get=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</h4></div></div><div class=\"flex gap-2 self-end ml-auto\"><button class=\"flex text-2xl items-center justify-center p-2 rounded-xl bg-tertiary/10 hover:bg-tertiary/30 transition-all duration-200 cursor-pointer\" hx-get=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
