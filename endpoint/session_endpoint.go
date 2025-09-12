@@ -86,7 +86,7 @@ func Session(
 		}
 
 		q := endSessionUrl.Query()
-		if idToken == "" {
+		if idToken != "" {
 			q.Add("id_token_hint", idToken)
 		}
 		if sessionLogoutCallbackRouteUrl != "" {
