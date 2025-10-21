@@ -22,11 +22,20 @@ FROM alpine:3.20
 RUN apk add --no-cache ca-certificates tzdata && \
     update-ca-certificates
 
+RUN addgroup -S dash && \
+    adduser -S -G dash dash
+
 WORKDIR /dash
 
 COPY --from=build /out/server /dash/server
 COPY --from=build /src/static /dash/static
 
+COPY docker/entrypoint.sh /dash/entrypoint.sh
+
+RUN chown -R dash:dash /dash && \
+    chmod +x /dash/server /dash/entrypoint.sh
+
 EXPOSE 3000
 
-ENTRYPOINT ["/dash/server"]
+USER root
+ENTRYPOINT ["/dash/entrypoint.sh"]
