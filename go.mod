@@ -1,6 +1,6 @@
 module dash
 
-go 1.24
+go 1.24.0
 
 require (
 	github.com/a-h/templ v0.3.943
@@ -38,13 +38,13 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
-	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 )
 
 tool github.com/a-h/templ/cmd/templ
