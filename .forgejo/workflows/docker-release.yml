@@ -25,7 +25,7 @@ jobs:
           curl -sSfL https://github.com/google/go-containerregistry/releases/download/v0.21.3/go-containerregistry_Linux_x86_64.tar.gz \
             | tar -xz -C /usr/local/bin crane
           mkdir -p /kaniko/.docker
-          echo "{\"auths\":{\"git.at.oechsler.it\":{\"auth\":\"$(echo -n '${{ github.actor }}:${{ secrets.FORGEJO_TOKEN }}' | base64 -w0)\"}}}" \
+          echo "{\"auths\":{\"git.at.oechsler.it\":{\"auth\":\"$(echo -n '${{ github.actor }}:${{ secrets.FORGEJO_PACKAGE }}' | base64 -w0)\"}}}" \
             > /kaniko/.docker/config.json
           crane export gcr.io/kaniko-project/executor:v1.24.0 - \
             | tar -xO kaniko/executor > /usr/local/bin/kaniko
