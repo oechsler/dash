@@ -69,4 +69,5 @@ jobs:
           DOCKER_CONFIG=/tmp/crane-config crane mutate \
             --cmd="/dash/server" \
             --workdir="/dash" \
+            --exposed-ports="8080/tcp" \
             git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
