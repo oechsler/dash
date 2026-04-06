@@ -20,28 +20,54 @@ jobs:
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
           echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
-      - name: Build and push
+      - name: Install Go
+        run: |
+          curl -sSfL https://go.dev/dl/go1.25.0.linux-amd64.tar.gz | tar -xz -C /usr/local
+          echo "/usr/local/go/bin" >> $GITHUB_PATH
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
+      - name: Build
+        run: |
+          go install github.com/a-h/templ/cmd/templ@v0.3.943
+          go generate ./delivery/web/templ
+          go generate ./delivery/web/static
+          rm -f ./delivery/web/static/generate.go
+          CGO_ENABLED=0 go build \
+            -ldflags="-s -w \
+              -X main.version=${{ steps.info.outputs.version }} \
+              -X main.commit=${{ steps.info.outputs.commit }} \
+              -X main.buildDate=${{ steps.info.outputs.build_date }}" \
+            -o /tmp/server ./cmd/server
+
+      - name: Push image
         env:
           REGISTRY_TOKEN: ${{ secrets.FORGEJO_PACKAGE }}
         run: |
           curl -sSfL https://github.com/google/go-containerregistry/releases/download/v0.21.3/go-containerregistry_Linux_x86_64.tar.gz \
             | tar -xz -C /usr/local/bin crane
 
-          crane export gcr.io/kaniko-project/executor:v1.24.0 - \
-            | tar -xO kaniko/executor > /usr/local/bin/kaniko
-          chmod +x /usr/local/bin/kaniko
-
-          mkdir -p /kaniko/.docker
           printf '{"auths":{"git.at.oechsler.it":{"auth":"%s"}}}' \
             "$(printf '%s:%s' '${{ github.actor }}' "${REGISTRY_TOKEN}" | base64 -w0)" \
-            > /kaniko/.docker/config.json
+            > /tmp/crane-config.json
 
-          /usr/local/bin/kaniko \
-            --dockerfile=docker/Dockerfile \
-            --context=dir://${{ github.workspace }} \
-            --destination=git.at.oechsler.it/samuel/dash:${{ github.ref_name }} \
-            --destination=git.at.oechsler.it/samuel/dash:latest \
-            --build-arg VERSION=${{ steps.info.outputs.version }} \
-            --build-arg COMMIT=${{ steps.info.outputs.commit }} \
-            --build-arg BUILD_DATE=${{ steps.info.outputs.build_date }} \
-            --snapshot-mode=redo
+          mkdir -p /tmp/rootfs/dash/delivery/web
+          cp /tmp/server /tmp/rootfs/dash/server
+          chmod 755 /tmp/rootfs/dash/server
+          cp -r ./delivery/web/static /tmp/rootfs/dash/delivery/web/static
+          mkdir -p /tmp/rootfs/usr/share
+          cp -r /usr/share/zoneinfo /tmp/rootfs/usr/share/zoneinfo
+
+          tar -C /tmp/rootfs -czf /tmp/layer.tar.gz .
+
+          DOCKER_CONFIG=/tmp crane append \
+            --base=gcr.io/distroless/static-debian12:nonroot \
+            --new_layer=/tmp/layer.tar.gz \
+            --new_tag=git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
+
+          DOCKER_CONFIG=/tmp crane mutate \
+            --cmd="/dash/server" \
+            git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
+
+          DOCKER_CONFIG=/tmp crane tag \
+            git.at.oechsler.it/samuel/dash:${{ github.ref_name }} \
+            latest
