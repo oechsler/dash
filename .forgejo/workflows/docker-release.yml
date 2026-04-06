@@ -72,11 +72,6 @@ jobs:
             --cmd="/dash/server" \
             --workdir="/dash" \
             --exposed-ports="8080/tcp" \
-            --healthcheck-command="CMD /dash/healthcheck" \
-            --healthcheck-interval=30s \
-            --healthcheck-timeout=5s \
-            --healthcheck-start-period=15s \
-            --healthcheck-retries=3 \
             git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
 
           DOCKER_CONFIG=/tmp/crane-config crane tag \
