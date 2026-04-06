@@ -20,11 +20,14 @@ jobs:
 
       - name: Build and push
         run: |
-          curl -sSfL https://github.com/GoogleContainerTools/kaniko/releases/download/v1.24.0/executor-linux-amd64 -o /usr/local/bin/kaniko
-          chmod +x /usr/local/bin/kaniko
+          curl -sSfL https://github.com/google/go-containerregistry/releases/download/v0.21.3/go-containerregistry_Linux_x86_64.tar.gz \
+            | tar -xz -C /usr/local/bin crane
           mkdir -p /kaniko/.docker
           echo "{\"auths\":{\"git.at.oechsler.it\":{\"auth\":\"$(echo -n '${{ github.actor }}:${{ secrets.FORGEJO_TOKEN }}' | base64 -w0)\"}}}" \
             > /kaniko/.docker/config.json
+          crane export gcr.io/kaniko-project/executor:v1.24.0 - \
+            | tar -xO kaniko/executor > /usr/local/bin/kaniko
+          chmod +x /usr/local/bin/kaniko
           /usr/local/bin/kaniko \
             --dockerfile=docker/Dockerfile \
             --context=dir://${{ github.workspace }} \
