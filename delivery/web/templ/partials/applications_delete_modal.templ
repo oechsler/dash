@@ -1,0 +1,20 @@
+package partials
+
+import (
+	"github.com/oechsler-it/dash/delivery/web/templ/components"
+	"fmt"
+	"github.com/invopop/ctxi18n/i18n"
+)
+
+type ApppplicationsDeleteModalInput struct {
+	ID          uint
+	DisplayName string
+}
+
+templ ApplicationsDeleteModal(input ApppplicationsDeleteModalInput) {
+	@components.ModalDelete(components.ModalDeleteInput{
+		DisplayName:  input.DisplayName,
+		ResourceName: i18n.T(ctx, "sections.applications"),
+		DeleteAction: "/applications/" + fmt.Sprint(input.ID),
+	})
+}

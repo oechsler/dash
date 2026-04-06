@@ -1,0 +1,42 @@
+package partials
+
+import (
+	"github.com/oechsler-it/dash/delivery/web/templ/components"
+	"fmt"
+	"github.com/invopop/ctxi18n/i18n"
+)
+
+type ApplicationsEditModalInput struct {
+	ID              uint
+	DisplayName     string
+	IconTypes       components.ModalUpserInputIconTypes
+	Icon            components.ModalUpsertInputIcon
+	Url             string
+	VisibleToGroups string
+}
+
+templ ApplicationsEditModal(input ApplicationsEditModalInput) {
+	@components.ModalUpsert(components.ModalUpsertInput{
+		ModalInput: components.ModalInput{
+			Title: i18n.T(ctx, "modal_titles.edit_application", i18n.M{"name": input.DisplayName}),
+		},
+		SubmitAction:     "/applications/" + fmt.Sprint(input.ID),
+		SubmitActionType: components.ModalUpsertSubmitActionPut,
+		DisplayName:      input.DisplayName,
+		IconTypes:        input.IconTypes,
+		Icon:             input.Icon,
+		Url:              input.Url,
+	}) {
+		<div class="form-group">
+			<label for="visible-to-groups" class="text-secondary text-sm">{ i18n.T(ctx, "form.visible_to_groups") }</label>
+			<input
+				type="text"
+				id="visible-to-groups"
+				name="visible_to_groups"
+				class="mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80"
+				value={ input.VisibleToGroups }
+				placeholder={ i18n.T(ctx, "form.enter_groups") }
+			/>
+		</div>
+	}
+}

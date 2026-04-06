@@ -1,0 +1,20 @@
+# Git
+.git
+.gitignore
+
+# Editor / IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Local dev artifacts
+*.db
+*.log
+
+# Generated templ Go files — regenerated during Docker build via go generate
+delivery/web/templ/**/*_templ.go
+
+# Docker compose files (not needed in image)
+docker/compose/
+compose/

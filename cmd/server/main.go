@@ -2,175 +2,75 @@ package main
 
 import (
 	"context"
-	"dash/data/repo"
-	"dash/domain/usecase"
-	"dash/domain/validation"
-	"dash/endpoint"
-	"dash/environment"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"github.com/oechsler-it/dash/app"
+	"github.com/oechsler-it/dash/app/validation"
+	"github.com/oechsler-it/dash/config"
+	"github.com/oechsler-it/dash/delivery/web/handler"
+	webi18n "github.com/oechsler-it/dash/delivery/web/i18n"
+	"github.com/oechsler-it/dash/infra/oidc"
+	"github.com/oechsler-it/dash/infra/persistence"
+
+	web "github.com/oechsler-it/dash/delivery/web"
 )
 
+// Build-time variables injected via -ldflags.
 var (
-	env                             *environment.Env
-	app                             *fiber.App
-	db                              *gorm.DB
-	dashboardRepo                   *repo.GormDashboardRepo
-	categoryRepo                    *repo.GormCategoryRepo
-	bookmarkRepo                    *repo.GormBookmarkRepo
-	applicationRepo                 *repo.GormApplicationRepo
-	settingRepo                     *repo.GormSettingRepo
-	themeRepo                       *repo.GormThemeRepo
-	getUserDashboardUseCase         *usecase.GetUserDashboard
-	getUserDashboardGreetingUseCase *usecase.GetUserDashboardGreeting
-	getUserApplicationsUseCase      *usecase.GetUserApplications
-	getApplicationsUseCase          *usecase.ListApplications
-	getApplicationUseCase           *usecase.GetApplication
-	getUserCategoriesUseCase        *usecase.GetUserCategories
-	getUserShelvedCategoriesUseCase *usecase.GetUserShelvedCategories
-	getUserCategoryUseCase          *usecase.GetUserCategory
-	getUserBookmarkUseCase          *usecase.GetUserBookmark
-	getUserSettingsUseCase          *usecase.GetUserSettings
-	updateUserSettingsUseCase       *usecase.UpdateUserSettings
-	listUserThemesUseCase           *usecase.ListUserThemes
-	createUserThemeUseCase          *usecase.CreateUserTheme
-	deleteUserThemeUseCase          *usecase.DeleteUserTheme
-	ensureDefaultThemeUseCase       *usecase.EnsureDefaultTheme
-	getUserThemeByIDUseCase         *usecase.GetUserThemeByID
-	applicationCreateUseCase        *usecase.CreateApplication
-	applicationDeleteUseCase        *usecase.DeleteApplication
-	applicationUpdateUseCase        *usecase.UpdateApplication
-	categoryCreateUseCase           *usecase.CreateUserCategory
-	categoryUpdateUseCase           *usecase.UpdateUserCategory
-	categoryDeleteUseCase           *usecase.DeleteUserCategory
-	bookmarkCreateUseCase           *usecase.CreateUserBookmark
-	bookmarkUpdateUseCase           *usecase.UpdateUserBookmark
-	bookmarkDeleteUseCase           *usecase.DeleteUserBookmark
-	getAvailableIconTypesUseCase    *usecase.GetAvailableIconTypes
+	version   = "dev"
+	commit    = "unknown"
+	buildDate = "unknown"
 )
 
-func init() {
-	env = environment.NewEnv()
+func main() {
+	if err := webi18n.Load(); err != nil {
+		log.Fatalf("failed to load i18n locales: %v", err)
+	}
 
-	var err error
-	dbPath := env.String("DB_PATH", "./dash.db")
-	log.Printf("connecting to database: %s", dbPath)
-	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{
-		PrepareStmt: true,
-	})
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
+
+	db, err := persistence.NewDB(&cfg.Database)
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	dashboardRepo, err = repo.NewGormDashboardRepo(db)
+	repos, err := persistence.NewRepos(db)
 	if err != nil {
-		log.Fatal("failed to initialize dashboard repo")
+		log.Fatalf("failed to initialize repositories: %v", err)
 	}
 
-	categoryRepo, err = repo.NewGormCategoryRepo(db)
+	oidcProvider, err := oidc.NewProvider(context.Background(), &cfg.OIDC)
 	if err != nil {
-		log.Fatal("failed to initialize category repo")
+		log.Fatalf("failed to initialize OIDC provider: %v", err)
 	}
 
-	bookmarkRepo, err = repo.NewGormBookmarkRepo(db)
+	sessionStore, err := oidc.NewSessionStore(&cfg.OIDC.Cookie)
 	if err != nil {
-		log.Fatal("failed to initialize bookmark repo")
+		log.Fatalf("failed to initialize session store: %v", err)
 	}
 
-	applicationRepo, err = repo.NewGormApplicationRepo(db)
-	if err != nil {
-		log.Fatal("failed to initialize application repo")
-	}
+	uc := app.NewUseCases(app.Repos{
+		Dashboard:   repos.Dashboard,
+		Category:    repos.Category,
+		Bookmark:    repos.Bookmark,
+		Application: repos.Application,
+		Setting:     repos.Setting,
+		Theme:       repos.Theme,
+	}, validation.New())
 
-	settingRepo, err = repo.NewGormSettingRepo(db)
-	if err != nil {
-		log.Fatal("failed to initialize setting repo")
-	}
-
-	themeRepo, err = repo.NewGormThemeRepo(db)
-	if err != nil {
-		log.Fatal("failed to initialize theme repo")
-	}
-
-	getApplicationsUseCase = usecase.NewListApplications(applicationRepo)
-
-	getUserApplicationsUseCase = usecase.NewGetUserApplications(getApplicationsUseCase)
-
-	getApplicationUseCase = usecase.NewGetApplication(applicationRepo)
-
-	getUserBookmarkUseCase = usecase.NewGetUserBookmark(dashboardRepo, bookmarkRepo, categoryRepo)
-
-	getUserCategoriesUseCase = usecase.NewGetUserCategories(dashboardRepo, categoryRepo, bookmarkRepo)
-
-	getUserCategoryUseCase = usecase.NewGetUserCategory(dashboardRepo, categoryRepo)
-
-	getUserShelvedCategoriesUseCase = usecase.NewGetUserShelvedCategories(dashboardRepo, categoryRepo, bookmarkRepo)
-
-	getUserDashboardGreetingUseCase = usecase.NewGetUserDashboardGreeting()
-
-	getUserDashboardUseCase = usecase.NewGetUserDashboard(dashboardRepo, getUserCategoriesUseCase, getUserApplicationsUseCase, getUserDashboardGreetingUseCase)
-
-	v := validation.New()
-
-	ensureDefaultThemeUseCase = usecase.NewEnsureDefaultTheme(themeRepo)
-	getUserSettingsUseCase = usecase.NewGetUserSettings(settingRepo, themeRepo, ensureDefaultThemeUseCase)
-	updateUserSettingsUseCase = usecase.NewUpdateUserSettings(settingRepo, themeRepo, v)
-	listUserThemesUseCase = usecase.NewListUserThemes(themeRepo, settingRepo)
-	createUserThemeUseCase = usecase.NewCreateUserTheme(themeRepo, v)
-	deleteUserThemeUseCase = usecase.NewDeleteUserTheme(themeRepo)
-	getUserThemeByIDUseCase = usecase.NewGetUserThemeByID(themeRepo)
-
-	applicationCreateUseCase = usecase.NewCreateApplication(applicationRepo, v)
-	applicationDeleteUseCase = usecase.NewDeleteApplication(applicationRepo)
-	applicationUpdateUseCase = usecase.NewUpdateApplication(applicationRepo, v)
-
-	categoryCreateUseCase = usecase.NewCreateUserCategory(dashboardRepo, categoryRepo, v)
-	categoryUpdateUseCase = usecase.NewUpdateUserCategory(dashboardRepo, categoryRepo, v)
-	categoryDeleteUseCase = usecase.NewDeleteUserCategory(dashboardRepo, categoryRepo)
-
-	bookmarkCreateUseCase = usecase.NewCreazeUserBookmark(dashboardRepo, categoryRepo, bookmarkRepo, v)
-	bookmarkUpdateUseCase = usecase.NewUpdateUserBookmark(dashboardRepo, categoryRepo, bookmarkRepo, v)
-	bookmarkDeleteUseCase = usecase.NewDeleteUserBookmark(dashboardRepo, categoryRepo, bookmarkRepo)
-
-	getAvailableIconTypesUseCase = usecase.NewGetAvailableIconTypes()
-
-	app = fiber.New(fiber.Config{
-		DisableStartupMessage: true,
-		ReadBufferSize:        1024 * 1024 * 1,
+	fiberApp := web.NewFiberApp(&cfg.App)
+	handler.RegisterAll(fiberApp, sessionStore, oidcProvider, uc, handler.BuildInfo{
+		Version:   version,
+		Commit:    commit,
+		BuildDate: buildDate,
 	})
-	app.Use(func(c *fiber.Ctx) error {
-		start := time.Now()
-		err := c.Next()
 
-		ip := c.IP()
-		latency := time.Since(start)
-		status := c.Response().StatusCode()
-		method := c.Method()
-		path := c.Path()
-		userAgent := c.Get("User-Agent")
-
-		log.Printf("[%d] %s %s - %v - %s - %s",
-			status,
-			method,
-			path,
-			latency,
-			ip,
-			userAgent,
-		)
-
-		return err
-	})
-	app.Static("/static", "./static")
-}
-
-func main() {
 	interruptCtx, cancel := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt,
@@ -178,82 +78,27 @@ func main() {
 	)
 	defer cancel()
 
-	endpoint.Session(env, app)
-	endpoint.Favicon(env, app)
-
-	endpoint.Dashboard(endpoint.DashboardDeps{
-		Env:                env,
-		App:                app,
-		GetUserDashboard:   getUserDashboardUseCase,
-		GetUserSettings:    getUserSettingsUseCase,
-		EnsureDefaultTheme: ensureDefaultThemeUseCase,
-		GetUserThemeByID:   getUserThemeByIDUseCase,
-	})
-
-	endpoint.Application(endpoint.ApplicationDeps{
-		Env:                   env,
-		App:                   app,
-		CreateApplication:     applicationCreateUseCase,
-		DeleteApplication:     applicationDeleteUseCase,
-		UpdateApplication:     applicationUpdateUseCase,
-		GetUserApplications:   getUserApplicationsUseCase,
-		ListApplications:      getApplicationsUseCase,
-		GetApplication:        getApplicationUseCase,
-		GetAvailableIconTypes: getAvailableIconTypesUseCase,
-	})
-
-	endpoint.Category(endpoint.CategoryDeps{
-		Env:                      env,
-		App:                      app,
-		GetUserCategories:        getUserCategoriesUseCase,
-		GetUserShelvedCategories: getUserShelvedCategoriesUseCase,
-		GetUserCategory:          getUserCategoryUseCase,
-		CategoryCreate:           categoryCreateUseCase,
-		CategoryUpdate:           categoryUpdateUseCase,
-		CategoryDelete:           categoryDeleteUseCase,
-	})
-
-	endpoint.Bookmark(endpoint.BookmarkDeps{
-		Env:                      env,
-		App:                      app,
-		GetUserBookmark:          getUserBookmarkUseCase,
-		GetUserCategory:          getUserCategoryUseCase,
-		GetUserCategories:        getUserCategoriesUseCase,
-		GetUserShelvedCategories: getUserShelvedCategoriesUseCase,
-		BookmarkCreate:           bookmarkCreateUseCase,
-		BookmarkUpdate:           bookmarkUpdateUseCase,
-		BookmarkDelete:           bookmarkDeleteUseCase,
-		GetAvailableIconTypes:    getAvailableIconTypesUseCase,
-	})
-
-	endpoint.Setting(endpoint.SettingDeps{
-		Env:                env,
-		App:                app,
-		GetUserSettings:    getUserSettingsUseCase,
-		UpdateUserSettings: updateUserSettingsUseCase,
-		ListUserThemes:     listUserThemesUseCase,
-		EnsureDefaultTheme: ensureDefaultThemeUseCase,
-	})
-
-	endpoint.Theme(endpoint.ThemeDeps{
-		Env:             env,
-		App:             app,
-		ListUserThemes:  listUserThemesUseCase,
-		CreateUserTheme: createUserThemeUseCase,
-		DeleteUserTheme: deleteUserThemeUseCase,
-		GetUserSettings: getUserSettingsUseCase,
-	})
+	addr := ":" + cfg.App.Port
+	certFile := cfg.App.TLS.Cert
+	keyFile := cfg.App.TLS.Key
 
 	go func() {
-		if err := app.Listen(":3000"); err != nil {
+		var err error
+		if certFile != "" && keyFile != "" {
+			log.Printf("server listening on %s (TLS)", addr)
+			err = fiberApp.ListenTLS(addr, certFile, keyFile)
+		} else {
+			log.Printf("server listening on %s", addr)
+			err = fiberApp.Listen(addr)
+		}
+		if err != nil {
 			log.Printf("server error: %v\n", err)
 		}
 	}()
-	log.Println("server listening on 0.0.0.0:3000")
 
 	<-interruptCtx.Done()
 
-	if err := app.Shutdown(); err != nil {
+	if err := fiberApp.Shutdown(); err != nil {
 		log.Printf("server shutdown error: %v\n", err)
 	}
 }

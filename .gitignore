@@ -49,3 +49,9 @@ Thumbs.db
 # Static: ignore everything except generate.go
 static/*
 !static/generate.go
+delivery/web/static/*
+!delivery/web/static/generate.go
+
+# Local secrets
+docker/compose/dash.env
+docker/compose/postgres.env

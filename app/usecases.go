@@ -1,0 +1,110 @@
+package app
+
+import (
+	"github.com/oechsler-it/dash/app/command"
+	"github.com/oechsler-it/dash/app/query"
+	"github.com/oechsler-it/dash/app/validation"
+	domainrepo "github.com/oechsler-it/dash/domain/repo"
+)
+
+// Repos declares the repository dependencies the application layer needs.
+// Fields are domain interfaces — the application layer does not know about infra.
+type Repos struct {
+	Dashboard   domainrepo.DashboardRepository
+	Category    domainrepo.CategoryRepository
+	Bookmark    domainrepo.BookmarkRepository
+	Application domainrepo.ApplicationRepository
+	Setting     domainrepo.SettingRepository
+	Theme       domainrepo.ThemeRepository
+}
+
+// UseCases bundles all use cases exposed to the delivery layer.
+// All fields are interfaces so the delivery layer depends on abstractions only.
+type UseCases struct {
+	// Queries
+	ExportUserData           query.UserDataExporter
+	GetUserDashboard         query.UserDashboardGetter
+	GetUserSettings          query.UserSettingsGetter
+	GetUserThemeByID         query.UserThemeByIDGetter
+	GetUserApplications      query.UserApplicationsGetter
+	ListApplications         query.ApplicationsLister
+	GetApplication           query.ApplicationGetter
+	GetAvailableIconTypes    query.AvailableIconTypesGetter
+	GetUserCategories        query.UserCategoriesGetter
+	GetUserShelvedCategories query.UserShelvedCategoriesGetter
+	GetUserCategory          query.UserCategoryGetter
+	GetUserBookmark          query.UserBookmarkGetter
+	ListUserThemes           query.UserThemesLister
+	// Commands
+	DeleteUserData     command.UserDataDeleter
+	ImportUserData     command.UserDataImporter
+	EnsureDefaultTheme command.DefaultThemeEnsurer
+	UpdateUserSettings command.UserSettingsUpdater
+	CreateUserTheme    command.UserThemeCreator
+	DeleteUserTheme    command.UserThemeDeleter
+	CreateApplication  command.ApplicationCreator
+	UpdateApplication  command.ApplicationUpdater
+	DeleteApplication  command.ApplicationDeleter
+	CreateUserCategory command.UserCategoryCreator
+	UpdateUserCategory command.UserCategoryUpdater
+	DeleteUserCategory command.UserCategoryDeleter
+	CreateUserBookmark command.UserBookmarkCreator
+	UpdateUserBookmark command.UserBookmarkUpdater
+	DeleteUserBookmark command.UserBookmarkDeleter
+}
+
+func NewUseCases(repos Repos, v validation.Validator) *UseCases {
+	listApplications := query.NewListApplications(repos.Application)
+	getUserApplications := query.NewGetUserApplications(listApplications)
+	getApplication := query.NewGetApplication(repos.Application)
+
+	getUserCategories := query.NewGetUserCategories(repos.Dashboard, repos.Category, repos.Bookmark)
+	getUserCategory := query.NewGetUserCategory(repos.Dashboard, repos.Category)
+	getUserShelvedCategories := query.NewGetUserShelvedCategories(repos.Dashboard, repos.Category, repos.Bookmark)
+
+	getUserBookmark := query.NewGetUserBookmark(repos.Dashboard, repos.Bookmark, repos.Category)
+
+	getUserDashboard := query.NewGetUserDashboard(repos.Dashboard, getUserCategories, getUserApplications)
+
+	listUserThemes := query.NewListUserThemes(repos.Theme, repos.Setting)
+	getUserThemeByID := query.NewGetUserThemeByID(repos.Theme)
+	getAvailableIconTypes := query.NewGetAvailableIconTypes()
+
+	ensureDefaultTheme := command.NewEnsureDefaultTheme(repos.Theme)
+	getUserSettings := query.NewGetUserSettings(repos.Setting, repos.Theme, ensureDefaultTheme)
+
+	exportUserData := query.NewExportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application)
+	deleteUserData := command.NewDeleteUserData(repos.Dashboard, repos.Setting, repos.Theme)
+	importUserData := command.NewImportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application, ensureDefaultTheme)
+
+	return &UseCases{
+		ExportUserData:           exportUserData,
+		DeleteUserData:           deleteUserData,
+		ImportUserData:           importUserData,
+		GetUserDashboard:         getUserDashboard,
+		GetUserSettings:          getUserSettings,
+		GetUserThemeByID:         getUserThemeByID,
+		GetUserApplications:      getUserApplications,
+		ListApplications:         listApplications,
+		GetApplication:           getApplication,
+		GetAvailableIconTypes:    getAvailableIconTypes,
+		GetUserCategories:        getUserCategories,
+		GetUserShelvedCategories: getUserShelvedCategories,
+		GetUserCategory:          getUserCategory,
+		GetUserBookmark:          getUserBookmark,
+		ListUserThemes:           listUserThemes,
+		EnsureDefaultTheme:       ensureDefaultTheme,
+		UpdateUserSettings:       command.NewUpdateUserSettings(repos.Setting, repos.Theme, v),
+		CreateUserTheme:          command.NewCreateUserTheme(repos.Theme, v),
+		DeleteUserTheme:          command.NewDeleteUserTheme(repos.Theme),
+		CreateApplication:        command.NewCreateApplication(repos.Application, v),
+		UpdateApplication:        command.NewUpdateApplication(repos.Application, v),
+		DeleteApplication:        command.NewDeleteApplication(repos.Application),
+		CreateUserCategory:       command.NewCreateUserCategory(repos.Dashboard, repos.Category, v),
+		UpdateUserCategory:       command.NewUpdateUserCategory(repos.Dashboard, repos.Category, v),
+		DeleteUserCategory:       command.NewDeleteUserCategory(repos.Dashboard, repos.Category),
+		CreateUserBookmark:       command.NewCreateUserBookmark(repos.Dashboard, repos.Category, repos.Bookmark, v),
+		UpdateUserBookmark:       command.NewUpdateUserBookmark(repos.Dashboard, repos.Category, repos.Bookmark, v),
+		DeleteUserBookmark:       command.NewDeleteUserBookmark(repos.Dashboard, repos.Category, repos.Bookmark),
+	}
+}

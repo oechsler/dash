@@ -1,0 +1,26 @@
+package partials
+
+import (
+	"github.com/oechsler-it/dash/delivery/web/templ/components"
+	"fmt"
+	"github.com/invopop/ctxi18n/i18n"
+)
+
+type BookmarksCreateModalInput struct {
+	CategoryID          uint
+	CategoryDisplayName string
+	IconTypes           components.ModalUpserInputIconTypes
+}
+
+templ BookmarksCreateModal(input BookmarksCreateModalInput) {
+	@components.ModalUpsert(components.ModalUpsertInput{
+		ModalInput: components.ModalInput{
+			Title: i18n.T(ctx, "modal_titles.create_bookmark_in", i18n.M{"category": input.CategoryDisplayName}),
+		},
+		SubmitAction:     "/bookmarks",
+		SubmitActionType: components.ModalUpsertSubmitActionPost,
+		IconTypes:        input.IconTypes,
+	}) {
+		<input type="hidden" name="category_id" value={ fmt.Sprint(input.CategoryID) }/>
+	}
+}

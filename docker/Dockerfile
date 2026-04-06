@@ -1,23 +1,30 @@
-# syntax=docker/dockerfile:1
+FROM golang:1.25-alpine AS build
 
-FROM golang:1.24-alpine3.20 AS build
+ARG VERSION=dev
+ARG COMMIT=unknown
+ARG BUILD_DATE=unknown
 
 WORKDIR /src
 
-RUN apk add --no-cache git build-base ca-certificates && update-ca-certificates
+RUN apk add --no-cache ca-certificates tzdata && update-ca-certificates
 
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN go generate ./templ && \
-    go generate ./static && \
-    rm -f /src/static/generate.go
+RUN go generate ./delivery/web/templ && \
+    go generate ./delivery/web/static && \
+    rm -f /src/delivery/web/static/generate.go
 
-RUN CGO_ENABLED=1 go build -ldflags="-s -w" -o /out/server ./cmd/server
+RUN CGO_ENABLED=0 go build \
+    -ldflags="-s -w \
+      -X main.version=${VERSION} \
+      -X main.commit=${COMMIT} \
+      -X main.buildDate=${BUILD_DATE}" \
+    -o /out/server ./cmd/server
 
-FROM alpine:3.20
+FROM alpine:3.22
 
 RUN apk add --no-cache ca-certificates tzdata && \
     update-ca-certificates
@@ -28,14 +35,13 @@ RUN addgroup -S dash && \
 WORKDIR /dash
 
 COPY --from=build /out/server /dash/server
-COPY --from=build /src/static /dash/static
-
-COPY docker/entrypoint.sh /dash/entrypoint.sh
+COPY --from=build /src/delivery/web/static /dash/delivery/web/static
 
 RUN chown -R dash:dash /dash && \
-    chmod +x /dash/server /dash/entrypoint.sh
+    chmod +x /dash/server
 
-EXPOSE 3000
+EXPOSE 8080
 
-USER root
-ENTRYPOINT ["/dash/entrypoint.sh"]
+USER dash
+
+CMD ["/dash/server"]
