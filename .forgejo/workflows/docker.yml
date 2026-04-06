@@ -20,7 +20,7 @@ jobs:
 
       - name: Build and push
         run: |
-          curl -sSL https://github.com/GoogleContainerTools/kaniko/releases/latest/download/executor-linux-amd64 -o /usr/local/bin/kaniko
+          curl -sSfL https://github.com/GoogleContainerTools/kaniko/releases/download/v1.23.2/executor-linux-amd64 -o /usr/local/bin/kaniko
           chmod +x /usr/local/bin/kaniko
           mkdir -p /kaniko/.docker
           echo "{\"auths\":{\"git.at.oechsler.it\":{\"auth\":\"$(echo -n '${{ github.actor }}:${{ secrets.FORGEJO_TOKEN }}' | base64 -w0)\"}}}" \
