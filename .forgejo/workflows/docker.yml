@@ -19,7 +19,7 @@ jobs:
           echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
       - name: Install buildah
-        run: apt-get install -y buildah
+        run: apt-get update && apt-get install -y buildah
 
       - name: Build and push
         run: |
