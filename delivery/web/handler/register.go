@@ -22,6 +22,8 @@ func RegisterAll(
 	uc *app.UseCases,
 	buildInfo BuildInfo,
 ) {
+	Health(fiberApp)
+
 	// Language middleware runs globally — resolves locale from user settings or Accept-Language header
 	// and stores it in the request user context for all Templ templates.
 	fiberApp.Use(middleware.WithLanguage(sessionStore, uc.GetUserSettings))
