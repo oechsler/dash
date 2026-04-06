@@ -26,12 +26,18 @@ RUN CGO_ENABLED=0 go build \
       -X main.buildDate=${BUILD_DATE}" \
     -o /out/server ./cmd/server
 
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/healthcheck ./cmd/healthcheck
+
 FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=build /out/server /dash/server
+COPY --from=build /out/healthcheck /dash/healthcheck
 COPY --from=build /src/delivery/web/static /dash/delivery/web/static
 
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD ["/dash/healthcheck"]
 
 CMD ["/dash/server"]
