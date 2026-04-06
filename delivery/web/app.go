@@ -31,7 +31,5 @@ func NewFiberApp(cfg *config.AppConfig) *fiber.App {
 		return err
 	})
 
-	app.Static("/static", "./delivery/web/static")
-
 	return app
 }

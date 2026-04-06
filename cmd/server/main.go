@@ -65,6 +65,7 @@ func main() {
 	}, validation.New())
 
 	fiberApp := web.NewFiberApp(&cfg.App)
+	web.RegisterStaticFiles(fiberApp)
 	handler.RegisterAll(fiberApp, sessionStore, oidcProvider, uc, handler.BuildInfo{
 		Version:   version,
 		Commit:    commit,

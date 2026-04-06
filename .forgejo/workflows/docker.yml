@@ -68,4 +68,5 @@ jobs:
 
           DOCKER_CONFIG=/tmp/crane-config crane mutate \
             --cmd="/dash/server" \
+            --workdir="/dash" \
             git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
