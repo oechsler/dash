@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/oechsler-it/dash/config"
+	"git.at.oechsler.it/samuel/dash/v2/config"
 
 	"github.com/gofiber/fiber/v2"
 )

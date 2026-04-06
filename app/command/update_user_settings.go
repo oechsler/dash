@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
-	domainerrors "github.com/oechsler-it/dash/domain/errors"
-	domainrepo "github.com/oechsler-it/dash/domain/repo"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 
-	"github.com/oechsler-it/dash/app/validation"
+	"git.at.oechsler.it/samuel/dash/v2/app/validation"
 )
 
 // UpdateUserSettingsCmd is the input for updating a user's display settings.

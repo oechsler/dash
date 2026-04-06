@@ -3,7 +3,7 @@ package handler
 import (
 	"errors"
 
-	domainerrors "github.com/oechsler-it/dash/domain/errors"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
 	"github.com/gofiber/fiber/v2"
 )
 

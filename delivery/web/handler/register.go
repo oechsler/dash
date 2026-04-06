@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"github.com/oechsler-it/dash/app"
-	"github.com/oechsler-it/dash/delivery/web/middleware"
-	"github.com/oechsler-it/dash/infra/oidc"
+	"git.at.oechsler.it/samuel/dash/v2/app"
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/middleware"
+	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
 	"github.com/gofiber/fiber/v2"
 )

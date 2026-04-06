@@ -7,15 +7,15 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/oechsler-it/dash/app"
-	"github.com/oechsler-it/dash/app/validation"
-	"github.com/oechsler-it/dash/config"
-	"github.com/oechsler-it/dash/delivery/web/handler"
-	webi18n "github.com/oechsler-it/dash/delivery/web/i18n"
-	"github.com/oechsler-it/dash/infra/oidc"
-	"github.com/oechsler-it/dash/infra/persistence"
+	"git.at.oechsler.it/samuel/dash/v2/app"
+	"git.at.oechsler.it/samuel/dash/v2/app/validation"
+	"git.at.oechsler.it/samuel/dash/v2/config"
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/handler"
+	webi18n "git.at.oechsler.it/samuel/dash/v2/delivery/web/i18n"
+	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
+	"git.at.oechsler.it/samuel/dash/v2/infra/persistence"
 
-	web "github.com/oechsler-it/dash/delivery/web"
+	web "git.at.oechsler.it/samuel/dash/v2/delivery/web"
 )
 
 // Build-time variables injected via -ldflags.

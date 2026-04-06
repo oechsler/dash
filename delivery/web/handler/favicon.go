@@ -2,8 +2,8 @@ package handler
 
 import (
 	"bytes"
-	"github.com/oechsler-it/dash/infra/oidc"
-	"github.com/oechsler-it/dash/delivery/web/middleware"
+	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/middleware"
 	"encoding/binary"
 	"image"
 	"image/color"

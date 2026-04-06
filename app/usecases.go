@@ -1,10 +1,10 @@
 package app
 
 import (
-	"github.com/oechsler-it/dash/app/command"
-	"github.com/oechsler-it/dash/app/query"
-	"github.com/oechsler-it/dash/app/validation"
-	domainrepo "github.com/oechsler-it/dash/domain/repo"
+	"git.at.oechsler.it/samuel/dash/v2/app/command"
+	"git.at.oechsler.it/samuel/dash/v2/app/query"
+	"git.at.oechsler.it/samuel/dash/v2/app/validation"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 )
 
 // Repos declares the repository dependencies the application layer needs.

@@ -6,14 +6,14 @@ import (
 
 	"github.com/invopop/ctxi18n"
 	"github.com/invopop/ctxi18n/i18n"
-	"github.com/oechsler-it/dash/app/command"
-	"github.com/oechsler-it/dash/app/query"
-	webi18n "github.com/oechsler-it/dash/delivery/web/i18n"
-	"github.com/oechsler-it/dash/delivery/web/middleware"
-	"github.com/oechsler-it/dash/delivery/web/templ/layout"
-	"github.com/oechsler-it/dash/delivery/web/templ/page"
-	"github.com/oechsler-it/dash/delivery/web/templ/partials"
-	"github.com/oechsler-it/dash/infra/oidc"
+	"git.at.oechsler.it/samuel/dash/v2/app/command"
+	"git.at.oechsler.it/samuel/dash/v2/app/query"
+	webi18n "git.at.oechsler.it/samuel/dash/v2/delivery/web/i18n"
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/middleware"
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/layout"
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/page"
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/partials"
+	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
 	"github.com/gofiber/fiber/v2"
 )

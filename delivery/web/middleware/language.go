@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/invopop/ctxi18n"
-	"github.com/oechsler-it/dash/app/query"
+	"git.at.oechsler.it/samuel/dash/v2/app/query"
 
 	"github.com/gofiber/fiber/v2"
 )

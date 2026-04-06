@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	domainerrors "github.com/oechsler-it/dash/domain/errors"
-	"github.com/oechsler-it/dash/infra/persistence/model"
-	domainrepo "github.com/oechsler-it/dash/domain/repo"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
+	"git.at.oechsler.it/samuel/dash/v2/infra/persistence/model"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 
 	"gorm.io/gorm"
 )

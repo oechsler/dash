@@ -1,6 +1,6 @@
 package service
 
-import "github.com/oechsler-it/dash/domain/repo"
+import "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 
 // DefaultTheme selects the user's default theme from a list according to domain rules:
 //  1. If list is empty, returns nil — caller must create a default first.

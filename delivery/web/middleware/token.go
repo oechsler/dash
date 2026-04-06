@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	domainmodel "github.com/oechsler-it/dash/domain/model"
+	domainmodel "git.at.oechsler.it/samuel/dash/v2/domain/model"
 
 	"github.com/gofiber/fiber/v2"
 )

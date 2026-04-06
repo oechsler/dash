@@ -2,8 +2,8 @@ package oidc
 
 import (
 	"context"
-	"github.com/oechsler-it/dash/domain/model"
-	"github.com/oechsler-it/dash/config"
+	"git.at.oechsler.it/samuel/dash/v2/domain/model"
+	"git.at.oechsler.it/samuel/dash/v2/config"
 	"fmt"
 	"net/url"
 	"strings"

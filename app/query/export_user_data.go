@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	domainerrors "github.com/oechsler-it/dash/domain/errors"
-	domainrepo "github.com/oechsler-it/dash/domain/repo"
-	"github.com/oechsler-it/dash/app/transfer"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
+	"git.at.oechsler.it/samuel/dash/v2/app/transfer"
 )
 
 // UserDataExporter handles the export-user-data query.

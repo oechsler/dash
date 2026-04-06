@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/oechsler-it/dash/domain/model"
+	"git.at.oechsler.it/samuel/dash/v2/domain/model"
 
 	"github.com/samber/lo"
 )

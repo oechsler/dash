@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	domainerrors "github.com/oechsler-it/dash/domain/errors"
-	"github.com/oechsler-it/dash/app/command"
-	domainmodel "github.com/oechsler-it/dash/domain/model"
-	domainrepo "github.com/oechsler-it/dash/domain/repo"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
+	"git.at.oechsler.it/samuel/dash/v2/app/command"
+	domainmodel "git.at.oechsler.it/samuel/dash/v2/domain/model"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 )
 
 // UserSettingsGetter handles the get-user-settings query.

@@ -1,8 +1,8 @@
 package persistence
 
 import (
-	domainrepo "github.com/oechsler-it/dash/domain/repo"
-	"github.com/oechsler-it/dash/infra/persistence/repo"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
+	"git.at.oechsler.it/samuel/dash/v2/infra/persistence/repo"
 
 	"gorm.io/gorm"
 )

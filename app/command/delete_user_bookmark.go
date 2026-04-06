@@ -3,9 +3,9 @@ package command
 import (
 	"context"
 
-	domainerrors "github.com/oechsler-it/dash/domain/errors"
-	domainmodel "github.com/oechsler-it/dash/domain/model"
-	domainrepo "github.com/oechsler-it/dash/domain/repo"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
+	domainmodel "git.at.oechsler.it/samuel/dash/v2/domain/model"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 )
 
 // UserBookmarkDeleter handles the delete-user-bookmark command.

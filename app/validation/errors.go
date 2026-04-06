@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	domainerrors "github.com/oechsler-it/dash/domain/errors"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
 )
 
 // Describe converts a validator.ValidationErrors or any error into a concise, human-friendly description.

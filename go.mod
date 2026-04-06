@@ -1,4 +1,4 @@
-module github.com/oechsler-it/dash
+module git.at.oechsler.it/samuel/dash/v2
 
 go 1.25.0
 

@@ -8,7 +8,7 @@ package page
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/oechsler-it/dash/delivery/web/templ/layout"
+import "git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/layout"
 
 type UserInfo struct {
 	Picture     *string

@@ -3,7 +3,7 @@ package query
 import (
 	"context"
 
-	"github.com/oechsler-it/dash/domain/model"
+	"git.at.oechsler.it/samuel/dash/v2/domain/model"
 )
 
 // AvailableIconTypesGetter handles the get-available-icon-types query.

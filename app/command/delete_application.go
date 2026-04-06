@@ -3,8 +3,8 @@ package command
 import (
 	"context"
 
-	domainerrors "github.com/oechsler-it/dash/domain/errors"
-	domainrepo "github.com/oechsler-it/dash/domain/repo"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 )
 
 // ApplicationDeleter handles the delete-application command.

@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	domainerrors "github.com/oechsler-it/dash/domain/errors"
-	domainrepo "github.com/oechsler-it/dash/domain/repo"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 )
 
 // UserThemeDeleter handles the delete-user-theme command.

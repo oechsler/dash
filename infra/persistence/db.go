@@ -3,7 +3,7 @@ package persistence
 import (
 	"log"
 
-	"github.com/oechsler-it/dash/config"
+	"git.at.oechsler.it/samuel/dash/v2/config"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

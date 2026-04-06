@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "fmt"
-import "github.com/oechsler-it/dash/delivery/web/templ/components"
+import "git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/components"
 
 type ApplicationsInput struct {
 	ID          uint

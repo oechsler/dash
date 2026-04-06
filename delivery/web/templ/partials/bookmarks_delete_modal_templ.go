@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 	"github.com/invopop/ctxi18n/i18n"
-	"github.com/oechsler-it/dash/delivery/web/templ/components"
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/components"
 )
 
 type BookmarksDeleteModalInput struct {

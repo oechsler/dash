@@ -3,8 +3,8 @@ package query
 import (
 	"context"
 
-	domainmodel "github.com/oechsler-it/dash/domain/model"
-	"github.com/oechsler-it/dash/domain/service"
+	domainmodel "git.at.oechsler.it/samuel/dash/v2/domain/model"
+	"git.at.oechsler.it/samuel/dash/v2/domain/service"
 )
 
 // UserApplicationsGetter handles the get-user-applications query.

@@ -4,7 +4,7 @@ import (
 	"net/url"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/oechsler-it/dash/infra/oidc"
+	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 )
 
 const (
