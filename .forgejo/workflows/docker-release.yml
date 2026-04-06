@@ -7,13 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      dind:
-        image: docker:dind
-        env:
-          DOCKER_TLS_CERTDIR: ''
-    env:
-      DOCKER_HOST: tcp://dind:2375
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,15 +18,21 @@ jobs:
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
           echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
+      - name: Install buildah
+        run: apt-get install -y buildah
+
       - name: Build and push
         run: |
-          docker login git.at.oechsler.it -u ${{ github.actor }} -p ${{ secrets.FORGEJO_TOKEN }}
-          docker build \
+          buildah build \
             --build-arg VERSION=${{ steps.info.outputs.version }} \
             --build-arg COMMIT=${{ steps.info.outputs.commit }} \
             --build-arg BUILD_DATE=${{ steps.info.outputs.build_date }} \
             -t git.at.oechsler.it/samuel/dash:${{ github.ref_name }} \
             -t git.at.oechsler.it/samuel/dash:latest \
             -f docker/Dockerfile .
-          docker push git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
-          docker push git.at.oechsler.it/samuel/dash:latest
+          buildah push \
+            --creds ${{ github.actor }}:${{ secrets.FORGEJO_TOKEN }} \
+            git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
+          buildah push \
+            --creds ${{ github.actor }}:${{ secrets.FORGEJO_TOKEN }} \
+            git.at.oechsler.it/samuel/dash:latest
