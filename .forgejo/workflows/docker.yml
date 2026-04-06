@@ -27,15 +27,14 @@ jobs:
           curl -sSfL https://github.com/google/go-containerregistry/releases/download/v0.21.3/go-containerregistry_Linux_x86_64.tar.gz \
             | tar -xz -C /usr/local/bin crane
 
-          echo "${REGISTRY_TOKEN}" | crane auth login git.at.oechsler.it \
-            -u '${{ github.actor }}' --password-stdin
-
-          mkdir -p /kaniko/.docker
-          cp ~/.docker/config.json /kaniko/.docker/config.json
-
           crane export gcr.io/kaniko-project/executor:v1.24.0 - \
             | tar -xO kaniko/executor > /usr/local/bin/kaniko
           chmod +x /usr/local/bin/kaniko
+
+          mkdir -p /kaniko/.docker
+          printf '{"auths":{"git.at.oechsler.it":{"auth":"%s"}}}' \
+            "$(printf '%s:%s' '${{ github.actor }}' "${REGISTRY_TOKEN}" | base64 -w0)" \
+            > /kaniko/.docker/config.json
 
           /usr/local/bin/kaniko \
             --dockerfile=docker/Dockerfile \
