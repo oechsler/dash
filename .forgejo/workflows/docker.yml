@@ -23,7 +23,8 @@ jobs:
 
       - name: Build and push
         run: |
-          buildah build \
+          buildah --storage-driver=vfs build \
+            --isolation=chroot \
             --build-arg VERSION=${{ steps.info.outputs.version }} \
             --build-arg COMMIT=${{ steps.info.outputs.commit }} \
             --build-arg BUILD_DATE=${{ steps.info.outputs.build_date }} \
