@@ -26,24 +26,12 @@ RUN CGO_ENABLED=0 go build \
       -X main.buildDate=${BUILD_DATE}" \
     -o /out/server ./cmd/server
 
-FROM alpine:3.22
+FROM gcr.io/distroless/static-debian12:nonroot
 
-RUN apk add --no-cache ca-certificates tzdata && \
-    update-ca-certificates
-
-RUN addgroup -S dash && \
-    adduser -S -G dash dash
-
-WORKDIR /dash
-
+COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=build /out/server /dash/server
 COPY --from=build /src/delivery/web/static /dash/delivery/web/static
 
-RUN chown -R dash:dash /dash && \
-    chmod +x /dash/server
-
 EXPOSE 8080
-
-USER dash
 
 CMD ["/dash/server"]
