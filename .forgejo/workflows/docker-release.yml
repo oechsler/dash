@@ -18,22 +18,19 @@ jobs:
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
           echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
-      - name: Install buildah
-        run: apt-get update && apt-get install -y buildah
-
       - name: Build and push
         run: |
-          buildah --storage-driver=vfs build \
-            --isolation=chroot \
+          curl -sSL https://github.com/GoogleContainerTools/kaniko/releases/latest/download/executor-linux-amd64 -o /usr/local/bin/kaniko
+          chmod +x /usr/local/bin/kaniko
+          mkdir -p /kaniko/.docker
+          echo "{\"auths\":{\"git.at.oechsler.it\":{\"auth\":\"$(echo -n '${{ github.actor }}:${{ secrets.FORGEJO_TOKEN }}' | base64 -w0)\"}}}" \
+            > /kaniko/.docker/config.json
+          /usr/local/bin/kaniko \
+            --dockerfile=docker/Dockerfile \
+            --context=dir://${{ github.workspace }} \
+            --destination=git.at.oechsler.it/samuel/dash:${{ github.ref_name }} \
+            --destination=git.at.oechsler.it/samuel/dash:latest \
             --build-arg VERSION=${{ steps.info.outputs.version }} \
             --build-arg COMMIT=${{ steps.info.outputs.commit }} \
             --build-arg BUILD_DATE=${{ steps.info.outputs.build_date }} \
-            -t git.at.oechsler.it/samuel/dash:${{ github.ref_name }} \
-            -t git.at.oechsler.it/samuel/dash:latest \
-            -f docker/Dockerfile .
-          buildah push \
-            --creds ${{ github.actor }}:${{ secrets.FORGEJO_TOKEN }} \
-            git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
-          buildah push \
-            --creds ${{ github.actor }}:${{ secrets.FORGEJO_TOKEN }} \
-            git.at.oechsler.it/samuel/dash:latest
+            --snapshot-mode=redo
