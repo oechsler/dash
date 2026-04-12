@@ -1,0 +1,26 @@
+name: Renovate
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        run: |
+          curl -fsSL https://nodejs.org/dist/v22.x/node-v22.15.0-linux-x64.tar.gz | tar -xz -C /usr/local --strip-components=1
+
+      - name: Run Renovate
+        env:
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          RENOVATE_PLATFORM: gitea
+          RENOVATE_ENDPOINT: https://git.at.oechsler.it
+          RENOVATE_REPOSITORIES: '["samuel/dash"]'
+          LOG_LEVEL: info
+        run: npx --yes renovate
