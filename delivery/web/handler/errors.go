@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 // httpError maps a domain error to a Fiber HTTP error.

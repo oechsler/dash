@@ -16,6 +16,7 @@ import (
 	"git.at.oechsler.it/samuel/dash/v2/infra/persistence"
 
 	web "git.at.oechsler.it/samuel/dash/v2/delivery/web"
+	"github.com/gofiber/fiber/v3"
 )
 
 // Build-time variables injected via -ldflags.
@@ -87,7 +88,10 @@ func main() {
 		var err error
 		if certFile != "" && keyFile != "" {
 			log.Printf("server listening on %s (TLS)", addr)
-			err = fiberApp.ListenTLS(addr, certFile, keyFile)
+			err = fiberApp.Listen(addr, fiber.ListenConfig{
+				CertFile:    certFile,
+				CertKeyFile: keyFile,
+			})
 		} else {
 			log.Printf("server listening on %s", addr)
 			err = fiberApp.Listen(addr)

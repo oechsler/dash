@@ -6,16 +6,15 @@ import (
 
 	"git.at.oechsler.it/samuel/dash/v2/config"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 func NewFiberApp(cfg *config.AppConfig) *fiber.App {
 	app := fiber.New(fiber.Config{
-		DisableStartupMessage: true,
-		ReadBufferSize:        1024 * 1024 * 1,
+		ReadBufferSize: 1024 * 1024 * 1,
 	})
 
-	app.Use(func(c *fiber.Ctx) error {
+	app.Use(func(c fiber.Ctx) error {
 		start := time.Now()
 		err := c.Next()
 

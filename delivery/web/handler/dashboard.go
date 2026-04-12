@@ -15,7 +15,7 @@ import (
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/partials"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 const (
@@ -42,7 +42,7 @@ func Dashboard(deps DashboardDeps) {
 		Group("/").
 		Use(middleware.LoadUserFromSession(deps.SessionStore))
 
-	router.Get("/", func(c *fiber.Ctx) error {
+	router.Get("/", func(c fiber.Ctx) error {
 		user, authorized := middleware.GetCurrentUser(c)
 		if !authorized {
 			return redirectToLogin(c)
@@ -76,7 +76,7 @@ func Dashboard(deps DashboardDeps) {
 		localTime := time.Now().In(loc)
 
 		// Resolve greeting text using the locale already set in ctx by the language middleware.
-		ctx := c.UserContext()
+		ctx := c.Context()
 		hour := localTime.Hour()
 		var greetKey string
 		switch {
@@ -125,7 +125,7 @@ func Dashboard(deps DashboardDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/dashboard/title/applications", func(c *fiber.Ctx) error {
+		Get("/dashboard/title/applications", func(c fiber.Ctx) error {
 			user, _ := middleware.GetCurrentUser(c)
 			return middleware.Render(c, partials.DashboardTitleApplications(partials.DashboardTitleApplicationsInput{
 				EditMode: false,
@@ -135,7 +135,7 @@ func Dashboard(deps DashboardDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/dashboard/title/applications/edit", func(c *fiber.Ctx) error {
+		Get("/dashboard/title/applications/edit", func(c fiber.Ctx) error {
 			user, _ := middleware.GetCurrentUser(c)
 			return middleware.Render(c, partials.DashboardTitleApplications(partials.DashboardTitleApplicationsInput{
 				EditMode: true,
@@ -145,7 +145,7 @@ func Dashboard(deps DashboardDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/dashboard/title/bookmarks", func(c *fiber.Ctx) error {
+		Get("/dashboard/title/bookmarks", func(c fiber.Ctx) error {
 			return middleware.Render(c, partials.DashboardTitleBookmarks(partials.DashboardTitleBookmarksInput{
 				EditMode: false,
 			}))
@@ -153,7 +153,7 @@ func Dashboard(deps DashboardDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/dashboard/title/bookmarks/edit", func(c *fiber.Ctx) error {
+		Get("/dashboard/title/bookmarks/edit", func(c fiber.Ctx) error {
 			return middleware.Render(c, partials.DashboardTitleBookmarks(partials.DashboardTitleBookmarksInput{
 				EditMode: true,
 			}))
@@ -161,7 +161,7 @@ func Dashboard(deps DashboardDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/dashboard/edit/:mode", func(c *fiber.Ctx) error {
+		Get("/dashboard/edit/:mode", func(c fiber.Ctx) error {
 			mode := c.Params("mode")
 			if mode != "on" && mode != "off" {
 				return fiber.NewError(fiber.StatusBadRequest, "invalid mode")
@@ -177,7 +177,7 @@ func Dashboard(deps DashboardDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/dashboard/modal/close", func(c *fiber.Ctx) error {
+		Get("/dashboard/modal/close", func(c fiber.Ctx) error {
 			return c.SendString("")
 		}).Name(DashboardModalCloseRoute)
 }
