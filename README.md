@@ -27,12 +27,33 @@ cp docker/compose/postgres.env.example docker/compose/postgres.env
 docker compose -f docker/compose/compose.yml up -d
 ```
 
+## Identity Provider
+
+Dash requires an OAuth2/OIDC identity provider. Any standard-compliant IdP works — the only hard requirement is that it emits a `groups` claim so Dash can distinguish regular users from admins.
+
+**Recommended: [Pocket ID](https://pocket-id.org)**
+
+Pocket ID is a lightweight, self-hosted OIDC provider built for homelabs. It supports passkey login, has a clean admin UI, and is trivial to run alongside Dash. It is the IdP this project is tested against.
+
+Once you have Pocket ID running and have created an OIDC client, set the following in `dash.env`:
+
+```env
+OIDC_ISSUER=https://id.yourdomain.com
+OIDC_CLIENT_ID=<client-id-from-pocket-id>
+OIDC_CLIENT_SECRET=<client-secret-from-pocket-id>
+OIDC_REDIRECT_URL=https://dash.yourdomain.com/session/login/callback
+OIDC_ADMIN_GROUP=admin
+```
+
+Any other OIDC-compliant provider works equally well — self-hosted options like Authentik, Keycloak, or Authelia, as well as social platforms like GitHub or Google (via an OAuth2 proxy that adds a `groups` claim).
+
 ## Images
 
-Images are published to two registries on every push to `main` (`:main`) and on every version tag (`:v*`, `:latest`):
+Docker images are published to the registries of this repository:
 
-- `git.at.oechsler.it/samuel/dash`
-- `ghcr.io/oechsler/dash`
+- `:main` — current stable development state, updated on every push to `main`
+- `:latest` — latest release
+- `:vX.Y.Z` — immutable tag for each release, following semantic versioning
 
 ## Contributing
 

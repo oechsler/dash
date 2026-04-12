@@ -1,0 +1,82 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: dash-postgres-dev
+    restart: unless-stopped
+    env_file: postgres.dev.env
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dash -d dash"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  openldap:
+    image: bitnami/openldap:2
+    container_name: dash-ldap-dev
+    restart: unless-stopped
+    environment:
+      LDAP_ROOT: dc=example,dc=com
+      LDAP_ADMIN_USERNAME: admin
+      LDAP_ADMIN_PASSWORD: adminpassword
+      LDAP_CUSTOM_LDIF_DIR: /ldifs
+    volumes:
+      - ./ldap:/ldifs:ro
+      - openldap_dev_data:/bitnami/openldap
+    healthcheck:
+      test: ["CMD", "ldapsearch", "-x", "-H", "ldap://localhost:1389",
+             "-b", "ou=users,dc=example,dc=com",
+             "-D", "cn=admin,dc=example,dc=com", "-w", "adminpassword"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 5
+
+  dex:
+    image: ghcr.io/dexidp/dex:v2.41.1
+    container_name: dash-dex-dev
+    restart: unless-stopped
+    depends_on:
+      openldap:
+        condition: service_healthy
+    ports:
+      - "5556:5556"
+    volumes:
+      - ./dex:/etc/dex:ro
+    command: ["dex", "serve", "/etc/dex/config.yml"]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5556/dex/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dash:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile
+    container_name: dash-dev
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dex:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    env_file: dash.dev.env
+    # dex.localhost must resolve to the Docker host so the server-side OIDC
+    # client can reach Dex (which is exposed on the host's port 5556).
+    # Browsers resolve *.localhost to 127.0.0.1 natively (RFC 6761).
+    extra_hosts:
+      - "dex.localhost:host-gateway"
+    healthcheck:
+      test: ["CMD", "/dash/healthcheck"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+volumes:
+  postgres_dev_data:
+  openldap_dev_data:

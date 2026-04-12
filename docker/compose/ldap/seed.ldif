@@ -1,0 +1,45 @@
+# Users OU
+dn: ou=users,dc=example,dc=com
+objectClass: organizationalUnit
+ou: users
+
+# Groups OU
+dn: ou=groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+# admin@example.com — password: test1224
+dn: uid=admin,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+uid: admin
+cn: Admin
+sn: User
+givenName: Admin
+mail: admin@example.com
+userPassword: {SHA}yq5Nhcv/KoG4AkvKhXlIgVAoLO4=
+
+# user@example.com — password: test1224
+dn: uid=user,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+uid: user
+cn: Regular User
+sn: User
+givenName: Regular
+mail: user@example.com
+userPassword: {SHA}yq5Nhcv/KoG4AkvKhXlIgVAoLO4=
+
+# admin group
+dn: cn=admin,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: admin
+member: uid=admin,ou=users,dc=example,dc=com
+
+# user group
+dn: cn=user,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: user
+member: uid=user,ou=users,dc=example,dc=com
