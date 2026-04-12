@@ -23,7 +23,7 @@ connectors:
     id: ldap
     name: LDAP
     config:
-      host: openldap:1389
+      host: openldap:389
       insecureNoSSL: true
       bindDN: cn=admin,dc=example,dc=com
       bindPW: adminpassword
