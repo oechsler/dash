@@ -54,7 +54,7 @@ templ CategoriesShelvedEdit(inputs []CategoriesShelvedEditInput) {
 					</button>
 				</div>
 			</div>
-			<ul class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:grid-rows-2 md:auto-rows-fr md:grid-flow-row-dense items-stretch content-stretch gap-2">
+			<ul class="space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 md:auto-rows-fr md:grid-flow-row-dense items-stretch content-stretch gap-2">
 				if len(input.Bookmarks) == 0 {
 					<li class="text-tertiary">{ i18n.T(ctx, "empty.no_bookmarks") }</li>
 				} else {
