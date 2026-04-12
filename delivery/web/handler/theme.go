@@ -10,7 +10,7 @@ import (
 	"git.at.oechsler.it/samuel/dash/v2/domain/model"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/samber/lo"
 )
 
@@ -35,7 +35,7 @@ func Theme(deps ThemeDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Post("/themes", func(c *fiber.Ctx) error {
+		Post("/themes", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -47,7 +47,7 @@ func Theme(deps ThemeDeps) {
 				Secondary   string `form:"secondary"`
 				Tertiary    string `form:"tertiary"`
 			}
-			if err := c.BodyParser(&body); err != nil {
+			if err := c.Bind().Body(&body); err != nil {
 				return fiber.NewError(fiber.StatusBadRequest, "invalid body")
 			}
 
@@ -102,7 +102,7 @@ func Theme(deps ThemeDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Delete("/themes/:id", func(c *fiber.Ctx) error {
+		Delete("/themes/:id", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)

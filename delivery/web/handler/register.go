@@ -5,7 +5,7 @@ import (
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/middleware"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 // BuildInfo holds version metadata injected at build time via ldflags.

@@ -13,7 +13,7 @@ import (
 	"git.at.oechsler.it/samuel/dash/v2/domain/model"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/samber/lo"
 )
 
@@ -87,7 +87,7 @@ func SettingPlain(deps SettingDeps) {
 		Group("/").
 		Use(middleware.LoadUserFromSession(deps.SessionStore))
 
-	r.Get("/settings/export", func(c *fiber.Ctx) error {
+	r.Get("/settings/export", func(c fiber.Ctx) error {
 		user, authorized := middleware.GetCurrentUser(c)
 		if !authorized {
 			return redirectToLogin(c)
@@ -111,7 +111,7 @@ func SettingPlain(deps SettingDeps) {
 		return c.Send(data)
 	}).Name(SettingsExportRoute)
 
-	r.Get("/settings/token", func(c *fiber.Ctx) error {
+	r.Get("/settings/token", func(c fiber.Ctx) error {
 		_, authorized := middleware.GetCurrentUser(c)
 		if !authorized {
 			return fiber.NewError(fiber.StatusUnauthorized)
@@ -134,7 +134,7 @@ func Setting(deps SettingDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Put("/settings", func(c *fiber.Ctx) error {
+		Put("/settings", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -145,7 +145,7 @@ func Setting(deps SettingDeps) {
 				Language string `form:"language"`
 				Timezone string `form:"timezone"`
 			}
-			if err := c.BodyParser(&body); err != nil {
+			if err := c.Bind().Body(&body); err != nil {
 				return fiber.NewError(fiber.StatusBadRequest, "invalid body")
 			}
 
@@ -163,7 +163,7 @@ func Setting(deps SettingDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/settings/modal", func(c *fiber.Ctx) error {
+		Get("/settings/modal", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -207,7 +207,7 @@ func Setting(deps SettingDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/settings/modal/themes", func(c *fiber.Ctx) error {
+		Get("/settings/modal/themes", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -252,7 +252,7 @@ func Setting(deps SettingDeps) {
 	// Import: HTMX, multipart file upload
 	router.
 		Use(middleware.HtmxOnly).
-		Post("/settings/import", func(c *fiber.Ctx) error {
+		Post("/settings/import", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -290,7 +290,7 @@ func Setting(deps SettingDeps) {
 	// Delete account: HTMX, deletes all user data then triggers OIDC logout
 	router.
 		Use(middleware.HtmxOnly).
-		Delete("/settings/account", func(c *fiber.Ctx) error {
+		Delete("/settings/account", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)

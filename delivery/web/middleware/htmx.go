@@ -1,8 +1,8 @@
 package middleware
 
-import "github.com/gofiber/fiber/v2"
+import "github.com/gofiber/fiber/v3"
 
-func HtmxOnly(c *fiber.Ctx) error {
+func HtmxOnly(c fiber.Ctx) error {
 	if c.Get("HX-Request") != "true" {
 		return c.SendStatus(fiber.StatusForbidden)
 	}

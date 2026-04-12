@@ -3,7 +3,7 @@ package handler
 import (
 	"net/url"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 )
 
@@ -21,7 +21,7 @@ func Session(
 ) {
 	router := app.Group("/session")
 
-	router.Get("/login", func(c *fiber.Ctx) error {
+	router.Get("/login", func(c fiber.Ctx) error {
 		state, err := oidc.GenerateState()
 		if err != nil {
 			return err
@@ -39,10 +39,10 @@ func Session(
 			return err
 		}
 
-		return c.Redirect(provider.BeginAuth(state, codeVerifier), fiber.StatusFound)
+		return c.Redirect().Status(fiber.StatusFound).To(provider.BeginAuth(state, codeVerifier))
 	}).Name(SessionLoginRoute)
 
-	router.Get("/login/callback", func(c *fiber.Ctx) error {
+	router.Get("/login/callback", func(c fiber.Ctx) error {
 		stateCookie, err := store.LoadAndClearStateCookie(c)
 		if err != nil {
 			return redirectToLogin(c)
@@ -75,10 +75,10 @@ func Session(
 		if returnTo == "" {
 			returnTo = "/"
 		}
-		return c.Redirect(returnTo, fiber.StatusFound)
+		return c.Redirect().Status(fiber.StatusFound).To(returnTo)
 	}).Name(SessionLoginCallbackRoute)
 
-	router.Get("/logout", func(c *fiber.Ctx) error {
+	router.Get("/logout", func(c fiber.Ctx) error {
 		sessionData, ok := store.Load(c)
 		store.Clear(c)
 
@@ -99,19 +99,19 @@ func Session(
 			return redirectToLogin(c)
 		}
 
-		return c.Redirect(endSessionURL, fiber.StatusFound)
+		return c.Redirect().Status(fiber.StatusFound).To(endSessionURL)
 	}).Name(SessionLogoutRoute)
 
-	router.Get("/logout/callback", func(c *fiber.Ctx) error {
+	router.Get("/logout/callback", func(c fiber.Ctx) error {
 		loginURL, err := c.GetRouteURL(SessionLoginRoute, fiber.Map{})
 		if err != nil {
 			return err
 		}
-		return c.Redirect(loginURL, fiber.StatusFound)
+		return c.Redirect().Status(fiber.StatusFound).To(loginURL)
 	}).Name(SessionLogoutCallbackRoute)
 }
 
-func redirectToLogin(c *fiber.Ctx) error {
+func redirectToLogin(c fiber.Ctx) error {
 	loginURL, err := c.GetRouteURL(SessionLoginRoute, fiber.Map{})
 	if err != nil {
 		return err
@@ -119,12 +119,12 @@ func redirectToLogin(c *fiber.Ctx) error {
 
 	u, err := url.Parse(loginURL)
 	if err != nil {
-		return c.Redirect(loginURL, fiber.StatusFound)
+		return c.Redirect().Status(fiber.StatusFound).To(loginURL)
 	}
 
 	q := u.Query()
 	q.Set("rd", c.Path())
 	u.RawQuery = q.Encode()
 
-	return c.Redirect(u.String(), fiber.StatusFound)
+	return c.Redirect().Status(fiber.StatusFound).To(u.String())
 }

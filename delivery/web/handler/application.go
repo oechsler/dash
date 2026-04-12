@@ -12,7 +12,7 @@ import (
 	"git.at.oechsler.it/samuel/dash/v2/domain/model"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/samber/lo"
 )
 
@@ -46,7 +46,7 @@ func Application(deps ApplicationDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/", func(c *fiber.Ctx) error {
+		Get("/", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -72,7 +72,7 @@ func Application(deps ApplicationDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/edit", func(c *fiber.Ctx) error {
+		Get("/edit", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -100,7 +100,7 @@ func Application(deps ApplicationDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Post("/", func(c *fiber.Ctx) error {
+		Post("/", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -116,7 +116,7 @@ func Application(deps ApplicationDeps) {
 				Url             string `form:"url"`
 				VisibleToGroups string `form:"visible_to_groups"`
 			}
-			if err := c.BodyParser(&body); err != nil {
+			if err := c.Bind().Body(&body); err != nil {
 				return fiber.NewError(fiber.StatusBadRequest, "invalid body")
 			}
 
@@ -141,7 +141,7 @@ func Application(deps ApplicationDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Put(":id", func(c *fiber.Ctx) error {
+		Put(":id", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -162,7 +162,7 @@ func Application(deps ApplicationDeps) {
 				Url             string `form:"url"`
 				VisibleToGroups string `form:"visible_to_groups"`
 			}
-			if err := c.BodyParser(&body); err != nil {
+			if err := c.Bind().Body(&body); err != nil {
 				return fiber.NewError(fiber.StatusBadRequest, "invalid body")
 			}
 
@@ -188,7 +188,7 @@ func Application(deps ApplicationDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Delete(":id", func(c *fiber.Ctx) error {
+		Delete(":id", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -213,7 +213,7 @@ func Application(deps ApplicationDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/modal/create", func(c *fiber.Ctx) error {
+		Get("/modal/create", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -232,7 +232,7 @@ func Application(deps ApplicationDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/modal/edit/:id", func(c *fiber.Ctx) error {
+		Get("/modal/edit/:id", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -269,7 +269,7 @@ func Application(deps ApplicationDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/modal/delete/:id", func(c *fiber.Ctx) error {
+		Get("/modal/delete/:id", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)

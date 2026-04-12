@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	xdraw "golang.org/x/image/draw"
 )
 
@@ -24,7 +24,7 @@ import (
 // Favicon registers a route that serves a circular-cropped user picture as an .ico at /favicon.ico.
 // If no user or no picture is available, it responds with 204 No Content.
 func Favicon(store *oidc.SessionStore, app *fiber.App) {
-	app.Get("/favicon.ico", middleware.LoadUserFromSession(store), func(c *fiber.Ctx) error {
+	app.Get("/favicon.ico", middleware.LoadUserFromSession(store), func(c fiber.Ctx) error {
 		user, authorized := middleware.GetCurrentUser(c)
 		if !authorized {
 			return c.SendStatus(fiber.StatusNoContent)

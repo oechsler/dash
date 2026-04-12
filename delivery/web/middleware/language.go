@@ -6,7 +6,7 @@ import (
 	"github.com/invopop/ctxi18n"
 	"git.at.oechsler.it/samuel/dash/v2/app/query"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 // WithLanguage resolves the effective locale for each request and injects it into
@@ -17,21 +17,21 @@ import (
 //  2. Browser's Accept-Language header
 //  3. Fall back to English
 func WithLanguage(loader IdentityLoader, getUserSettings query.UserSettingsGetter) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		lang := resolveLanguage(c, loader, getUserSettings)
-		ctx, err := ctxi18n.WithLocale(c.UserContext(), lang)
+		ctx, err := ctxi18n.WithLocale(c.Context(), lang)
 		if err != nil {
-			ctx, _ = ctxi18n.WithLocale(c.UserContext(), "en")
+			ctx, _ = ctxi18n.WithLocale(c.Context(), "en")
 		}
-		c.SetUserContext(ctx)
+		c.SetContext(ctx)
 		return c.Next()
 	}
 }
 
-func resolveLanguage(c *fiber.Ctx, loader IdentityLoader, getUserSettings query.UserSettingsGetter) string {
+func resolveLanguage(c fiber.Ctx, loader IdentityLoader, getUserSettings query.UserSettingsGetter) string {
 	// Try to get the user's stored language preference.
 	if identity, ok := loader.LoadIdentity(c); ok && getUserSettings != nil {
-		if settings, err := getUserSettings.Handle(c.UserContext(), identity.UserID); err == nil {
+		if settings, err := getUserSettings.Handle(c.Context(), identity.UserID); err == nil {
 			stored := settings.Language
 			if stored != "" && stored != "auto" {
 				return stored

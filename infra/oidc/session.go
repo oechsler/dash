@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/gorilla/securecookie"
 )
 
@@ -92,7 +92,7 @@ func NewSessionStore(cfg *config.OIDCCookieConfig) (*SessionStore, error) {
 }
 
 // Save encodes the identity into an encrypted session cookie.
-func (s *SessionStore) Save(c *fiber.Ctx, identity model.Identity, rawIDToken string, expiresAt int64) error {
+func (s *SessionStore) Save(c fiber.Ctx, identity model.Identity, rawIDToken string, expiresAt int64) error {
 	data := SessionData{
 		Sub:        identity.UserID,
 		FirstName:  identity.FirstName,
@@ -130,7 +130,7 @@ func (s *SessionStore) Save(c *fiber.Ctx, identity model.Identity, rawIDToken st
 }
 
 // Load decodes the session cookie. Returns false if missing, invalid, or expired.
-func (s *SessionStore) Load(c *fiber.Ctx) (SessionData, bool) {
+func (s *SessionStore) Load(c fiber.Ctx) (SessionData, bool) {
 	encoded := c.Cookies(s.cookieName)
 	if encoded == "" {
 		return SessionData{}, false
@@ -150,7 +150,7 @@ func (s *SessionStore) Load(c *fiber.Ctx) (SessionData, bool) {
 
 // LoadIdentity decodes the session cookie and returns the domain Identity.
 // This method implements the middleware.IdentityLoader interface.
-func (s *SessionStore) LoadIdentity(c *fiber.Ctx) (model.Identity, bool) {
+func (s *SessionStore) LoadIdentity(c fiber.Ctx) (model.Identity, bool) {
 	data, ok := s.Load(c)
 	if !ok {
 		return model.Identity{}, false
@@ -159,7 +159,7 @@ func (s *SessionStore) LoadIdentity(c *fiber.Ctx) (model.Identity, bool) {
 }
 
 // Clear instructs the browser to delete the session cookie.
-func (s *SessionStore) Clear(c *fiber.Ctx) {
+func (s *SessionStore) Clear(c fiber.Ctx) {
 	c.Cookie(&fiber.Cookie{
 		Name:     s.cookieName,
 		Value:    "",
@@ -172,7 +172,7 @@ func (s *SessionStore) Clear(c *fiber.Ctx) {
 }
 
 // SaveStateCookie stores the PKCE state in a short-lived encrypted cookie.
-func (s *SessionStore) SaveStateCookie(c *fiber.Ctx, sc StateCookie) error {
+func (s *SessionStore) SaveStateCookie(c fiber.Ctx, sc StateCookie) error {
 	encoded, err := s.codec.Encode(stateCookieName, &sc)
 	if err != nil {
 		return fmt.Errorf("encoding state cookie: %w", err)
@@ -190,7 +190,7 @@ func (s *SessionStore) SaveStateCookie(c *fiber.Ctx, sc StateCookie) error {
 }
 
 // LoadAndClearStateCookie reads the state cookie and immediately deletes it to prevent replay.
-func (s *SessionStore) LoadAndClearStateCookie(c *fiber.Ctx) (StateCookie, error) {
+func (s *SessionStore) LoadAndClearStateCookie(c fiber.Ctx) (StateCookie, error) {
 	encoded := c.Cookies(stateCookieName)
 	if encoded == "" {
 		return StateCookie{}, fmt.Errorf("state cookie missing")

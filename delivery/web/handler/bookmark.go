@@ -11,7 +11,7 @@ import (
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/partials"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 const (
@@ -43,7 +43,7 @@ func Bookmark(deps BookmarkDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Post("/", func(c *fiber.Ctx) error {
+		Post("/", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -56,7 +56,7 @@ func Bookmark(deps BookmarkDeps) {
 				Url         string `form:"url"`
 				CategoryID  uint   `form:"category_id"`
 			}
-			if err := c.BodyParser(&body); err != nil {
+			if err := c.Bind().Body(&body); err != nil {
 				return fiber.NewError(fiber.StatusBadRequest, "invalid body")
 			}
 
@@ -76,7 +76,7 @@ func Bookmark(deps BookmarkDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Put(":id", func(c *fiber.Ctx) error {
+		Put(":id", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -94,7 +94,7 @@ func Bookmark(deps BookmarkDeps) {
 				Url         string `form:"url"`
 				CategoryID  uint   `form:"category_id"`
 			}
-			if err := c.BodyParser(&body); err != nil {
+			if err := c.Bind().Body(&body); err != nil {
 				return fiber.NewError(fiber.StatusBadRequest, "invalid body")
 			}
 
@@ -115,7 +115,7 @@ func Bookmark(deps BookmarkDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Delete(":id", func(c *fiber.Ctx) error {
+		Delete(":id", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -137,7 +137,7 @@ func Bookmark(deps BookmarkDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/modal/create/:categoryId", func(c *fiber.Ctx) error {
+		Get("/modal/create/:categoryId", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -165,7 +165,7 @@ func Bookmark(deps BookmarkDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/modal/edit/:id", func(c *fiber.Ctx) error {
+		Get("/modal/edit/:id", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
@@ -212,7 +212,7 @@ func Bookmark(deps BookmarkDeps) {
 
 	router.
 		Use(middleware.HtmxOnly).
-		Get("/modal/delete/:id", func(c *fiber.Ctx) error {
+		Get("/modal/delete/:id", func(c fiber.Ctx) error {
 			user, authorized := middleware.GetCurrentUser(c)
 			if !authorized {
 				return redirectToLogin(c)
