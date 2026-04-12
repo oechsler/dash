@@ -8,7 +8,7 @@ dn: ou=groups,dc=example,dc=com
 objectClass: organizationalUnit
 ou: groups
 
-# admin@example.com — password: test1224
+# admin@example.com — password: admin
 dn: uid=admin,ou=users,dc=example,dc=com
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -18,9 +18,9 @@ cn: Admin
 sn: User
 givenName: Admin
 mail: admin@example.com
-userPassword: {SHA}yq5Nhcv/KoG4AkvKhXlIgVAoLO4=
+userPassword: {SHA}0DPiKuNIrrVmD8IUCuw1hQxNqZc=
 
-# user@example.com — password: test1224
+# user@example.com — password: user
 dn: uid=user,ou=users,dc=example,dc=com
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -30,7 +30,7 @@ cn: Regular User
 sn: User
 givenName: Regular
 mail: user@example.com
-userPassword: {SHA}yq5Nhcv/KoG4AkvKhXlIgVAoLO4=
+userPassword: {SHA}Et6pb+wgWTVmq3VpLJlJWWgzrck=
 
 # admin group
 dn: cn=admin,ou=groups,dc=example,dc=com
