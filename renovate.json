@@ -5,6 +5,7 @@
   ],
   "dependencyDashboard": false,
   "labels": ["dependencies"],
+  "postUpdateOptions": ["gomodTidy"],
   "packageRules": [
     {
       "matchManagers": ["gomod"],
