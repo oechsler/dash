@@ -23,5 +23,5 @@ jobs:
           RENOVATE_ENDPOINT: https://git.at.oechsler.it/
           RENOVATE_REPOSITORIES: '["samuel/dash"]'
           RENOVATE_GIT_AUTHOR: Renovate Bot <renovate@git.at.oechsler.it>
-          LOG_LEVEL: debug
+          LOG_LEVEL: info
         run: npx --yes renovate
