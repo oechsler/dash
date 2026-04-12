@@ -31,8 +31,6 @@ jobs:
 
       - name: Build
         run: |
-          TEMPL_VERSION=$(grep 'github.com/a-h/templ ' go.mod | awk '{print $2}')
-          go install github.com/a-h/templ/cmd/templ@${TEMPL_VERSION}
           go generate ./delivery/web/templ
           go generate ./delivery/web/static
           rm -f ./delivery/web/static/generate.go
