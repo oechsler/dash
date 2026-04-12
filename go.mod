@@ -3,18 +3,18 @@ module git.at.oechsler.it/samuel/dash/v2
 go 1.26.2
 
 require (
-	github.com/a-h/templ v0.3.943
-	github.com/coreos/go-oidc/v3 v3.17.0
-	github.com/go-playground/validator/v10 v10.27.0
+	github.com/a-h/templ v0.3.1001
+	github.com/coreos/go-oidc/v3 v3.18.0
+	github.com/go-playground/validator/v10 v10.30.2
 	github.com/gofiber/fiber/v3 v3.1.0
 	github.com/gorilla/securecookie v1.1.2
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/invopop/ctxi18n v0.9.0
-	github.com/samber/lo v1.51.0
-	golang.org/x/image v0.22.0
+	github.com/samber/lo v1.53.0
+	golang.org/x/image v0.39.0
 	golang.org/x/oauth2 v0.36.0
 	gorm.io/driver/postgres v1.6.0
-	gorm.io/gorm v1.30.1
+	gorm.io/gorm v1.31.1
 )
 
 require (
@@ -25,8 +25,8 @@ require (
 	github.com/cli/browser v1.3.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/gofiber/schema v1.7.0 // indirect
@@ -50,13 +50,13 @@ require (
 	github.com/tinylib/msgp v1.6.3 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.69.0 // indirect
-	golang.org/x/crypto v0.48.0 // indirect
-	golang.org/x/mod v0.32.0 // indirect
-	golang.org/x/net v0.50.0 // indirect
-	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
-	golang.org/x/text v0.34.0 // indirect
-	golang.org/x/tools v0.41.0 // indirect
+	golang.org/x/crypto v0.49.0 // indirect
+	golang.org/x/mod v0.34.0 // indirect
+	golang.org/x/net v0.52.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/tools v0.43.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
 )
