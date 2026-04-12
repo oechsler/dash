@@ -14,7 +14,7 @@ jobs:
 
       - name: Install Node.js
         run: |
-          curl -fsSL https://nodejs.org/dist/v22.x/node-v22.15.0-linux-x64.tar.gz | tar -xz -C /usr/local --strip-components=1
+          curl -fsSL https://nodejs.org/dist/v22.15.0/node-v22.15.0-linux-x64.tar.gz | tar -xz -C /usr/local --strip-components=1
 
       - name: Run Renovate
         env:
