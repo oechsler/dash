@@ -1,0 +1,29 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          GO_VERSION=$(grep '^go ' go.mod | awk '{print $2}')
+          rm -rf /usr/local/go
+          curl -sSfL https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz | tar -xz -C /usr/local
+          echo "/usr/local/go/bin" >> $GITHUB_PATH
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
+      - name: Build
+        run: |
+          TEMPL_VERSION=$(grep 'github.com/a-h/templ ' go.mod | awk '{print $2}')
+          go install github.com/a-h/templ/cmd/templ@${TEMPL_VERSION}
+          go generate ./delivery/web/templ
+          go generate ./delivery/web/static
+          rm -f ./delivery/web/static/generate.go
+          CGO_ENABLED=0 go build ./...
