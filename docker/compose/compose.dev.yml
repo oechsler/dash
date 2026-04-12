@@ -4,6 +4,8 @@ services:
     container_name: dash-postgres-dev
     restart: unless-stopped
     env_file: postgres.dev.env
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     healthcheck:
@@ -63,14 +65,12 @@ services:
         condition: service_healthy
       dex:
         condition: service_healthy
-    ports:
-      - "8080:8080"
+    # network_mode: host lets the container share the host's network stack.
+    # This means localhost:5432 (postgres) and localhost:5556 (dex) are
+    # reachable with the same URLs the browser uses — no hostname tricks needed.
+    # Linux-only; works fine on NixOS/CachyOS.
+    network_mode: host
     env_file: dash.dev.env
-    # dex.localhost must resolve to the Docker host so the server-side OIDC
-    # client can reach Dex (which is exposed on the host's port 5556).
-    # Browsers resolve *.localhost to 127.0.0.1 natively (RFC 6761).
-    extra_hosts:
-      - "dex.localhost:host-gateway"
     healthcheck:
       test: ["CMD", "/dash/healthcheck"]
       interval: 30s
