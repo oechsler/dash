@@ -3,6 +3,7 @@
   "extends": [
     "config:recommended"
   ],
+  "dependencyDashboard": false,
   "labels": ["dependencies"],
   "schedule": ["before 6am on monday"],
   "packageRules": [
