@@ -5,7 +5,6 @@
   ],
   "dependencyDashboard": false,
   "labels": ["dependencies"],
-  "schedule": ["before 6am on monday"],
   "packageRules": [
     {
       "matchManagers": ["gomod"],
