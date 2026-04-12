@@ -16,6 +16,7 @@ jobs:
         run: |
           curl -fsSL https://nodejs.org/dist/v22.15.0/node-v22.15.0-linux-x64.tar.gz | tar -xz -C /usr/local --strip-components=1
           GO_VERSION=$(grep '^go ' go.mod | awk '{print $2}')
+          rm -rf /usr/local/go
           curl -fsSL https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz | tar -xz -C /usr/local
           echo "/usr/local/go/bin" >> $GITHUB_PATH
 
