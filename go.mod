@@ -9,6 +9,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.12
 	github.com/gorilla/securecookie v1.1.2
 	github.com/ilyakaznacheev/cleanenv v1.5.0
+	github.com/invopop/ctxi18n v0.9.0
 	github.com/samber/lo v1.51.0
 	golang.org/x/image v0.22.0
 	golang.org/x/oauth2 v0.36.0
@@ -25,11 +26,10 @@ require (
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/invopop/ctxi18n v0.9.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
