@@ -33,7 +33,6 @@ FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=build /out/server /dash/server
 COPY --from=build /out/healthcheck /dash/healthcheck
-COPY --from=build /src/delivery/web/static /dash/delivery/web/static
 
 EXPOSE 8080
 
