@@ -13,6 +13,7 @@ type BuildInfo struct {
 	Version   string
 	Commit    string
 	BuildDate string
+	RepoURL   string
 }
 
 func RegisterAll(

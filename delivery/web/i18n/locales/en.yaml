@@ -23,6 +23,7 @@ en:
       export_description: "Download your dashboard data as a JSON file."
       import: "Import"
       import_description: "Restore data from a JSON file. Existing items with the same content are skipped."
+      import_failed: "Import failed"
       delete_account: "Delete Account"
       delete_account_description: "Permanently delete all your data. This cannot be undone."
       delete_account_confirm: "Are you sure? This will permanently delete all your data and log you out."
@@ -61,6 +62,7 @@ en:
     no_categories: "No categories yet"
     no_bookmarks: "No bookmarks yet"
     no_applications: "No applications yet"
+    import_hint: "import"
   modal_titles:
     create_application: "Create a new application"
     create_category: "Create a new category"

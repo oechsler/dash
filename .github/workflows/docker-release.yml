@@ -57,5 +57,6 @@ jobs:
             VERSION=${{ steps.info.outputs.version }}
             COMMIT=${{ steps.info.outputs.commit }}
             BUILD_DATE=${{ steps.info.outputs.build_date }}
+            REPO_URL=https://github.com/oechsler/dash
           cache-from: type=gha
           cache-to: type=gha,mode=max

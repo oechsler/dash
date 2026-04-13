@@ -118,6 +118,7 @@ func (p *Provider) EndSessionURL(idTokenHint, postLogoutRedirectURI string) stri
 func (p *Provider) ClaimsToIdentity(idToken *oidc.IDToken) (model.Identity, error) {
 	var claims struct {
 		Sub               string   `json:"sub"`
+		Name              string   `json:"name"`
 		GivenName         string   `json:"given_name"`
 		FamilyName        string   `json:"family_name"`
 		PreferredUsername string   `json:"preferred_username"`
@@ -129,8 +130,11 @@ func (p *Provider) ClaimsToIdentity(idToken *oidc.IDToken) (model.Identity, erro
 		return model.Identity{}, fmt.Errorf("extracting claims: %w", err)
 	}
 
-	// UserID: prefer preferred_username → sub → email
+	// UserID: prefer preferred_username → name → sub → email
 	userID := claims.PreferredUsername
+	if userID == "" {
+		userID = claims.Name
+	}
 	if userID == "" {
 		userID = claims.Sub
 	}
@@ -138,13 +142,16 @@ func (p *Provider) ClaimsToIdentity(idToken *oidc.IDToken) (model.Identity, erro
 		userID = claims.Email
 	}
 
-	// FirstName fallback
+	// FirstName: given_name → name → preferred_username
 	firstName := claims.GivenName
+	if firstName == "" {
+		firstName = claims.Name
+	}
 	if firstName == "" {
 		firstName = claims.PreferredUsername
 	}
 
-	// DisplayName
+	// DisplayName: full name from parts if available, else name → preferred_username → sub
 	displayName := claims.PreferredUsername
 	if claims.GivenName != "" || claims.FamilyName != "" {
 		name := claims.GivenName
@@ -156,6 +163,12 @@ func (p *Provider) ClaimsToIdentity(idToken *oidc.IDToken) (model.Identity, erro
 		} else {
 			displayName = name
 		}
+	}
+	if displayName == "" {
+		displayName = claims.Name
+	}
+	if displayName == "" {
+		displayName = claims.Sub
 	}
 
 	isAdmin := p.adminGroup == "*" || lo.Contains(claims.Groups, p.adminGroup)

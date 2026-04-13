@@ -38,7 +38,8 @@ jobs:
             -ldflags="-s -w \
               -X main.version=${{ steps.info.outputs.version }} \
               -X main.commit=${{ steps.info.outputs.commit }} \
-              -X main.buildDate=${{ steps.info.outputs.build_date }}" \
+              -X main.buildDate=${{ steps.info.outputs.build_date }} \
+              -X main.repoURL=https://git.at.oechsler.it/samuel/dash" \
             -o /tmp/server ./cmd/server
           CGO_ENABLED=0 go build -ldflags="-s -w" -o /tmp/healthcheck ./cmd/healthcheck
 

@@ -23,6 +23,7 @@ de:
       export_description: "Dashboard-Daten als JSON-Datei herunterladen."
       import: "Importieren"
       import_description: "Daten aus einer JSON-Datei wiederherstellen. Vorhandene Einträge mit gleichem Inhalt werden übersprungen."
+      import_failed: "Import fehlgeschlagen"
       delete_account: "Konto löschen"
       delete_account_description: "Alle deine Daten dauerhaft löschen. Dies kann nicht rückgängig gemacht werden."
       delete_account_confirm: "Bist du sicher? Alle deine Daten werden dauerhaft gelöscht und du wirst abgemeldet."
@@ -61,6 +62,7 @@ de:
     no_categories: "Noch keine Kategorien"
     no_bookmarks: "Noch keine Lesezeichen"
     no_applications: "Noch keine Anwendungen"
+    import_hint: "importieren"
   modal_titles:
     create_application: "Neue Anwendung erstellen"
     create_category: "Neue Kategorie erstellen"

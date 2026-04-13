@@ -29,6 +29,7 @@ type SettingsModalInputBuild struct {
 	Version   string
 	Commit    string
 	BuildDate string
+	RepoURL   string
 }
 
 type SettingsModalInput struct {
@@ -138,23 +139,27 @@ templ SettingsModal(input SettingsModalInput) {
 								{ i18n.T(ctx, "settings.data.export") }
 							</a>
 						</div>
-						<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10">
-							<div class="flex-1 min-w-0">
-								<p class="text-sm font-medium text-secondary">{ i18n.T(ctx, "settings.data.import") }</p>
-								<p class="text-xs text-tertiary mt-0.5">{ i18n.T(ctx, "settings.data.import_description") }</p>
+						<div data-import-section class="flex flex-col gap-2 p-3 rounded-xl bg-tertiary/10">
+							<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+								<div class="flex-1 min-w-0">
+									<p class="text-sm font-medium text-secondary">{ i18n.T(ctx, "settings.data.import") }</p>
+									<p class="text-xs text-tertiary mt-0.5">{ i18n.T(ctx, "settings.data.import_description") }</p>
+								</div>
+								<form
+									hx-post="/settings/import"
+									hx-encoding="multipart/form-data"
+									hx-swap="none"
+									data-import-failed={ i18n.T(ctx, "settings.data.import_failed") }
+									hx-on:htmx:response-error="var e=this.closest('[data-import-section]').querySelector('[data-import-error]'); e.textContent=this.dataset.importFailed+': '+event.detail.xhr.responseText; e.classList.remove('hidden')"
+									class="shrink-0"
+								>
+									<label class="block px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm whitespace-nowrap text-center">
+										{ i18n.T(ctx, "settings.data.import") }
+										<input type="file" name="file" accept=".json" class="sr-only" onchange="this.form.requestSubmit()"/>
+									</label>
+								</form>
 							</div>
-							<form
-								hx-post="/settings/import"
-								hx-encoding="multipart/form-data"
-								hx-target="#modal"
-								hx-swap="outerHTML"
-								class="shrink-0"
-							>
-								<label class="block px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm whitespace-nowrap text-center">
-									{ i18n.T(ctx, "settings.data.import") }
-									<input type="file" name="file" accept=".json" class="sr-only" onchange="this.form.requestSubmit()"/>
-								</label>
-							</form>
+							<p data-import-error class="hidden text-xs text-secondary italic"></p>
 						</div>
 						<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10">
 							<div class="flex-1 min-w-0">
@@ -189,8 +194,23 @@ templ SettingsModal(input SettingsModalInput) {
 					</div>
 				</details>
 				<div class="mt-8 pt-4 border-t border-tertiary/30 text-xs text-tertiary/60 space-y-0.5">
-					<p>{ i18n.T(ctx, "settings.version") } { input.Build.Version }</p>
-					<p>{ i18n.T(ctx, "settings.commit") } { input.Build.Commit } &middot; { input.Build.BuildDate }</p>
+					<p>
+						{ i18n.T(ctx, "settings.version") }
+						if input.Build.RepoURL != "" && input.Build.Version != "dev" {
+							<a href={ templ.SafeURL(fmt.Sprintf("%s/releases/tag/%s", input.Build.RepoURL, input.Build.Version)) } target="_blank" rel="noopener noreferrer" class="underline hover:text-tertiary/80">{ input.Build.Version }</a>
+						} else {
+							{ input.Build.Version }
+						}
+					</p>
+					<p>
+						{ i18n.T(ctx, "settings.commit") }
+						if input.Build.RepoURL != "" && input.Build.Commit != "unknown" {
+							<a href={ templ.SafeURL(fmt.Sprintf("%s/commit/%s", input.Build.RepoURL, input.Build.Commit)) } target="_blank" rel="noopener noreferrer" class="underline hover:text-tertiary/80">{ input.Build.Commit }</a>
+						} else {
+							{ input.Build.Commit }
+						}
+						&middot; { input.Build.BuildDate }
+					</p>
 				</div>
 			</div>
 		</div>

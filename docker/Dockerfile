@@ -3,6 +3,7 @@ FROM golang:1.26 AS build
 ARG VERSION=dev
 ARG COMMIT=unknown
 ARG BUILD_DATE=unknown
+ARG REPO_URL=""
 
 WORKDIR /src
 
@@ -23,7 +24,8 @@ RUN CGO_ENABLED=0 go build \
     -ldflags="-s -w \
       -X main.version=${VERSION} \
       -X main.commit=${COMMIT} \
-      -X main.buildDate=${BUILD_DATE}" \
+      -X main.buildDate=${BUILD_DATE} \
+      -X main.repoURL=${REPO_URL}" \
     -o /out/server ./cmd/server
 
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/healthcheck ./cmd/healthcheck

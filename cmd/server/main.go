@@ -24,6 +24,7 @@ var (
 	version   = "dev"
 	commit    = "unknown"
 	buildDate = "unknown"
+	repoURL   = ""
 )
 
 func main() {
@@ -71,6 +72,7 @@ func main() {
 		Version:   version,
 		Commit:    commit,
 		BuildDate: buildDate,
+		RepoURL:   repoURL,
 	})
 
 	interruptCtx, cancel := signal.NotifyContext(

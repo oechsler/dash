@@ -14,35 +14,10 @@ services:
       timeout: 5s
       retries: 5
 
-  openldap:
-    image: osixia/openldap:latest
-    container_name: dash-ldap-dev
-    restart: unless-stopped
-    command: --copy-service
-    environment:
-      LDAP_ORGANISATION: example
-      LDAP_DOMAIN: example.com
-      LDAP_ADMIN_PASSWORD: adminpassword
-    volumes:
-      - ./ldap:/container/service/slapd/assets/config/bootstrap/ldif/custom:ro
-      - openldap_dev_data:/var/lib/ldap
-      - openldap_slapd_data:/etc/ldap/slapd.d
-    healthcheck:
-      test: ["CMD", "ldapsearch", "-x", "-H", "ldap://localhost:389",
-             "-b", "ou=users,dc=example,dc=com",
-             "-D", "cn=admin,dc=example,dc=com", "-w", "adminpassword"]
-      interval: 10s
-      timeout: 5s
-      start_period: 15s
-      retries: 5
-
   dex:
     image: ghcr.io/dexidp/dex:v2.41.1
     container_name: dash-dex-dev
     restart: unless-stopped
-    depends_on:
-      openldap:
-        condition: service_healthy
     ports:
       - "5556:5556"
     volumes:
@@ -80,5 +55,3 @@ services:
 
 volumes:
   postgres_dev_data:
-  openldap_dev_data:
-  openldap_slapd_data:

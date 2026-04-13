@@ -201,6 +201,7 @@ func Setting(deps SettingDeps) {
 					Version:   deps.BuildInfo.Version,
 					Commit:    deps.BuildInfo.Commit,
 					BuildDate: deps.BuildInfo.BuildDate,
+					RepoURL:   deps.BuildInfo.RepoURL,
 				},
 			}))
 		}).Name(SettingsModalRoute)
