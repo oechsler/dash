@@ -16,6 +16,7 @@ func NewFiberApp(cfg *config.AppConfig) *fiber.App {
 		TrustProxyConfig: fiber.TrustProxyConfig{
 			Private: true,
 		},
+		ProxyHeader: fiber.HeaderXForwardedFor,
 	})
 
 	app.Use(func(c fiber.Ctx) error {

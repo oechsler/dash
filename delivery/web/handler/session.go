@@ -164,8 +164,13 @@ func redirectToLogin(c fiber.Ctx) error {
 
 	// HTMX requests need HX-Redirect so the browser performs a full navigation
 	// instead of swapping the login page HTML into the current target element.
+	// Use rd=/ — the current path is an API endpoint, not a page to return to.
 	if c.Get("HX-Request") == "true" {
-		c.Set("HX-Redirect", loginURL)
+		htmxLoginURL, err := c.GetRouteURL(SessionLoginRoute, fiber.Map{})
+		if err != nil {
+			return err
+		}
+		c.Set("HX-Redirect", htmxLoginURL+"?rd=/")
 		return c.SendStatus(fiber.StatusNoContent)
 	}
 
