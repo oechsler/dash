@@ -126,7 +126,10 @@ func Dashboard(deps DashboardDeps) {
 	router.
 		Use(middleware.HtmxOnly).
 		Get("/dashboard/title/applications", func(c fiber.Ctx) error {
-			user, _ := middleware.GetCurrentUser(c)
+			user, authorized := middleware.GetCurrentUser(c)
+			if !authorized {
+				return redirectToLogin(c)
+			}
 			return middleware.Render(c, partials.DashboardTitleApplications(partials.DashboardTitleApplicationsInput{
 				EditMode: false,
 				IsAdmin:  user.IsAdmin,
@@ -136,7 +139,10 @@ func Dashboard(deps DashboardDeps) {
 	router.
 		Use(middleware.HtmxOnly).
 		Get("/dashboard/title/applications/edit", func(c fiber.Ctx) error {
-			user, _ := middleware.GetCurrentUser(c)
+			user, authorized := middleware.GetCurrentUser(c)
+			if !authorized {
+				return redirectToLogin(c)
+			}
 			return middleware.Render(c, partials.DashboardTitleApplications(partials.DashboardTitleApplicationsInput{
 				EditMode: true,
 				IsAdmin:  user.IsAdmin,
@@ -146,6 +152,9 @@ func Dashboard(deps DashboardDeps) {
 	router.
 		Use(middleware.HtmxOnly).
 		Get("/dashboard/title/bookmarks", func(c fiber.Ctx) error {
+			if _, authorized := middleware.GetCurrentUser(c); !authorized {
+				return redirectToLogin(c)
+			}
 			return middleware.Render(c, partials.DashboardTitleBookmarks(partials.DashboardTitleBookmarksInput{
 				EditMode: false,
 			}))
@@ -154,6 +163,9 @@ func Dashboard(deps DashboardDeps) {
 	router.
 		Use(middleware.HtmxOnly).
 		Get("/dashboard/title/bookmarks/edit", func(c fiber.Ctx) error {
+			if _, authorized := middleware.GetCurrentUser(c); !authorized {
+				return redirectToLogin(c)
+			}
 			return middleware.Render(c, partials.DashboardTitleBookmarks(partials.DashboardTitleBookmarksInput{
 				EditMode: true,
 			}))
@@ -167,7 +179,10 @@ func Dashboard(deps DashboardDeps) {
 				return fiber.NewError(fiber.StatusBadRequest, "invalid mode")
 			}
 
-			user, _ := middleware.GetCurrentUser(c)
+			user, authorized := middleware.GetCurrentUser(c)
+			if !authorized {
+				return redirectToLogin(c)
+			}
 			return middleware.Render(c, partials.DashboardEdit(partials.DashboardEditInput{
 				EditMode:    mode == "on",
 				WithTrigger: true,
