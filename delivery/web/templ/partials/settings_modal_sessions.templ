@@ -64,7 +64,7 @@ templ SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) {
 		for _, s := range input.Sessions {
 			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10">
 				<div class="flex-1 min-w-0 flex flex-col gap-1">
-					<div class="flex items-center gap-2 flex-wrap">
+					<div class="flex items-center gap-x-2 gap-y-1 flex-wrap">
 						<p class="text-sm font-medium text-secondary">
 							if s.LastIP != "" {
 								{ s.LastIP }

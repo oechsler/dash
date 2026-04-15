@@ -93,7 +93,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 			return templ_7745c5c3_Err
 		}
 		for _, s := range input.Sessions {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10\"><div class=\"flex-1 min-w-0 flex flex-col gap-1\"><div class=\"flex items-center gap-2 flex-wrap\"><p class=\"text-sm font-medium text-secondary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10\"><div class=\"flex-1 min-w-0 flex flex-col gap-1\"><div class=\"flex items-center gap-x-2 gap-y-1 flex-wrap\"><p class=\"text-sm font-medium text-secondary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
