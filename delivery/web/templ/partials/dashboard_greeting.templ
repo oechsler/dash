@@ -1,0 +1,11 @@
+package partials
+
+type DashboardGreetingInput struct {
+	Date     string
+	Greeting string
+}
+
+templ DashboardGreeting(input DashboardGreetingInput) {
+	<p class="text-sm uppercase text-tertiary mt-8 mb-4">{ input.Date }</p>
+	<h1 class="text-4xl leading-[1.1] font-semibold text-secondary lg:text-5xl">{ input.Greeting }</h1>
+}

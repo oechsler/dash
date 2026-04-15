@@ -20,6 +20,7 @@ import (
 
 const (
 	DashboardRoute                      = "DashboardRoute"
+	DashboardGreetingRoute              = "DashboardGreetingRoute"
 	DashboardTitleApplicationsRoute     = "DashboardTitleApplicationsRoute"
 	DashboardTitleApplicationsEditRoute = "DashboardTitleApplicationsEditRoute"
 	DashboardTitleBookmarksRoute        = "DashboardTitleBookmarksRoute"
@@ -64,39 +65,12 @@ func Dashboard(deps DashboardDeps) {
 			return err
 		}
 
-		// Resolve timezone: user preference takes priority, browser cookie as fallback.
-		tzName := settings.Timezone
-		if tzName == "" || tzName == "auto" {
-			tzName = c.Cookies("tz", "UTC")
-		}
-		loc, err := time.LoadLocation(tzName)
-		if err != nil {
-			loc = time.UTC
-		}
-		localTime := time.Now().In(loc)
-
-		// Resolve greeting text using the locale already set in ctx by the language middleware.
+		// Resolved language code for <html lang=...>.
 		ctx := c.Context()
-		hour := localTime.Hour()
-		var greetKey string
-		switch {
-		case hour >= 5 && hour < 12:
-			greetKey = "greeting.good_morning"
-		case hour >= 12 && hour < 17:
-			greetKey = "greeting.good_afternoon"
-		case hour >= 17 && hour < 22:
-			greetKey = "greeting.good_evening"
-		default:
-			greetKey = "greeting.good_night"
-		}
-		greeting := fmt.Sprintf("%s, %s!", i18n.T(ctx, greetKey), user.FirstName)
-
-		// Resolved language code for <html lang=...> and date formatting.
 		resolvedLang := "en"
 		if locale := ctxi18n.Locale(ctx); locale != nil {
 			resolvedLang = locale.Code().String()
 		}
-		date := webi18n.FormatDate(localTime, resolvedLang)
 
 		curTheme, err := deps.GetUserThemeByID.Handle(c.Context(), user.UserID, settings.ThemeID)
 		if err != nil {
@@ -118,10 +92,58 @@ func Dashboard(deps DashboardDeps) {
 				DisplayName: user.DisplayName,
 				ProfileUrl:  user.ProfileUrl,
 			},
-			Date:     date,
-			Greeting: greeting,
 		}))
 	}).Name(DashboardRoute)
+
+	router.
+		Use(middleware.HtmxOnly).
+		Get("/dashboard/greeting", func(c fiber.Ctx) error {
+			user, authorized := middleware.GetCurrentUser(c)
+			if !authorized {
+				return redirectToLogin(c)
+			}
+
+			settings, err := deps.GetUserSettings.Handle(c.Context(), user.UserID)
+			if err != nil {
+				return err
+			}
+
+			tzName := settings.Timezone
+			if tzName == "" || tzName == "auto" {
+				tzName = c.Cookies("tz", "UTC")
+			}
+			loc, err := time.LoadLocation(tzName)
+			if err != nil {
+				loc = time.UTC
+			}
+			localTime := time.Now().In(loc)
+
+			ctx := c.Context()
+			hour := localTime.Hour()
+			var greetKey string
+			switch {
+			case hour >= 5 && hour < 12:
+				greetKey = "greeting.good_morning"
+			case hour >= 12 && hour < 17:
+				greetKey = "greeting.good_afternoon"
+			case hour >= 17 && hour < 22:
+				greetKey = "greeting.good_evening"
+			default:
+				greetKey = "greeting.good_night"
+			}
+			greeting := fmt.Sprintf("%s, %s!", i18n.T(ctx, greetKey), user.FirstName)
+
+			resolvedLang := "en"
+			if locale := ctxi18n.Locale(ctx); locale != nil {
+				resolvedLang = locale.Code().String()
+			}
+			date := webi18n.FormatDate(localTime, resolvedLang)
+
+			return middleware.Render(c, partials.DashboardGreeting(partials.DashboardGreetingInput{
+				Date:     date,
+				Greeting: greeting,
+			}))
+		}).Name(DashboardGreetingRoute)
 
 	router.
 		Use(middleware.HtmxOnly).

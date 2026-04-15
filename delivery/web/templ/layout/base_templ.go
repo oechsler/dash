@@ -48,7 +48,7 @@ func Base(input BaseInput) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(input.Language)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/layout/base.templ`, Line: 17, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/base.templ`, Line: 17, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -61,21 +61,13 @@ func Base(input BaseInput) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(input.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/layout/base.templ`, Line: 21, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout/base.templ`, Line: 21, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</title>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templ.Raw(`<script>(function(){var tz=Intl.DateTimeFormat().resolvedOptions().timeZone;if(tz)document.cookie="tz="+encodeURIComponent(tz)+";path=/;SameSite=Lax;max-age=31536000"})();</script>`).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<script src=\"/static/js/htmx.min.js\" type=\"text/javascript\"></script><script src=\"/static/js/tailwind.min.js\" type=\"text/javascript\"></script><link href=\"/static/css/material-icons.min.css\" rel=\"stylesheet\" type=\"text/css\"><link href=\"/static/css/simple-icons.min.css\" rel=\"stylesheet\" type=\"text/css\"><link rel=\"icon\" href=\"/favicon.ico\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</title><script>\n\t\t\t\t(function () {\n\t\t\t\t\tvar tz = Intl.DateTimeFormat().resolvedOptions().timeZone;\n\t\t\t\t\tif (tz) {\n\t\t\t\t\t\tdocument.cookie = \"tz=\" + encodeURIComponent(tz) + \";path=/;SameSite=Lax;max-age=31536000\";\n\t\t\t\t\t}\n\t\t\t\t})();\n\t\t\t</script><script src=\"/static/js/htmx.min.js\" type=\"text/javascript\"></script><script src=\"/static/js/tailwind.min.js\" type=\"text/javascript\"></script><link href=\"/static/css/material-icons.min.css\" rel=\"stylesheet\" type=\"text/css\"><link href=\"/static/css/simple-icons.min.css\" rel=\"stylesheet\" type=\"text/css\"><link rel=\"icon\" href=\"/favicon.ico\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -107,7 +99,7 @@ func Base(input BaseInput) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</head><body class=\"p-8 text-tertiary bg-primary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</head><body class=\"p-8 text-tertiary bg-primary\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -115,7 +107,7 @@ func Base(input BaseInput) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -10,9 +10,7 @@ type UserInfo struct {
 
 type DashboardInput struct {
 	layout.BaseInput
-	User     UserInfo
-	Date     string
-	Greeting string
+	User UserInfo
 }
 
 templ Dashboard(input DashboardInput) {
@@ -47,11 +45,7 @@ templ Dashboard(input DashboardInput) {
 			</nav>
 			<hr class="border-tertiary mt-4"/>
 			<main>
-				<p class="text-sm uppercase text-tertiary mt-8 mb-4">
-					<time id="dashboard-date" data-lang={ input.Language }>{ input.Date }</time>
-				</p>
-				@templ.Raw(`<script>(function(){var el=document.getElementById('dashboard-date');if(!el)return;var lang=el.dataset.lang||'en';var now=new Date();try{var opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};el.textContent=now.toLocaleDateString(lang==='de'?'de-DE':'en-US',opts);}catch(e){}})();</script>`)
-				<h1 class="text-4xl leading-[1.1] font-semibold text-secondary lg:text-5xl">{ input.Greeting }</h1>
+				<div hx-get="/dashboard/greeting" hx-trigger="load" hx-swap="outerHTML"></div>
 				<section id="apps" class="mt-12 lg:mt-16">
 					<div hx-get="/applications" hx-trigger="load" hx-target="#apps-list" hx-swap="innerHTML"></div>
 					<div id="apps-title" hx-get="/dashboard/title/applications" hx-trigger="load" hx-swap="outerHTML"></div>

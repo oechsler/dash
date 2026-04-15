@@ -412,8 +412,12 @@ func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) e
 
 	// Resolve user timezone for timestamp display.
 	var loc *time.Location
-	if settings, err := deps.GetUserSettings.Handle(c.Context(), user.UserID); err == nil && settings.Timezone != "" && settings.Timezone != "auto" {
-		if l, err := time.LoadLocation(settings.Timezone); err == nil {
+	if settings, err := deps.GetUserSettings.Handle(c.Context(), user.UserID); err == nil {
+		tzName := settings.Timezone
+		if tzName == "" || tzName == "auto" {
+			tzName = c.Cookies("tz", "UTC")
+		}
+		if l, err := time.LoadLocation(tzName); err == nil {
 			loc = l
 		}
 	}
@@ -448,7 +452,7 @@ func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) e
 	})
 
 	return middleware.Render(c, partials.SettingsModalSessionsSection(partials.SettingsModalSessionsSectionInput{
-		Sessions:  sessionViews,
-		Timezone:  loc,
+		Sessions: sessionViews,
+		Timezone: loc,
 	}))
 }

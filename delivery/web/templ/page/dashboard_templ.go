@@ -18,9 +18,7 @@ type UserInfo struct {
 
 type DashboardInput struct {
 	layout.BaseInput
-	User     UserInfo
-	Date     string
-	Greeting string
+	User UserInfo
 }
 
 func Dashboard(input DashboardInput) templ.Component {
@@ -78,7 +76,7 @@ func Dashboard(input DashboardInput) templ.Component {
 					var templ_7745c5c3_Var3 string
 					templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(*input.User.Picture)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 27, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `page/dashboard.templ`, Line: 25, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 					if templ_7745c5c3_Err != nil {
@@ -96,7 +94,7 @@ func Dashboard(input DashboardInput) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(input.User.DisplayName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 29, Col: 52}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `page/dashboard.templ`, Line: 27, Col: 52}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -114,7 +112,7 @@ func Dashboard(input DashboardInput) templ.Component {
 				var templ_7745c5c3_Var5 templ.SafeURL
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(*input.User.ProfileUrl)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 32, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `page/dashboard.templ`, Line: 30, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -137,7 +135,7 @@ func Dashboard(input DashboardInput) templ.Component {
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(*input.User.Picture)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 36, Col: 37}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `page/dashboard.templ`, Line: 34, Col: 37}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -155,7 +153,7 @@ func Dashboard(input DashboardInput) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(input.User.DisplayName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 38, Col: 52}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `page/dashboard.templ`, Line: 36, Col: 52}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -166,33 +164,7 @@ func Dashboard(input DashboardInput) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<button class=\"text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1 cursor-pointer\" hx-get=\"/settings/modal\" hx-target=\"body\" hx-swap=\"beforeend\"><span class=\"material-icons-round\">settings</span></button> <a href=\"/session/logout?from_provider=true\" class=\"text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1\"><span class=\"material-icons-round\">logout</span></a></nav><hr class=\"border-tertiary mt-4\"><main><p class=\"text-sm uppercase text-tertiary mt-8 mb-4\"><time>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(input.Date)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 51, Col: 23}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</time></p><h1 class=\"text-4xl leading-[1.1] font-semibold text-secondary lg:text-5xl\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(input.Greeting)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 53, Col: 96}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</h1><section id=\"apps\" class=\"mt-12 lg:mt-16\"><div hx-get=\"/applications\" hx-trigger=\"load\" hx-target=\"#apps-list\" hx-swap=\"innerHTML\"></div><div id=\"apps-title\" hx-get=\"/dashboard/title/applications\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><ul id=\"apps-list\" class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2\"></ul></section><div id=\"shelved-sections\"><div hx-get=\"/categories/shelved\" hx-trigger=\"load\" hx-target=\"#shelved-sections\" hx-swap=\"innerHTML\"></div></div><section id=\"bookmarks\" class=\"mt-12 lg:mt-16\"><div id=\"bookmarks-title\" hx-get=\"/dashboard/title/bookmarks\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><div hx-get=\"/categories\" hx-trigger=\"load\" hx-target=\"#categories-list\" hx-swap=\"innerHTML\"></div><ul id=\"categories-list\" class=\"space-y-6 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-8\"></ul></section></main><aside class=\"fixed bottom-8 right-8 flex flex-col gap-4\"><div hx-get=\"/dashboard/edit/off\" hx-trigger=\"load\" hx-swap=\"innerHTML\"></div></aside></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<button class=\"text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1 cursor-pointer\" hx-get=\"/settings/modal\" hx-target=\"body\" hx-swap=\"beforeend\"><span class=\"material-icons-round\">settings</span></button> <a href=\"/session/logout?from_provider=true\" class=\"text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1\"><span class=\"material-icons-round\">logout</span></a></nav><hr class=\"border-tertiary mt-4\"><main><div hx-get=\"/dashboard/greeting\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><section id=\"apps\" class=\"mt-12 lg:mt-16\"><div hx-get=\"/applications\" hx-trigger=\"load\" hx-target=\"#apps-list\" hx-swap=\"innerHTML\"></div><div id=\"apps-title\" hx-get=\"/dashboard/title/applications\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><ul id=\"apps-list\" class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2\"></ul></section><div id=\"shelved-sections\"><div hx-get=\"/categories/shelved\" hx-trigger=\"load\" hx-target=\"#shelved-sections\" hx-swap=\"innerHTML\"></div></div><section id=\"bookmarks\" class=\"mt-12 lg:mt-16\"><div id=\"bookmarks-title\" hx-get=\"/dashboard/title/bookmarks\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><div hx-get=\"/categories\" hx-trigger=\"load\" hx-target=\"#categories-list\" hx-swap=\"innerHTML\"></div><ul id=\"categories-list\" class=\"space-y-6 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-8\"></ul></section></main><aside class=\"fixed bottom-8 right-8 flex flex-col gap-4\"><div hx-get=\"/dashboard/edit/off\" hx-trigger=\"load\" hx-swap=\"innerHTML\"></div></aside></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
