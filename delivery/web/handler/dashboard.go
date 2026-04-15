@@ -178,6 +178,9 @@ func Dashboard(deps DashboardDeps) {
 	router.
 		Use(middleware.HtmxOnly).
 		Get("/dashboard/modal/close", func(c fiber.Ctx) error {
+			if _, authorized := middleware.GetCurrentUser(c); !authorized {
+				return redirectToLogin(c)
+			}
 			return c.SendString("")
 		}).Name(DashboardModalCloseRoute)
 }
