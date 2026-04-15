@@ -207,7 +207,7 @@ func Dashboard(deps DashboardDeps) {
 			}
 			return middleware.Render(c, partials.DashboardEdit(partials.DashboardEditInput{
 				EditMode:    mode == "on",
-				WithTrigger: true,
+				WithTrigger: c.Query("initial") != "true",
 				IsAdmin:     user.IsAdmin,
 			}))
 		}).Name(DashboardEditRoute)

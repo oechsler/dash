@@ -61,7 +61,7 @@ templ Dashboard(input DashboardInput) {
 				</section>
 			</main>
 			<aside class="fixed bottom-8 right-8 flex flex-col gap-4">
-				<div hx-get="/dashboard/edit/off" hx-trigger="load" hx-swap="innerHTML"></div>
+				<div hx-get="/dashboard/edit/off?initial=true" hx-trigger="load" hx-swap="innerHTML"></div>
 			</aside>
 		</div>
 	}
