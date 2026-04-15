@@ -23,7 +23,7 @@ templ Base(input BaseInput) {
 				(function () {
 					var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 					if (tz) {
-						document.cookie = "tz=" + encodeURIComponent(tz) + ";path=/;SameSite=Lax;max-age=31536000";
+						document.cookie = "tz=" + tz + ";path=/;SameSite=Lax;max-age=31536000";
 					}
 				})();
 			</script>

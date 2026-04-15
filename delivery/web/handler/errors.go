@@ -2,10 +2,30 @@ package handler
 
 import (
 	"errors"
+	"net/url"
+	"time"
 
 	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
 	"github.com/gofiber/fiber/v3"
 )
+
+// tzCookie reads the "tz" cookie and URL-decodes it (browsers may have stored
+// an encoded value like "Europe%2FBerlin" from a previous version).
+func tzCookie(c fiber.Ctx) string {
+	raw := c.Cookies("tz", "")
+	if raw == "" {
+		return "UTC"
+	}
+	if decoded, err := url.QueryUnescape(raw); err == nil {
+		if _, err := time.LoadLocation(decoded); err == nil {
+			return decoded
+		}
+	}
+	if _, err := time.LoadLocation(raw); err == nil {
+		return raw
+	}
+	return "UTC"
+}
 
 // httpError maps a domain error to a Fiber HTTP error.
 // Unrecognized errors (e.g. *InternalError) are returned as-is so Fiber's

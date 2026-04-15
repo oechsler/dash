@@ -415,7 +415,7 @@ func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) e
 	if settings, err := deps.GetUserSettings.Handle(c.Context(), user.UserID); err == nil {
 		tzName := settings.Timezone
 		if tzName == "" || tzName == "auto" {
-			tzName = c.Cookies("tz", "UTC")
+			tzName = tzCookie(c)
 		}
 		if l, err := time.LoadLocation(tzName); err == nil {
 			loc = l

@@ -67,7 +67,7 @@ func Base(input BaseInput) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</title><script>\n\t\t\t\t(function () {\n\t\t\t\t\tvar tz = Intl.DateTimeFormat().resolvedOptions().timeZone;\n\t\t\t\t\tif (tz) {\n\t\t\t\t\t\tdocument.cookie = \"tz=\" + encodeURIComponent(tz) + \";path=/;SameSite=Lax;max-age=31536000\";\n\t\t\t\t\t}\n\t\t\t\t})();\n\t\t\t</script><script src=\"/static/js/htmx.min.js\" type=\"text/javascript\"></script><script src=\"/static/js/tailwind.min.js\" type=\"text/javascript\"></script><link href=\"/static/css/material-icons.min.css\" rel=\"stylesheet\" type=\"text/css\"><link href=\"/static/css/simple-icons.min.css\" rel=\"stylesheet\" type=\"text/css\"><link rel=\"icon\" href=\"/favicon.ico\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</title><script>\n\t\t\t\t(function () {\n\t\t\t\t\tvar tz = Intl.DateTimeFormat().resolvedOptions().timeZone;\n\t\t\t\t\tif (tz) {\n\t\t\t\t\t\tdocument.cookie = \"tz=\" + tz + \";path=/;SameSite=Lax;max-age=31536000\";\n\t\t\t\t\t}\n\t\t\t\t})();\n\t\t\t</script><script src=\"/static/js/htmx.min.js\" type=\"text/javascript\"></script><script src=\"/static/js/tailwind.min.js\" type=\"text/javascript\"></script><link href=\"/static/css/material-icons.min.css\" rel=\"stylesheet\" type=\"text/css\"><link href=\"/static/css/simple-icons.min.css\" rel=\"stylesheet\" type=\"text/css\"><link rel=\"icon\" href=\"/favicon.ico\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

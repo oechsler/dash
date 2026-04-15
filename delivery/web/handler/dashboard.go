@@ -110,7 +110,7 @@ func Dashboard(deps DashboardDeps) {
 
 			tzName := settings.Timezone
 			if tzName == "" || tzName == "auto" {
-				tzName = c.Cookies("tz", "UTC")
+				tzName = tzCookie(c)
 			}
 			loc, err := time.LoadLocation(tzName)
 			if err != nil {
