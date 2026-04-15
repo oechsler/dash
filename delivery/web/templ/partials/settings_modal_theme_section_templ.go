@@ -103,14 +103,14 @@ func SettingsModalThemeSection(input SettingsModalThemeSectionInput) templ.Compo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"></span> <span class=\"text-sm text-tertiary truncate\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"></span> <span class=\"text-sm text-secondary truncate\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(t.DisplayName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_theme_section.templ`, Line: 42, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_theme_section.templ`, Line: 42, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -227,7 +227,7 @@ func SettingsModalThemeSection(input SettingsModalThemeSectionInput) templ.Compo
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"flex-1 min-w-0 w-full text-sm text-tertiary bg-transparent focus:outline-none\" required></div><div class=\"flex items-center shrink-0 w-full sm:w-auto sm:ml-auto\"><button class=\"px-4 h-9 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer whitespace-nowrap text-sm w-full sm:w-auto\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"flex-1 min-w-0 w-full text-sm text-secondary bg-transparent focus:outline-none placeholder:text-tertiary\" required></div><div class=\"flex items-center shrink-0 w-full sm:w-auto sm:ml-auto\"><button class=\"px-4 h-9 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer whitespace-nowrap text-sm w-full sm:w-auto\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

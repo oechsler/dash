@@ -39,7 +39,7 @@ templ SettingsModalThemeSection(input SettingsModalThemeSectionInput) {
 						<span class="inline-block w-4 h-4 rounded" style={ "background: " + t.Primary }></span>
 						<span class="inline-block w-4 h-4 rounded" style={ "background: " + t.Secondary }></span>
 						<span class="inline-block w-4 h-4 rounded" style={ "background: " + t.Tertiary }></span>
-						<span class="text-sm text-tertiary truncate">{ t.DisplayName }</span>
+						<span class="text-sm text-secondary truncate">{ t.DisplayName }</span>
 					</div>
 					<div class="flex items-center w-full sm:w-auto sm:ml-auto">
 						if t.Deletable {
@@ -94,7 +94,7 @@ templ SettingsModalThemeSection(input SettingsModalThemeSectionInput) {
 					id="name"
 					name="display_name"
 					placeholder={ i18n.T(ctx, "form.name") }
-					class="flex-1 min-w-0 w-full text-sm text-tertiary bg-transparent focus:outline-none"
+					class="flex-1 min-w-0 w-full text-sm text-secondary bg-transparent focus:outline-none placeholder:text-tertiary"
 					required
 				/>
 			</div>
