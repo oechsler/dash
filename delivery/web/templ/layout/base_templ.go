@@ -71,7 +71,7 @@ func Base(input BaseInput) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ.Raw(`<script>(function(){var tz=Intl.DateTimeFormat().resolvedOptions().timeZone;if(tz)document.cookie="tz="+encodeURIComponent(tz)+";path=/;SameSite=Lax"})();</script>`).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templ.Raw(`<script>(function(){var tz=Intl.DateTimeFormat().resolvedOptions().timeZone;if(tz)document.cookie="tz="+encodeURIComponent(tz)+";path=/;SameSite=Lax;max-age=31536000"})();</script>`).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

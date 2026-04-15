@@ -19,7 +19,7 @@ templ Base(input BaseInput) {
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>{ input.Title }</title>
-			@templ.Raw(`<script>(function(){var tz=Intl.DateTimeFormat().resolvedOptions().timeZone;if(tz)document.cookie="tz="+encodeURIComponent(tz)+";path=/;SameSite=Lax"})();</script>`)
+			@templ.Raw(`<script>(function(){var tz=Intl.DateTimeFormat().resolvedOptions().timeZone;if(tz)document.cookie="tz="+encodeURIComponent(tz)+";path=/;SameSite=Lax;max-age=31536000"})();</script>`)
 			<script src="/static/js/htmx.min.js" type="text/javascript"></script>
 			<script src="/static/js/tailwind.min.js" type="text/javascript"></script>
 			<link href="/static/css/material-icons.min.css" rel="stylesheet" type="text/css"/>
