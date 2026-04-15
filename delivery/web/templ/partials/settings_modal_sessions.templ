@@ -23,20 +23,24 @@ type SettingsModalSessionsSectionInputSession struct {
 
 type SettingsModalSessionsSectionInput struct {
 	Sessions []SettingsModalSessionsSectionInputSession
+	Timezone *time.Location
 }
 
-func formatSessionDate(t time.Time) string {
+func formatSessionDate(t time.Time, loc *time.Location) string {
 	if t.IsZero() {
 		return "—"
 	}
-	return t.UTC().Format("02.01.2006, 15:04")
+	if loc == nil {
+		loc = time.UTC
+	}
+	return t.In(loc).Format("02.01.2006, 15:04")
 }
 
-func lastUsedDate(s SettingsModalSessionsSectionInputSession) string {
+func lastUsedDate(s SettingsModalSessionsSectionInputSession, loc *time.Location) string {
 	if !s.LastAccessedAt.IsZero() {
-		return formatSessionDate(s.LastAccessedAt)
+		return formatSessionDate(s.LastAccessedAt, loc)
 	}
-	return formatSessionDate(s.CreatedAt)
+	return formatSessionDate(s.CreatedAt, loc)
 }
 
 func parseUserAgent(raw string) string {
@@ -81,7 +85,7 @@ templ SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) {
 						<p class="text-xs text-tertiary mt-0.5">{ parseUserAgent(s.UserAgent) }</p>
 					}
 					<p class="text-xs text-tertiary mt-0.5">
-						{ i18n.T(ctx, "settings.sessions.last_accessed") }{ ": " }{ lastUsedDate(s) }
+						{ i18n.T(ctx, "settings.sessions.last_accessed") }{ ": " }{ lastUsedDate(s, input.Timezone) }
 					</p>
 				</div>
 				if !s.IsPinned && s.IsCurrent {

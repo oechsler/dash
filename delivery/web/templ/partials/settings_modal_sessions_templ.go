@@ -31,20 +31,24 @@ type SettingsModalSessionsSectionInputSession struct {
 
 type SettingsModalSessionsSectionInput struct {
 	Sessions []SettingsModalSessionsSectionInputSession
+	Timezone *time.Location
 }
 
-func formatSessionDate(t time.Time) string {
+func formatSessionDate(t time.Time, loc *time.Location) string {
 	if t.IsZero() {
 		return "—"
 	}
-	return t.UTC().Format("02.01.2006, 15:04")
+	if loc == nil {
+		loc = time.UTC
+	}
+	return t.In(loc).Format("02.01.2006, 15:04")
 }
 
-func lastUsedDate(s SettingsModalSessionsSectionInputSession) string {
+func lastUsedDate(s SettingsModalSessionsSectionInputSession, loc *time.Location) string {
 	if !s.LastAccessedAt.IsZero() {
-		return formatSessionDate(s.LastAccessedAt)
+		return formatSessionDate(s.LastAccessedAt, loc)
 	}
-	return formatSessionDate(s.CreatedAt)
+	return formatSessionDate(s.CreatedAt, loc)
 }
 
 func parseUserAgent(raw string) string {
@@ -97,7 +101,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var2 string
 				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(s.LastIP)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 66, Col: 18}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 70, Col: 18}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -107,7 +111,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.unknown_ip"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 68, Col: 53}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 72, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -126,7 +130,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.status_active"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 72, Col: 139}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 76, Col: 139}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -144,7 +148,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.status_stale"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 74, Col: 141}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 78, Col: 141}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -163,7 +167,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.your_session"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 77, Col: 136}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 81, Col: 136}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -186,7 +190,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(parseUserAgent(s.UserAgent))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 81, Col: 75}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 85, Col: 75}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -204,7 +208,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.last_accessed"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 84, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 88, Col: 54}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -213,16 +217,16 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(": ")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 84, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 88, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
-			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(lastUsedDate(s))
+			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(lastUsedDate(s, input.Timezone))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 84, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 88, Col: 97}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -240,7 +244,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.pin"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 94, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 98, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -258,7 +262,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/settings/sessions/%s/unpin?sid=%s", s.ID, s.SessionID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 98, Col: 86}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 102, Col: 86}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -271,7 +275,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.unpin_confirm"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 101, Col: 65}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 105, Col: 65}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -284,7 +288,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.unpin"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 104, Col: 46}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 108, Col: 46}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -302,7 +306,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/settings/sessions/%s/invalidate", s.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 108, Col: 71}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 112, Col: 71}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -315,7 +319,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.sign_out_confirm"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 111, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 115, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -328,7 +332,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.sign_out"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 114, Col: 49}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 118, Col: 49}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -352,7 +356,7 @@ func SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) templ
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "settings.sessions.none"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 120, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/partials/settings_modal_sessions.templ`, Line: 124, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
