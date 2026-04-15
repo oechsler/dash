@@ -18,13 +18,16 @@ import (
 )
 
 const (
-	SettingsModalRoute         = "SettingsModalRoute"
-	SettingsModalThemesRoute   = "SettingsModalThemesRoute"
-	SettingsUpdateRoute        = "SettingsUpdateRoute"
-	SettingsExportRoute        = "SettingsExportRoute"
-	SettingsImportRoute        = "SettingsImportRoute"
-	SettingsDeleteAccountRoute = "SettingsDeleteAccountRoute"
-	SettingsTokenRoute         = "SettingsTokenRoute"
+	SettingsModalRoute              = "SettingsModalRoute"
+	SettingsModalThemesRoute        = "SettingsModalThemesRoute"
+	SettingsModalSessionsRoute      = "SettingsModalSessionsRoute"
+	SettingsUpdateRoute             = "SettingsUpdateRoute"
+	SettingsExportRoute             = "SettingsExportRoute"
+	SettingsImportRoute             = "SettingsImportRoute"
+	SettingsDeleteAccountRoute      = "SettingsDeleteAccountRoute"
+	SettingsSessionsPinRoute        = "SettingsSessionsPinRoute"
+	SettingsSessionsUnpinRoute      = "SettingsSessionsUnpinRoute"
+	SettingsSessionsInvalidateRoute = "SettingsSessionsInvalidateRoute"
 )
 
 var availableLanguages = []string{"auto", "en", "de"}
@@ -75,7 +78,11 @@ type SettingDeps struct {
 	ExportUserData     query.UserDataExporter
 	DeleteUserData     command.UserDataDeleter
 	ImportUserData     command.UserDataImporter
-	BuildInfo          BuildInfo
+	GetSessionsOverview query.UserSessionsOverviewGetter
+	PinSession          command.SessionPinner
+	UnpinSession        command.SessionUnpinner
+	InvalidateSession   command.SessionInvalidator
+	BuildInfo           BuildInfo
 }
 
 // SettingPlain registers plain HTTP (non-HTMX) routes for settings.
@@ -111,20 +118,6 @@ func SettingPlain(deps SettingDeps) {
 		return c.Send(data)
 	}).Name(SettingsExportRoute)
 
-	r.Get("/settings/token", func(c fiber.Ctx) error {
-		_, authorized := middleware.GetCurrentUser(c)
-		if !authorized {
-			return fiber.NewError(fiber.StatusUnauthorized)
-		}
-
-		sessionData, ok := deps.SessionStore.Load(c)
-		if !ok || sessionData.RawIDToken == "" {
-			return fiber.NewError(fiber.StatusUnauthorized)
-		}
-
-		c.Set("Content-Type", "text/plain")
-		return c.SendString(sessionData.RawIDToken)
-	}).Name(SettingsTokenRoute)
 }
 
 func Setting(deps SettingDeps) {
@@ -288,6 +281,97 @@ func Setting(deps SettingDeps) {
 			return c.SendStatus(fiber.StatusNoContent)
 		}).Name(SettingsImportRoute)
 
+	// Sessions section: lists pinned sessions for the current user
+	router.
+		Use(middleware.HtmxOnly).
+		Get("/settings/modal/sessions", func(c fiber.Ctx) error {
+			user, authorized := middleware.GetCurrentUser(c)
+			if !authorized {
+				return redirectToLogin(c)
+			}
+			return renderSessionsSection(c, deps, user)
+		}).Name(SettingsModalSessionsRoute)
+
+	// Pin: stores the current session in the DB so it survives token expiry
+	router.
+		Use(middleware.HtmxOnly).
+		Post("/settings/sessions/pin", func(c fiber.Ctx) error {
+			user, authorized := middleware.GetCurrentUser(c)
+			if !authorized {
+				return redirectToLogin(c)
+			}
+
+			sessionData, ok := deps.SessionStore.Load(c)
+			if !ok || sessionData.SessionID == "" {
+				return fiber.NewError(fiber.StatusBadRequest, "no valid session to pin")
+			}
+
+			if err := deps.PinSession.Handle(c.Context(), user.UserID, command.PinSessionCmd{
+				SessionID: sessionData.SessionID,
+			}); err != nil {
+				return err
+			}
+
+			// Re-issue the cookie with a 1-year MaxAge so the browser keeps it after
+			// restart. The token inside will expire normally, but the SessionID stays
+			// readable for the pinned-session DB lookup.
+			if err := deps.SessionStore.PersistCookie(c); err != nil {
+				return err
+			}
+
+			return renderSessionsSection(c, deps, user)
+		}).Name(SettingsSessionsPinRoute)
+
+	// Unpin: clears PinnedUntil on a session, keeping the record alive while the token is valid.
+	router.
+		Use(middleware.HtmxOnly).
+		Delete("/settings/sessions/:id/unpin", func(c fiber.Ctx) error {
+			user, authorized := middleware.GetCurrentUser(c)
+			if !authorized {
+				return redirectToLogin(c)
+			}
+
+			if err := deps.UnpinSession.Handle(c.Context(), user.UserID, c.Params("id")); err != nil {
+				return err
+			}
+
+			// Only touch the cookie when the user unpinned their own current session.
+			if raw, ok := deps.SessionStore.LoadExpired(c); ok && raw.SessionID == c.Query("sid") {
+				if _, tokenValid := deps.SessionStore.Load(c); tokenValid {
+					// Token still valid — just restore normal cookie lifetime.
+					deps.SessionStore.RevertCookie(c)
+				} else {
+					// Token already expired — the session only survived via the pin.
+					// Unpinning it means the user is effectively logged out; redirect now.
+					logoutURL, err := c.GetRouteURL(SessionLogoutRoute, fiber.Map{})
+					if err != nil {
+						logoutURL = "/session/logout"
+					}
+					c.Set("HX-Redirect", logoutURL)
+					return c.SendStatus(fiber.StatusNoContent)
+				}
+			}
+
+			return renderSessionsSection(c, deps, user)
+		}).Name(SettingsSessionsUnpinRoute)
+
+	// Invalidate: deletes the session record entirely, kicking the device out on its next request.
+	// Only valid for non-pinned active sessions owned by the current user.
+	router.
+		Use(middleware.HtmxOnly).
+		Delete("/settings/sessions/:id/invalidate", func(c fiber.Ctx) error {
+			user, authorized := middleware.GetCurrentUser(c)
+			if !authorized {
+				return redirectToLogin(c)
+			}
+
+			if err := deps.InvalidateSession.Handle(c.Context(), user.UserID, c.Params("id")); err != nil {
+				return err
+			}
+
+			return renderSessionsSection(c, deps, user)
+		}).Name(SettingsSessionsInvalidateRoute)
+
 	// Delete account: HTMX, deletes all user data then triggers OIDC logout
 	router.
 		Use(middleware.HtmxOnly).
@@ -310,4 +394,49 @@ func Setting(deps SettingDeps) {
 			return c.SendStatus(fiber.StatusNoContent)
 		}).Name(SettingsDeleteAccountRoute)
 
+}
+
+// renderSessionsSection renders the sessions section partial for HTMX responses.
+// The handler's only job here is to extract raw infra data (cookie, IP) and map
+// the app-layer result to the template input — no business logic.
+func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) error {
+	// Extract cookie data — infra concern, stays in the handler.
+	var currentSessionID string
+	var currentExpiresAt time.Time
+	if raw, ok := deps.SessionStore.LoadExpired(c); ok {
+		currentSessionID = raw.SessionID
+	}
+	if valid, ok := deps.SessionStore.Load(c); ok {
+		currentExpiresAt = time.Unix(valid.ExpiresAt, 0)
+	}
+
+	overview, err := deps.GetSessionsOverview.Handle(c.Context(), query.SessionsOverviewInput{
+		UserID:           user.UserID,
+		CurrentSessionID: currentSessionID,
+		CurrentIP:        c.IP(),
+		CurrentUserAgent: c.Get("User-Agent"),
+		CurrentExpiresAt: currentExpiresAt,
+	})
+	if err != nil {
+		return err
+	}
+
+	sessionViews := lo.Map(overview.Sessions, func(s *query.SessionOverviewItem, _ int) partials.SettingsModalSessionsSectionInputSession {
+		return partials.SettingsModalSessionsSectionInputSession{
+			ID:             s.ID,
+			SessionID:      s.SessionID,
+			LastIP:         s.LastIP,
+			LastAccessedAt: s.LastAccessedAt,
+			CreatedAt:      s.CreatedAt,
+			PinnedUntil:    s.PinnedUntil,
+			UserAgent:      s.UserAgent,
+			IsActive:       s.IsActive,
+			IsCurrent:      s.IsCurrent,
+			IsPinned:       s.IsPinned,
+		}
+	})
+
+	return middleware.Render(c, partials.SettingsModalSessionsSection(partials.SettingsModalSessionsSectionInput{
+		Sessions: sessionViews,
+	}))
 }

@@ -2,9 +2,12 @@ package handler
 
 import (
 	"net/url"
+	"time"
+
+	"git.at.oechsler.it/samuel/dash/v2/app/command"
+	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
 	"github.com/gofiber/fiber/v3"
-	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 )
 
 const (
@@ -18,6 +21,7 @@ func Session(
 	app *fiber.App,
 	provider *oidc.Provider,
 	store *oidc.SessionStore,
+	createSession command.SessionCreator,
 ) {
 	router := app.Group("/session")
 
@@ -67,8 +71,41 @@ func Session(
 			return fiber.NewError(fiber.StatusUnauthorized, "failed to extract identity")
 		}
 
-		if err := store.Save(c, identity, rawIDToken, idToken.Expiry.Unix()); err != nil {
+		sessionData, err := store.Save(c, identity, rawIDToken, idToken.Expiry.Unix())
+		if err != nil {
 			return err
+		}
+
+		// Persist the session to the DB so it appears in the session overview.
+		// PinnedUntil is zero until the user explicitly pins it.
+		// Ignore errors — a DB hiccup must not prevent login.
+		if createSession != nil {
+			pic := ""
+			if identity.Picture != nil {
+				pic = *identity.Picture
+			}
+			pu := ""
+			if identity.ProfileUrl != nil {
+				pu = *identity.ProfileUrl
+			}
+			_ = createSession.Handle(c.Context(), command.CreateSessionCmd{
+				SessionID:   sessionData.SessionID,
+				UserID:      identity.UserID,
+				IssuedAt:    idToken.IssuedAt,
+				ExpiresAt:   time.Unix(sessionData.ExpiresAt, 0),
+				IP:          c.IP(),
+				UserAgent:   c.Get("User-Agent"),
+				Sub:         sessionData.Sub,
+				Username:    sessionData.Username,
+				Email:       sessionData.Email,
+				FirstName:   sessionData.FirstName,
+				LastName:    sessionData.LastName,
+				DisplayName: sessionData.DisplayName,
+				Picture:     pic,
+				ProfileUrl:  pu,
+				Groups:      sessionData.Groups,
+				IsAdmin:     sessionData.IsAdmin,
+			})
 		}
 
 		returnTo := stateCookie.ReturnTo
@@ -118,13 +155,19 @@ func redirectToLogin(c fiber.Ctx) error {
 	}
 
 	u, err := url.Parse(loginURL)
-	if err != nil {
-		return c.Redirect().Status(fiber.StatusFound).To(loginURL)
+	if err == nil {
+		q := u.Query()
+		q.Set("rd", c.Path())
+		u.RawQuery = q.Encode()
+		loginURL = u.String()
 	}
 
-	q := u.Query()
-	q.Set("rd", c.Path())
-	u.RawQuery = q.Encode()
+	// HTMX requests need HX-Redirect so the browser performs a full navigation
+	// instead of swapping the login page HTML into the current target element.
+	if c.Get("HX-Request") == "true" {
+		c.Set("HX-Redirect", loginURL)
+		return c.SendStatus(fiber.StatusNoContent)
+	}
 
-	return c.Redirect().Status(fiber.StatusFound).To(u.String())
+	return c.Redirect().Status(fiber.StatusFound).To(loginURL)
 }

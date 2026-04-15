@@ -36,7 +36,7 @@ func RegisterAll(
 		BuildInfo:      buildInfo,
 	})
 
-	Session(fiberApp, oidcProvider, sessionStore)
+	Session(fiberApp, oidcProvider, sessionStore, uc.CreateSession)
 	Favicon(sessionStore, fiberApp)
 
 	Dashboard(DashboardDeps{
@@ -94,7 +94,11 @@ func RegisterAll(
 		ExportUserData:     uc.ExportUserData,
 		DeleteUserData:     uc.DeleteUserData,
 		ImportUserData:     uc.ImportUserData,
-		BuildInfo:          buildInfo,
+		GetSessionsOverview: uc.GetSessionsOverview,
+		PinSession:          uc.PinSession,
+		UnpinSession:        uc.UnpinSession,
+		InvalidateSession:   uc.InvalidateSession,
+		BuildInfo:           buildInfo,
 	})
 
 	Theme(ThemeDeps{

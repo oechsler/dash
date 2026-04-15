@@ -1,0 +1,123 @@
+package partials
+
+import (
+	"fmt"
+	"time"
+
+	ua "github.com/mileusna/useragent"
+	"github.com/invopop/ctxi18n/i18n"
+)
+
+type SettingsModalSessionsSectionInputSession struct {
+	ID             string
+	SessionID      string
+	PinnedUntil    time.Time
+	LastAccessedAt time.Time
+	LastIP         string
+	UserAgent      string
+	CreatedAt      time.Time
+	IsActive       bool
+	IsCurrent      bool
+	IsPinned       bool
+}
+
+type SettingsModalSessionsSectionInput struct {
+	Sessions []SettingsModalSessionsSectionInputSession
+}
+
+func formatSessionDate(t time.Time) string {
+	if t.IsZero() {
+		return "—"
+	}
+	return t.UTC().Format("02.01.2006, 15:04")
+}
+
+func lastUsedDate(s SettingsModalSessionsSectionInputSession) string {
+	if !s.LastAccessedAt.IsZero() {
+		return formatSessionDate(s.LastAccessedAt)
+	}
+	return formatSessionDate(s.CreatedAt)
+}
+
+func parseUserAgent(raw string) string {
+	if raw == "" {
+		return ""
+	}
+	parsed := ua.Parse(raw)
+	browser := parsed.Name
+	os := parsed.OS
+	if browser != "" && os != "" {
+		return browser + " · " + os
+	}
+	if browser != "" {
+		return browser
+	}
+	return os
+}
+
+templ SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) {
+	<div id="sessions-section" class="space-y-3">
+		for _, s := range input.Sessions {
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10">
+				<div class="flex-1 min-w-0">
+					<div class="flex items-center gap-2 flex-wrap">
+						<p class="text-sm font-medium text-secondary">
+							if s.LastIP != "" {
+								{ s.LastIP }
+							} else {
+								{ i18n.T(ctx, "settings.sessions.unknown_ip") }
+							}
+						</p>
+						if s.IsActive {
+							<span class="text-xs px-1.5 py-0.5 rounded bg-secondary/20 text-secondary font-medium">{ i18n.T(ctx, "settings.sessions.status_active") }</span>
+						} else {
+							<span class="text-xs px-1.5 py-0.5 rounded bg-tertiary/20 text-tertiary font-medium">{ i18n.T(ctx, "settings.sessions.status_stale") }</span>
+						}
+						if s.IsCurrent {
+							<span class="text-xs px-1.5 py-0.5 rounded border border-tertiary text-secondary">{ i18n.T(ctx, "settings.sessions.your_session") }</span>
+						}
+					</div>
+					if parseUserAgent(s.UserAgent) != "" {
+						<p class="text-xs text-tertiary mt-0.5">{ parseUserAgent(s.UserAgent) }</p>
+					}
+					<p class="text-xs text-tertiary mt-0.5">
+						{ i18n.T(ctx, "settings.sessions.last_accessed") }{ ": " }{ lastUsedDate(s) }
+					</p>
+				</div>
+				if !s.IsPinned && s.IsCurrent {
+					<button
+						hx-post="/settings/sessions/pin"
+						hx-target="#sessions-section"
+						hx-swap="outerHTML"
+						class="shrink-0 px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm whitespace-nowrap"
+					>
+						{ i18n.T(ctx, "settings.sessions.pin") }
+					</button>
+				} else if s.IsPinned {
+					<button
+						hx-delete={ fmt.Sprintf("/settings/sessions/%s/unpin?sid=%s", s.ID, s.SessionID) }
+						hx-target="#sessions-section"
+						hx-swap="outerHTML"
+						hx-confirm={ i18n.T(ctx, "settings.sessions.unpin_confirm") }
+						class="shrink-0 px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm whitespace-nowrap"
+					>
+						{ i18n.T(ctx, "settings.sessions.unpin") }
+					</button>
+				} else if !s.IsCurrent {
+					<button
+						hx-delete={ fmt.Sprintf("/settings/sessions/%s/invalidate", s.ID) }
+						hx-target="#sessions-section"
+						hx-swap="outerHTML"
+						hx-confirm={ i18n.T(ctx, "settings.sessions.sign_out_confirm") }
+						class="shrink-0 px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm whitespace-nowrap"
+					>
+						{ i18n.T(ctx, "settings.sessions.sign_out") }
+					</button>
+				}
+			</div>
+		}
+		if len(input.Sessions) == 0 {
+			<p class="text-sm text-tertiary py-2">{ i18n.T(ctx, "settings.sessions.none") }</p>
+		}
+	</div>
+}

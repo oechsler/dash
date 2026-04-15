@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"git.at.oechsler.it/samuel/dash/v2/app"
 	"git.at.oechsler.it/samuel/dash/v2/app/validation"
@@ -52,7 +53,7 @@ func main() {
 		log.Fatalf("failed to initialize OIDC provider: %v", err)
 	}
 
-	sessionStore, err := oidc.NewSessionStore(&cfg.OIDC.Cookie)
+	sessionStore, err := oidc.NewSessionStore(&cfg.OIDC.Cookie, repos.Session)
 	if err != nil {
 		log.Fatalf("failed to initialize session store: %v", err)
 	}
@@ -64,6 +65,7 @@ func main() {
 		Application: repos.Application,
 		Setting:     repos.Setting,
 		Theme:       repos.Theme,
+		Session:     repos.Session,
 	}, validation.New())
 
 	fiberApp := web.NewFiberApp(&cfg.App)
@@ -74,6 +76,18 @@ func main() {
 		BuildDate: buildDate,
 		RepoURL:   repoURL,
 	})
+
+	// Periodically delete expired sessions that are no longer pinned.
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+		for {
+			if err := uc.CleanupSessions.Handle(context.Background()); err != nil {
+				log.Printf("session cleanup error: %v", err)
+			}
+			<-ticker.C
+		}
+	}()
 
 	interruptCtx, cancel := signal.NotifyContext(
 		context.Background(),

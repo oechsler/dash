@@ -17,17 +17,20 @@ type DeleteUserData struct {
 	DashboardRepo domainrepo.DashboardRepository
 	SettingRepo   domainrepo.SettingRepository
 	ThemeRepo     domainrepo.ThemeRepository
+	SessionRepo   domainrepo.SessionRepository
 }
 
 func NewDeleteUserData(
 	dashboardRepo domainrepo.DashboardRepository,
 	settingRepo domainrepo.SettingRepository,
 	themeRepo domainrepo.ThemeRepository,
+	sessionRepo domainrepo.SessionRepository,
 ) *DeleteUserData {
 	return &DeleteUserData{
 		DashboardRepo: dashboardRepo,
 		SettingRepo:   settingRepo,
 		ThemeRepo:     themeRepo,
+		SessionRepo:   sessionRepo,
 	}
 }
 
@@ -53,6 +56,11 @@ func (h *DeleteUserData) Handle(ctx context.Context, userID string) error {
 	// Delete all user themes (including non-deletable)
 	if err := h.ThemeRepo.DeleteAllByUser(ctx, userID); err != nil {
 		return domainerrors.Internal("delete user data: delete themes", err)
+	}
+
+	// Delete all sessions
+	if err := h.SessionRepo.DeleteByUserID(ctx, userID); err != nil {
+		return domainerrors.Internal("delete user data: delete sessions", err)
 	}
 
 	return nil

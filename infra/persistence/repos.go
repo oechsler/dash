@@ -14,6 +14,7 @@ type Repos struct {
 	Application domainrepo.ApplicationRepository
 	Setting     domainrepo.SettingRepository
 	Theme       domainrepo.ThemeRepository
+	Session     domainrepo.SessionRepository
 }
 
 func NewRepos(db *gorm.DB) (*Repos, error) {
@@ -47,6 +48,11 @@ func NewRepos(db *gorm.DB) (*Repos, error) {
 		return nil, err
 	}
 
+	sessionRepo, err := repo.NewGormSessionRepo(db)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Repos{
 		Dashboard:   dashboardRepo,
 		Category:    categoryRepo,
@@ -54,5 +60,6 @@ func NewRepos(db *gorm.DB) (*Repos, error) {
 		Application: applicationRepo,
 		Setting:     settingRepo,
 		Theme:       themeRepo,
+		Session:     sessionRepo,
 	}, nil
 }

@@ -16,6 +16,7 @@ type Repos struct {
 	Application domainrepo.ApplicationRepository
 	Setting     domainrepo.SettingRepository
 	Theme       domainrepo.ThemeRepository
+	Session     domainrepo.SessionRepository
 }
 
 // UseCases bundles all use cases exposed to the delivery layer.
@@ -35,6 +36,13 @@ type UseCases struct {
 	GetUserCategory          query.UserCategoryGetter
 	GetUserBookmark          query.UserBookmarkGetter
 	ListUserThemes           query.UserThemesLister
+	// Session use cases
+	GetSessionsOverview query.UserSessionsOverviewGetter
+	CreateSession       command.SessionCreator
+	PinSession          command.SessionPinner
+	UnpinSession        command.SessionUnpinner
+	InvalidateSession   command.SessionInvalidator
+	CleanupSessions     command.SessionCleaner
 	// Commands
 	DeleteUserData     command.UserDataDeleter
 	ImportUserData     command.UserDataImporter
@@ -73,11 +81,24 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 	ensureDefaultTheme := command.NewEnsureDefaultTheme(repos.Theme)
 	getUserSettings := query.NewGetUserSettings(repos.Setting, repos.Theme, ensureDefaultTheme)
 
+	getSessionsOverview := query.NewGetSessionsOverview(repos.Session)
+	createSession := command.NewCreateSession(repos.Session)
+	pinSession := command.NewPinSession(repos.Session)
+	unpinSession := command.NewUnpinSession(repos.Session)
+	invalidateSession := command.NewInvalidateSession(repos.Session)
+	cleanupSessions := command.NewCleanupSessions(repos.Session)
+
 	exportUserData := query.NewExportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application)
-	deleteUserData := command.NewDeleteUserData(repos.Dashboard, repos.Setting, repos.Theme)
+	deleteUserData := command.NewDeleteUserData(repos.Dashboard, repos.Setting, repos.Theme, repos.Session)
 	importUserData := command.NewImportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application, ensureDefaultTheme)
 
 	return &UseCases{
+		GetSessionsOverview:      getSessionsOverview,
+		CreateSession:            createSession,
+		PinSession:               pinSession,
+		UnpinSession:             unpinSession,
+		InvalidateSession:        invalidateSession,
+		CleanupSessions:          cleanupSessions,
 		ExportUserData:           exportUserData,
 		DeleteUserData:           deleteUserData,
 		ImportUserData:           importUserData,

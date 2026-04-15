@@ -33,11 +33,11 @@ type SettingsModalInputBuild struct {
 }
 
 type SettingsModalInput struct {
-	Settings  SettingsModalInputSettings
-	Themes    []SettingsModalInputTheme
-	Languages []SettingsModalInputLanguage
-	Timezones []SettingsModalInputTimezone
-	Build     SettingsModalInputBuild
+	Settings       SettingsModalInputSettings
+	Themes         []SettingsModalInputTheme
+	Languages      []SettingsModalInputLanguage
+	Timezones      []SettingsModalInputTimezone
+	Build          SettingsModalInputBuild
 }
 
 templ SettingsModal(input SettingsModalInput) {
@@ -121,6 +121,16 @@ templ SettingsModal(input SettingsModalInput) {
 					</div>
 				</details>
 				<hr class="my-6 border-tertiary"/>
+				<details class="group/sessions">
+					<summary class="flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+						<h2 class="text-lg font-semibold text-secondary">{ i18n.T(ctx, "settings.sessions.title") }</h2>
+						<span class="material-icons-round text-tertiary transition-transform duration-200 group-open/sessions:rotate-180">expand_more</span>
+					</summary>
+					<div class="mt-4">
+						<div id="sessions-section" hx-get="/settings/modal/sessions" hx-trigger="load" hx-target="#sessions-section" hx-swap="outerHTML"></div>
+					</div>
+				</details>
+				<hr class="my-6 border-tertiary"/>
 				<details class="group/data">
 					<summary class="flex items-center justify-between cursor-pointer list-none [&::-webkit-details-marker]:hidden">
 						<h2 class="text-lg font-semibold text-secondary">{ i18n.T(ctx, "settings.data.title") }</h2>
@@ -161,22 +171,7 @@ templ SettingsModal(input SettingsModalInput) {
 							</div>
 							<p data-import-error class="hidden text-xs text-secondary italic"></p>
 						</div>
-						<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10">
-							<div class="flex-1 min-w-0">
-								<p class="text-sm font-medium text-secondary">{ i18n.T(ctx, "settings.data.access_token") }</p>
-								<p class="text-xs text-tertiary mt-0.5">{ i18n.T(ctx, "settings.data.copy_token_description") }</p>
-							</div>
-							<button
-								hx-get="/settings/token"
-								hx-swap="none"
-								data-label-copied={ i18n.T(ctx, "settings.data.copy_token_copied") }
-								hx-on:htmx:after-request="navigator.clipboard.writeText(event.detail.xhr.responseText); const b = event.target; const orig = b.textContent; b.textContent = b.dataset.labelCopied; setTimeout(() => b.textContent = orig, 2000)"
-								class="shrink-0 px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm whitespace-nowrap"
-							>
-								{ i18n.T(ctx, "settings.data.copy_token") }
-							</button>
-						</div>
-						<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10">
 							<div class="flex-1 min-w-0">
 								<p class="text-sm font-medium text-secondary">{ i18n.T(ctx, "settings.data.delete_account") }</p>
 								<p class="text-xs text-tertiary mt-0.5">{ i18n.T(ctx, "settings.data.delete_account_description") }</p>
