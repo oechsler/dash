@@ -227,7 +227,7 @@ func SettingsModalThemeSection(input SettingsModalThemeSectionInput) templ.Compo
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"flex-1 min-w-0 w-full text-sm text-secondary bg-transparent focus:outline-none placeholder:text-tertiary\" required></div><div class=\"flex items-center shrink-0 w-full sm:w-auto sm:ml-auto\"><button class=\"px-4 h-9 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer whitespace-nowrap text-sm w-full sm:w-auto\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"flex-1 min-w-0 w-full text-sm text-secondary bg-transparent focus:outline-none placeholder:text-secondary\" required></div><div class=\"flex items-center shrink-0 w-full sm:w-auto sm:ml-auto\"><button class=\"px-4 h-9 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer whitespace-nowrap text-sm w-full sm:w-auto\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
