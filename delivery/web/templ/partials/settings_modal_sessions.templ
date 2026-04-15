@@ -63,7 +63,7 @@ templ SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) {
 	<div id="sessions-section" class="space-y-3">
 		for _, s := range input.Sessions {
 			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl bg-tertiary/10">
-				<div class="flex-1 min-w-0">
+				<div class="flex-1 min-w-0 flex flex-col gap-1">
 					<div class="flex items-center gap-2 flex-wrap">
 						<p class="text-sm font-medium text-secondary">
 							if s.LastIP != "" {
@@ -82,9 +82,9 @@ templ SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) {
 						}
 					</div>
 					if parseUserAgent(s.UserAgent) != "" {
-						<p class="text-xs text-tertiary mt-0.5">{ parseUserAgent(s.UserAgent) }</p>
+						<p class="text-xs text-tertiary">{ parseUserAgent(s.UserAgent) }</p>
 					}
-					<p class="text-xs text-tertiary mt-0.5">
+					<p class="text-xs text-tertiary">
 						{ i18n.T(ctx, "settings.sessions.last_accessed") }{ ": " }{ lastUsedDate(s, input.Timezone) }
 					</p>
 				</div>
