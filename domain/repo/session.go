@@ -49,6 +49,10 @@ type SessionRepository interface {
 	// ExistsBySessionID returns true if any record with the given SessionID exists,
 	// regardless of pin status. Used to detect invalidated (deleted) sessions.
 	ExistsBySessionID(ctx context.Context, sessionID string) (bool, error)
+	// Touch updates LastIP, UserAgent, and LastAccessedAt for the given session.
+	// Returns false if the session no longer exists (was invalidated).
+	// Used on every authenticated request to keep access metadata current.
+	Touch(ctx context.Context, sessionID string, lastIP string, userAgent string) (bool, error)
 	// TouchBySessionID extends PinnedUntil and records the latest access metadata.
 	TouchBySessionID(ctx context.Context, sessionID string, newPinnedUntil time.Time, lastIP string, userAgent string) error
 	// ListByUserID returns all sessions still relevant for the given user

@@ -185,7 +185,7 @@ func (s *SessionStore) LoadIdentity(c fiber.Ctx) (model.Identity, bool) {
 		// Deleting the record is how we invalidate a session from another device.
 		// Fail open on DB errors so a transient outage doesn't lock everyone out.
 		if s.sessionRepo != nil && data.SessionID != "" {
-			exists, err := s.sessionRepo.ExistsBySessionID(context.Background(), data.SessionID)
+			exists, err := s.sessionRepo.Touch(context.Background(), data.SessionID, c.IP(), c.Get("User-Agent"))
 			if err == nil && !exists {
 				return model.Identity{}, false // record deleted → session invalidated
 			}

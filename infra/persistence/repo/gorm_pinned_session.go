@@ -97,6 +97,18 @@ func (r *GormSessionRepo) ExistsBySessionID(ctx context.Context, sessionID strin
 	return count > 0, err
 }
 
+func (r *GormSessionRepo) Touch(ctx context.Context, sessionID string, lastIP string, userAgent string) (bool, error) {
+	result := r.db.WithContext(ctx).
+		Model(&model.PinnedSession{}).
+		Where("session_id = ?", sessionID).
+		Updates(map[string]any{
+			"last_ip":          lastIP,
+			"user_agent":       userAgent,
+			"last_accessed_at": time.Now(),
+		})
+	return result.RowsAffected > 0, result.Error
+}
+
 func (r *GormSessionRepo) TouchBySessionID(ctx context.Context, sessionID string, newPinnedUntil time.Time, lastIP string, userAgent string) error {
 	return r.db.WithContext(ctx).
 		Model(&model.PinnedSession{}).
