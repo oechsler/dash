@@ -11,12 +11,11 @@ import (
 
 func NewFiberApp(cfg *config.AppConfig) *fiber.App {
 	app := fiber.New(fiber.Config{
-		ReadBufferSize: 1024 * 1024 * 1,
-		TrustProxy:     true,
-		TrustProxyConfig: fiber.TrustProxyConfig{
-			Private: true,
-		},
-		ProxyHeader: fiber.HeaderXForwardedFor,
+		ReadBufferSize:   1024 * 1024 * 1,
+		TrustProxy:       true,
+		TrustProxyConfig: fiber.TrustProxyConfig{Private: true},
+		ProxyHeader:      fiber.HeaderXForwardedFor,
+		EnableIPValidation: true, // parse X-Forwarded-For and return first valid IP
 	})
 
 	app.Use(func(c fiber.Ctx) error {
