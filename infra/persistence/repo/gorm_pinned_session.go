@@ -146,6 +146,10 @@ func (r *GormSessionRepo) DeleteByID(ctx context.Context, id string, userID stri
 	return r.db.WithContext(ctx).Where("id = ? AND user_id = ?", id, userID).Delete(&model.PinnedSession{}).Error
 }
 
+func (r *GormSessionRepo) DeleteBySessionID(ctx context.Context, sessionID string) error {
+	return r.db.WithContext(ctx).Where("session_id = ?", sessionID).Delete(&model.PinnedSession{}).Error
+}
+
 func (r *GormSessionRepo) DeleteByUserID(ctx context.Context, userID string) error {
 	return r.db.WithContext(ctx).Where("user_id = ?", userID).Delete(&model.PinnedSession{}).Error
 }

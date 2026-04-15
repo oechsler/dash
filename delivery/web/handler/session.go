@@ -22,6 +22,7 @@ func Session(
 	provider *oidc.Provider,
 	store *oidc.SessionStore,
 	createSession command.SessionCreator,
+	terminateSession command.SessionTerminator,
 ) {
 	router := app.Group("/session")
 
@@ -118,6 +119,12 @@ func Session(
 	router.Get("/logout", func(c fiber.Ctx) error {
 		sessionData, ok := store.Load(c)
 		store.Clear(c)
+
+		// Delete the DB record so the session disappears from the overview
+		// and the revocation check denies any lingering cookie on other tabs.
+		if ok && sessionData.SessionID != "" && terminateSession != nil {
+			_ = terminateSession.Handle(c.Context(), sessionData.SessionID)
+		}
 
 		if !ok || sessionData.RawIDToken == "" {
 			return redirectToLogin(c)

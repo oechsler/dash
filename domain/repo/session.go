@@ -61,6 +61,9 @@ type SessionRepository interface {
 	// DeleteByID removes a specific session, scoped to userID for safety.
 	// Used for forced sign-out / session invalidation from another device.
 	DeleteByID(ctx context.Context, id string, userID string) error
+	// DeleteBySessionID removes the session with the given cookie SessionID.
+	// Used on voluntary logout where the cookie is still readable.
+	DeleteBySessionID(ctx context.Context, sessionID string) error
 	// DeleteByUserID removes all sessions for the given user.
 	DeleteByUserID(ctx context.Context, userID string) error
 	// DeleteExpired removes all sessions whose token has expired and that are no

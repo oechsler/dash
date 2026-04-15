@@ -42,6 +42,7 @@ type UseCases struct {
 	PinSession          command.SessionPinner
 	UnpinSession        command.SessionUnpinner
 	InvalidateSession   command.SessionInvalidator
+	TerminateSession    command.SessionTerminator
 	CleanupSessions     command.SessionCleaner
 	// Commands
 	DeleteUserData     command.UserDataDeleter
@@ -86,6 +87,7 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 	pinSession := command.NewPinSession(repos.Session)
 	unpinSession := command.NewUnpinSession(repos.Session)
 	invalidateSession := command.NewInvalidateSession(repos.Session)
+	terminateSession := command.NewTerminateSession(repos.Session)
 	cleanupSessions := command.NewCleanupSessions(repos.Session)
 
 	exportUserData := query.NewExportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application)
@@ -98,6 +100,7 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 		PinSession:               pinSession,
 		UnpinSession:             unpinSession,
 		InvalidateSession:        invalidateSession,
+		TerminateSession:         terminateSession,
 		CleanupSessions:          cleanupSessions,
 		ExportUserData:           exportUserData,
 		DeleteUserData:           deleteUserData,
