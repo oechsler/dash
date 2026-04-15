@@ -97,16 +97,32 @@ func (r *GormSessionRepo) ExistsBySessionID(ctx context.Context, sessionID strin
 	return count > 0, err
 }
 
-func (r *GormSessionRepo) Touch(ctx context.Context, sessionID string, lastIP string, userAgent string) (bool, error) {
-	result := r.db.WithContext(ctx).
-		Model(&model.PinnedSession{}).
-		Where("session_id = ?", sessionID).
-		Updates(map[string]any{
-			"last_ip":          lastIP,
-			"user_agent":       userAgent,
-			"last_accessed_at": time.Now(),
-		})
-	return result.RowsAffected > 0, result.Error
+func (r *GormSessionRepo) Touch(ctx context.Context, sessionID string, lastIP string, userAgent string) (bool, time.Time, error) {
+	now := time.Now()
+	// Extend PinnedUntil by 1 year when the session is actively pinned (sliding window).
+	// The RETURNING clause gives us the new value so the caller knows whether to refresh
+	// the browser cookie.
+	var row struct {
+		PinnedUntil time.Time `gorm:"column:pinned_until"`
+	}
+	tx := r.db.WithContext(ctx).Raw(`
+		UPDATE pinned_sessions
+		SET last_ip          = ?,
+		    user_agent       = ?,
+		    last_accessed_at = ?,
+		    updated_at       = ?,
+		    pinned_until     = CASE WHEN pinned_until > NOW()
+		                           THEN NOW() + INTERVAL '1 year'
+		                           ELSE pinned_until
+		                      END
+		WHERE session_id = ?
+		RETURNING pinned_until`,
+		lastIP, userAgent, now, now, sessionID,
+	).Scan(&row)
+	if tx.Error != nil {
+		return false, time.Time{}, tx.Error
+	}
+	return tx.RowsAffected > 0, row.PinnedUntil, nil
 }
 
 func (r *GormSessionRepo) TouchBySessionID(ctx context.Context, sessionID string, newPinnedUntil time.Time, lastIP string, userAgent string) error {

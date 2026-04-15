@@ -50,9 +50,11 @@ type SessionRepository interface {
 	// regardless of pin status. Used to detect invalidated (deleted) sessions.
 	ExistsBySessionID(ctx context.Context, sessionID string) (bool, error)
 	// Touch updates LastIP, UserAgent, and LastAccessedAt for the given session.
-	// Returns false if the session no longer exists (was invalidated).
-	// Used on every authenticated request to keep access metadata current.
-	Touch(ctx context.Context, sessionID string, lastIP string, userAgent string) (bool, error)
+	// Returns (exists, pinnedUntil, error): exists=false if the session was invalidated;
+	// pinnedUntil is the new sliding-window expiry (zero if not pinned).
+	// When the session is pinned, PinnedUntil is extended by 1 year on every touch
+	// so the window slides with usage and the DB record never expires while in use.
+	Touch(ctx context.Context, sessionID string, lastIP string, userAgent string) (bool, time.Time, error)
 	// TouchBySessionID extends PinnedUntil and records the latest access metadata.
 	TouchBySessionID(ctx context.Context, sessionID string, newPinnedUntil time.Time, lastIP string, userAgent string) error
 	// ListByUserID returns all sessions still relevant for the given user

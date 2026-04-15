@@ -185,9 +185,14 @@ func (s *SessionStore) LoadIdentity(c fiber.Ctx) (model.Identity, bool) {
 		// Deleting the record is how we invalidate a session from another device.
 		// Fail open on DB errors so a transient outage doesn't lock everyone out.
 		if s.sessionRepo != nil && data.SessionID != "" {
-			exists, err := s.sessionRepo.Touch(context.Background(), data.SessionID, c.IP(), c.Get("User-Agent"))
+			exists, pinnedUntil, err := s.sessionRepo.Touch(context.Background(), data.SessionID, c.IP(), c.Get("User-Agent"))
 			if err == nil && !exists {
 				return model.Identity{}, false // record deleted → session invalidated
+			}
+			// If the session is pinned, re-issue the cookie so the browser's max-age
+			// countdown is reset on every request (sliding window on the client side too).
+			if err == nil && pinnedUntil.After(time.Now()) {
+				_ = s.PersistCookie(c)
 			}
 			// DB error: fail open
 		}
