@@ -32,6 +32,8 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /out/healthcheck ./cmd/healthchec
 
 FROM gcr.io/distroless/static-debian12:nonroot
 
+LABEL org.opencontainers.image.source="https://git.at.oechsler.it/samuel/dash"
+
 COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=build /out/server /dash/server
 COPY --from=build /out/healthcheck /dash/healthcheck

@@ -20,62 +20,19 @@ jobs:
           echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
           echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
-      - name: Install dependencies
+      - name: Login
+        run: echo "${{ secrets.FORGEJO_PACKAGE }}" | docker login git.at.oechsler.it -u ${{ github.actor }} --password-stdin
+
+      - name: Build & push
         run: |
-          apt-get update -qq && apt-get install -y --no-install-recommends tzdata
-          GO_VERSION=$(grep '^go ' go.mod | awk '{print $2}')
-          rm -rf /usr/local/go
-          curl -sSfL https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz | tar -xz -C /usr/local
-          echo "/usr/local/go/bin" >> $GITHUB_PATH
-          echo "$HOME/go/bin" >> $GITHUB_PATH
-
-      - name: Build
-        run: |
-          go generate ./delivery/web/templ
-          go generate ./delivery/web/static
-          rm -f ./delivery/web/static/generate.go
-          CGO_ENABLED=0 go build \
-            -ldflags="-s -w \
-              -X main.version=${{ steps.info.outputs.version }} \
-              -X main.commit=${{ steps.info.outputs.commit }} \
-              -X main.buildDate=${{ steps.info.outputs.build_date }} \
-              -X main.repoURL=https://git.at.oechsler.it/samuel/dash" \
-            -o /tmp/server ./cmd/server
-          CGO_ENABLED=0 go build -ldflags="-s -w" -o /tmp/healthcheck ./cmd/healthcheck
-
-      - name: Push image
-        env:
-          REGISTRY_TOKEN: ${{ secrets.FORGEJO_PACKAGE }}
-        run: |
-          curl -sSfL https://github.com/google/go-containerregistry/releases/download/v0.21.3/go-containerregistry_Linux_x86_64.tar.gz \
-            | tar -xz -C /usr/local/bin crane
-
-          mkdir -p /tmp/crane-config
-          printf '{"auths":{"git.at.oechsler.it":{"auth":"%s"}}}' \
-            "$(printf '%s:%s' '${{ github.actor }}' "${REGISTRY_TOKEN}" | base64 -w0)" \
-            > /tmp/crane-config/config.json
-
-          mkdir -p /tmp/rootfs/dash/delivery/web
-          cp /tmp/server /tmp/rootfs/dash/server
-          cp /tmp/healthcheck /tmp/rootfs/dash/healthcheck
-          chmod 755 /tmp/rootfs/dash/server /tmp/rootfs/dash/healthcheck
-          cp -r ./delivery/web/static /tmp/rootfs/dash/delivery/web/static
-          mkdir -p /tmp/rootfs/usr/share
-          cp -r /usr/share/zoneinfo /tmp/rootfs/usr/share/zoneinfo
-
-          tar -C /tmp/rootfs -czf /tmp/layer.tar.gz .
-
-          DOCKER_CONFIG=/tmp/crane-config crane append \
-            --base=gcr.io/distroless/static-debian12:nonroot \
-            --new_layer=/tmp/layer.tar.gz \
-            --new_tag=git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
-
-          DOCKER_CONFIG=/tmp/crane-config crane mutate \
-            --cmd="/dash/server" \
-            --workdir="/dash" \
-            --exposed-ports="8080/tcp" \
-            git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
-
-          DOCKER_CONFIG=/tmp/crane-config crane tag \
-            git.at.oechsler.it/samuel/dash:${{ github.ref_name }} \
-            latest
+          docker build \
+            --file docker/Dockerfile \
+            --build-arg VERSION=${{ steps.info.outputs.version }} \
+            --build-arg COMMIT=${{ steps.info.outputs.commit }} \
+            --build-arg BUILD_DATE=${{ steps.info.outputs.build_date }} \
+            --build-arg REPO_URL=https://git.at.oechsler.it/samuel/dash \
+            --tag git.at.oechsler.it/samuel/dash:${{ github.ref_name }} \
+            --tag git.at.oechsler.it/samuel/dash:latest \
+            .
+          docker push git.at.oechsler.it/samuel/dash:${{ github.ref_name }}
+          docker push git.at.oechsler.it/samuel/dash:latest
