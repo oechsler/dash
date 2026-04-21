@@ -26,6 +26,7 @@ de:
       unknown_ip: "Unbekannt"
       pin: "Anheften"
       unpin: "Lösen"
+      refresh_groups: "Gruppen aktualisieren"
       sign_out: "Abmelden"
       sign_out_confirm: "Diese Sitzung abmelden? Das Gerät wird beim nächsten Zugriff zur Anmeldeseite weitergeleitet."
       unpin_confirm: "Sitzung lösen? Sie wird nach Ablauf des Tokens automatisch beendet."

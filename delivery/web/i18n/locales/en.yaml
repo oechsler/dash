@@ -26,6 +26,7 @@ en:
       unknown_ip: "Unknown"
       pin: "Pin"
       unpin: "Unpin"
+      refresh_groups: "Refresh groups"
       sign_out: "Sign out"
       sign_out_confirm: "Sign out this session? The device will be redirected to the login page on its next request."
       unpin_confirm: "Unpin this session? It will end automatically once the token expires."

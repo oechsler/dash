@@ -143,6 +143,52 @@ func (s *SessionStore) Save(c fiber.Ctx, identity model.Identity, rawIDToken str
 	return data, nil
 }
 
+// SaveWithID encodes the identity into an encrypted session cookie using an existing SessionID.
+// This is used during the group-refresh flow to update the cookie without changing the session.
+// If persist is true the cookie receives a 1-year MaxAge (for pinned sessions).
+func (s *SessionStore) SaveWithID(c fiber.Ctx, identity model.Identity, rawIDToken string, expiresAt int64, sessionID string, persist bool) (SessionData, error) {
+	data := SessionData{
+		SessionID:   sessionID,
+		Sub:         identity.UserID,
+		FirstName:   identity.FirstName,
+		LastName:    identity.LastName,
+		DisplayName: identity.DisplayName,
+		Username:    identity.Username,
+		Email:       identity.Email,
+		Groups:      identity.Groups,
+		IsAdmin:     identity.IsAdmin,
+		RawIDToken:  rawIDToken,
+		ExpiresAt:   expiresAt,
+	}
+	if identity.Picture != nil {
+		data.Picture = *identity.Picture
+	}
+	if identity.ProfileUrl != nil {
+		data.ProfileUrl = *identity.ProfileUrl
+	}
+
+	encoded, err := s.codec.Encode(s.cookieName, &data)
+	if err != nil {
+		return SessionData{}, fmt.Errorf("encoding session: %w", err)
+	}
+
+	maxAge := s.maxAge
+	if persist {
+		maxAge = pinnedSessionMaxAge
+	}
+	c.Cookie(&fiber.Cookie{
+		Name:     s.cookieName,
+		Value:    encoded,
+		Domain:   s.domain,
+		MaxAge:   maxAge,
+		Secure:   s.secure,
+		HTTPOnly: true,
+		SameSite: "Lax",
+	})
+
+	return data, nil
+}
+
 // Load decodes the session cookie. Returns false if missing, invalid, or expired.
 func (s *SessionStore) Load(c fiber.Ctx) (SessionData, bool) {
 	data, ok := s.loadRaw(c)

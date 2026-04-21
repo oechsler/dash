@@ -28,7 +28,8 @@ func GenerateState() (string, error) {
 // StateCookie holds the in-flight OAuth2 state for CSRF protection and PKCE.
 // It is stored in a short-lived encrypted cookie during the login flow.
 type StateCookie struct {
-	State        string `json:"s"`
-	CodeVerifier string `json:"cv"`
-	ReturnTo     string `json:"rt"`
+	State            string `json:"s"`
+	CodeVerifier     string `json:"cv"`
+	ReturnTo         string `json:"rt"`
+	RefreshSessionID string `json:"rsid,omitempty"` // set during group-refresh flow; preserves existing session
 }

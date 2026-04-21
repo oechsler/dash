@@ -39,6 +39,7 @@ type UseCases struct {
 	// Session use cases
 	GetSessionsOverview query.UserSessionsOverviewGetter
 	CreateSession       command.SessionCreator
+	RefreshSession      command.SessionRefresher
 	PinSession          command.SessionPinner
 	UnpinSession        command.SessionUnpinner
 	InvalidateSession   command.SessionInvalidator
@@ -84,6 +85,7 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 
 	getSessionsOverview := query.NewGetSessionsOverview(repos.Session)
 	createSession := command.NewCreateSession(repos.Session)
+	refreshSession := command.NewRefreshSession(repos.Session)
 	pinSession := command.NewPinSession(repos.Session)
 	unpinSession := command.NewUnpinSession(repos.Session)
 	invalidateSession := command.NewInvalidateSession(repos.Session)
@@ -97,6 +99,7 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 	return &UseCases{
 		GetSessionsOverview:      getSessionsOverview,
 		CreateSession:            createSession,
+		RefreshSession:           refreshSession,
 		PinSession:               pinSession,
 		UnpinSession:             unpinSession,
 		InvalidateSession:        invalidateSession,

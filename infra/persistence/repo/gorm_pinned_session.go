@@ -170,6 +170,30 @@ func (r *GormSessionRepo) DeleteByUserID(ctx context.Context, userID string) err
 	return r.db.WithContext(ctx).Where("user_id = ?", userID).Delete(&model.PinnedSession{}).Error
 }
 
+func (r *GormSessionRepo) RefreshBySessionID(ctx context.Context, record *domainrepo.SessionRecord) error {
+	groups, err := json.Marshal(record.Groups)
+	if err != nil {
+		return err
+	}
+	return r.db.WithContext(ctx).
+		Model(&model.PinnedSession{}).
+		Where("session_id = ?", record.SessionID).
+		Updates(map[string]any{
+			"issued_at":    record.IssuedAt,
+			"expires_at":   record.ExpiresAt,
+			"sub":          record.Sub,
+			"username":     record.Username,
+			"email":        record.Email,
+			"first_name":   record.FirstName,
+			"last_name":    record.LastName,
+			"display_name": record.DisplayName,
+			"picture":      record.Picture,
+			"profile_url":  record.ProfileUrl,
+			"groups":       string(groups),
+			"is_admin":     record.IsAdmin,
+		}).Error
+}
+
 func (r *GormSessionRepo) DeleteExpired(ctx context.Context) error {
 	now := time.Now()
 	return r.db.WithContext(ctx).

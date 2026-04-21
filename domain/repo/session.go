@@ -68,6 +68,9 @@ type SessionRepository interface {
 	DeleteBySessionID(ctx context.Context, sessionID string) error
 	// DeleteByUserID removes all sessions for the given user.
 	DeleteByUserID(ctx context.Context, userID string) error
+	// RefreshBySessionID updates identity fields and token timing for an existing session.
+	// Used when the user re-authenticates to refresh group memberships without creating a new session.
+	RefreshBySessionID(ctx context.Context, record *SessionRecord) error
 	// DeleteExpired removes all sessions whose token has expired and that are no
 	// longer pinned (or whose pin has also expired).
 	DeleteExpired(ctx context.Context) error

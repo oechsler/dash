@@ -15,6 +15,7 @@ const (
 	SessionLoginCallbackRoute  = "SessionLoginCallbackRoute"
 	SessionLogoutRoute         = "SessionLogoutRoute"
 	SessionLogoutCallbackRoute = "SessionLogoutCallbackRoute"
+	SessionRefreshRoute        = "SessionRefreshRoute"
 )
 
 func Session(
@@ -22,6 +23,7 @@ func Session(
 	provider *oidc.Provider,
 	store *oidc.SessionStore,
 	createSession command.SessionCreator,
+	refreshSession command.SessionRefresher,
 	terminateSession command.SessionTerminator,
 ) {
 	router := app.Group("/session")
@@ -47,6 +49,35 @@ func Session(
 		return c.Redirect().Status(fiber.StatusFound).To(provider.BeginAuth(state, codeVerifier))
 	}).Name(SessionLoginRoute)
 
+	// Refresh: re-authenticates via OIDC to update groups on the current pinned session.
+	// The existing session record is updated in-place — no new SessionID is issued.
+	router.Get("/refresh", func(c fiber.Ctx) error {
+		sessionData, ok := store.LoadExpired(c)
+		if !ok || sessionData.SessionID == "" {
+			return redirectToLogin(c)
+		}
+
+		state, err := oidc.GenerateState()
+		if err != nil {
+			return err
+		}
+		codeVerifier, err := oidc.GenerateCodeVerifier()
+		if err != nil {
+			return err
+		}
+
+		if err := store.SaveStateCookie(c, oidc.StateCookie{
+			State:            state,
+			CodeVerifier:     codeVerifier,
+			ReturnTo:         c.Query("rd", "/"),
+			RefreshSessionID: sessionData.SessionID,
+		}); err != nil {
+			return err
+		}
+
+		return c.Redirect().Status(fiber.StatusFound).To(provider.BeginAuth(state, codeVerifier))
+	}).Name(SessionRefreshRoute)
+
 	router.Get("/login/callback", func(c fiber.Ctx) error {
 		stateCookie, err := store.LoadAndClearStateCookie(c)
 		if err != nil {
@@ -70,6 +101,48 @@ func Session(
 		identity, err := provider.ClaimsToIdentity(idToken)
 		if err != nil {
 			return fiber.NewError(fiber.StatusUnauthorized, "failed to extract identity")
+		}
+
+		if stateCookie.RefreshSessionID != "" {
+			// Refresh flow: update the existing session record in-place.
+			// The cookie keeps the same SessionID; groups and token data are updated.
+			pic := ""
+			if identity.Picture != nil {
+				pic = *identity.Picture
+			}
+			pu := ""
+			if identity.ProfileUrl != nil {
+				pu = *identity.ProfileUrl
+			}
+			if refreshSession != nil {
+				_ = refreshSession.Handle(c.Context(), command.RefreshSessionCmd{
+					SessionID:   stateCookie.RefreshSessionID,
+					IssuedAt:    idToken.IssuedAt,
+					ExpiresAt:   idToken.Expiry,
+					Sub:         identity.UserID,
+					Username:    identity.Username,
+					Email:       identity.Email,
+					FirstName:   identity.FirstName,
+					LastName:    identity.LastName,
+					DisplayName: identity.DisplayName,
+					Picture:     pic,
+					ProfileUrl:  pu,
+					Groups:      identity.Groups,
+					IsAdmin:     identity.IsAdmin,
+				})
+			}
+			// Re-issue the cookie with updated identity. Preserve the 1-year MaxAge
+			// (the session was pinned, otherwise the user couldn't have initiated a refresh).
+			if _, err := store.SaveWithID(c, identity, rawIDToken, idToken.Expiry.Unix(),
+				stateCookie.RefreshSessionID, true); err != nil {
+				return err
+			}
+
+			returnTo := stateCookie.ReturnTo
+			if returnTo == "" {
+				returnTo = "/"
+			}
+			return c.Redirect().Status(fiber.StatusFound).To(returnTo)
 		}
 
 		sessionData, err := store.Save(c, identity, rawIDToken, idToken.Expiry.Unix())
