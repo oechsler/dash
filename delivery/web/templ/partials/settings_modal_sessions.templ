@@ -59,6 +59,15 @@ func parseUserAgent(raw string) string {
 	return os
 }
 
+// SettingsModalSessionsSectionWithNavOOB renders the sessions section and includes an
+// OOB swap for #nav-session-btn so the logout/refresh button updates without a page reload.
+templ SettingsModalSessionsSectionWithNavOOB(input SettingsModalSessionsSectionInput, currentSessionPinned bool) {
+	@SettingsModalSessionsSection(input)
+	<div id="nav-session-btn" hx-swap-oob="outerHTML">
+		@NavSessionButton(currentSessionPinned)
+	</div>
+}
+
 templ SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) {
 	<div id="sessions-section" class="space-y-3">
 		for _, s := range input.Sessions {

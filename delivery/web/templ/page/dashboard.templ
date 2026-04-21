@@ -2,6 +2,7 @@ package page
 
 import (
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/layout"
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/partials"
 	"github.com/invopop/ctxi18n/i18n"
 )
 
@@ -43,15 +44,9 @@ templ Dashboard(input DashboardInput) {
 				<button title={ i18n.T(ctx, "nav.settings") } class="text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1 cursor-pointer" hx-get="/settings/modal" hx-target="body" hx-swap="beforeend">
 					<span class="material-icons-round">settings</span>
 				</button>
-				if input.User.SessionPinned {
-					<a href="/session/refresh?rd=/" title={ i18n.T(ctx, "nav.refresh_groups") } class="text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1">
-						<span class="material-icons-round">refresh</span>
-					</a>
-				} else {
-					<a href="/session/logout?from_provider=true" title={ i18n.T(ctx, "nav.logout") } class="text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1">
-						<span class="material-icons-round">logout</span>
-					</a>
-				}
+				<div id="nav-session-btn">
+					@partials.NavSessionButton(input.User.SessionPinned)
+				</div>
 			</nav>
 			<hr class="border-tertiary mt-4"/>
 			<main>

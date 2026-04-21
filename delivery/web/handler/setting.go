@@ -436,7 +436,11 @@ func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) e
 		return err
 	}
 
+	var currentSessionPinned bool
 	sessionViews := lo.Map(overview.Sessions, func(s *query.SessionOverviewItem, _ int) partials.SettingsModalSessionsSectionInputSession {
+		if s.IsCurrent && s.IsPinned {
+			currentSessionPinned = true
+		}
 		return partials.SettingsModalSessionsSectionInputSession{
 			ID:             s.ID,
 			SessionID:      s.SessionID,
@@ -451,8 +455,8 @@ func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) e
 		}
 	})
 
-	return middleware.Render(c, partials.SettingsModalSessionsSection(partials.SettingsModalSessionsSectionInput{
+	return middleware.Render(c, partials.SettingsModalSessionsSectionWithNavOOB(partials.SettingsModalSessionsSectionInput{
 		Sessions: sessionViews,
 		Timezone: loc,
-	}))
+	}, currentSessionPinned))
 }
