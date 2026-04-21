@@ -32,7 +32,7 @@ templ Dashboard(input DashboardInput) {
 						<span class="text-sm">{ input.User.DisplayName }</span>
 					</div>
 				} else {
-					<a href={ *input.User.ProfileUrl } class="flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors duration-200">
+					<a href={ *input.User.ProfileUrl } title={ i18n.T(ctx, "nav.profile") } class="flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors duration-200">
 						if input.User.Picture == nil {
 							<span class="material-icons-round w-6 h-6 rounded-full">account_circle</span>
 						} else {

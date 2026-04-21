@@ -1,5 +1,6 @@
 en:
   nav:
+    profile: "Profile"
     settings: "Settings"
     logout: "Sign out"
     refresh_groups: "Refresh groups"

@@ -123,66 +123,79 @@ func Dashboard(input DashboardInput) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" class=\"flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors duration-200\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" title=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var6 string
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "nav.profile"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 35, Col: 74}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" class=\"flex items-center gap-2 text-secondary hover:text-secondary/80 transition-colors duration-200\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if input.User.Picture == nil {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"material-icons-round w-6 h-6 rounded-full\">account_circle</span> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"material-icons-round w-6 h-6 rounded-full\">account_circle</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<img src=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<img src=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var6 string
-					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(*input.User.Picture)
+					var templ_7745c5c3_Var7 string
+					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(*input.User.Picture)
 					if templ_7745c5c3_Err != nil {
 						return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 39, Col: 37}
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" alt=\"Profile\" class=\"w-6 h-6 rounded-full\"> ")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" alt=\"Profile\" class=\"w-6 h-6 rounded-full\"> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"text-sm\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<span class=\"text-sm\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var7 string
-				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(input.User.DisplayName)
+				var templ_7745c5c3_Var8 string
+				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(input.User.DisplayName)
 				if templ_7745c5c3_Err != nil {
 					return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 41, Col: 52}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</span></a> ")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span></a> ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<button title=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<button title=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var8 string
-			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "nav.settings"))
+			var templ_7745c5c3_Var9 string
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(i18n.T(ctx, "nav.settings"))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `delivery/web/templ/page/dashboard.templ`, Line: 44, Col: 47}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" class=\"text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1 cursor-pointer\" hx-get=\"/settings/modal\" hx-target=\"body\" hx-swap=\"beforeend\"><span class=\"material-icons-round\">settings</span></button><div id=\"nav-session-btn\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\" class=\"text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1 cursor-pointer\" hx-get=\"/settings/modal\" hx-target=\"body\" hx-swap=\"beforeend\"><span class=\"material-icons-round\">settings</span></button><div id=\"nav-session-btn\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -190,7 +203,7 @@ func Dashboard(input DashboardInput) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></nav><hr class=\"border-tertiary mt-4\"><main><div hx-get=\"/dashboard/greeting\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><section id=\"apps\" class=\"mt-12 lg:mt-16\"><div hx-get=\"/applications\" hx-trigger=\"load\" hx-target=\"#apps-list\" hx-swap=\"innerHTML\"></div><div id=\"apps-title\" hx-get=\"/dashboard/title/applications\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><ul id=\"apps-list\" class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2\"></ul></section><div id=\"shelved-sections\"><div hx-get=\"/categories/shelved\" hx-trigger=\"load\" hx-target=\"#shelved-sections\" hx-swap=\"innerHTML\"></div></div><section id=\"bookmarks\" class=\"mt-12 lg:mt-16\"><div id=\"bookmarks-title\" hx-get=\"/dashboard/title/bookmarks\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><div hx-get=\"/categories\" hx-trigger=\"load\" hx-target=\"#categories-list\" hx-swap=\"innerHTML\"></div><ul id=\"categories-list\" class=\"space-y-6 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-8\"></ul></section></main><aside class=\"fixed bottom-8 right-8 flex flex-col gap-4\"><div hx-get=\"/dashboard/edit/off?initial=true\" hx-trigger=\"load\" hx-swap=\"innerHTML\"></div></aside></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div></nav><hr class=\"border-tertiary mt-4\"><main><div hx-get=\"/dashboard/greeting\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><section id=\"apps\" class=\"mt-12 lg:mt-16\"><div hx-get=\"/applications\" hx-trigger=\"load\" hx-target=\"#apps-list\" hx-swap=\"innerHTML\"></div><div id=\"apps-title\" hx-get=\"/dashboard/title/applications\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><ul id=\"apps-list\" class=\"space-y-2 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-2\"></ul></section><div id=\"shelved-sections\"><div hx-get=\"/categories/shelved\" hx-trigger=\"load\" hx-target=\"#shelved-sections\" hx-swap=\"innerHTML\"></div></div><section id=\"bookmarks\" class=\"mt-12 lg:mt-16\"><div id=\"bookmarks-title\" hx-get=\"/dashboard/title/bookmarks\" hx-trigger=\"load\" hx-swap=\"outerHTML\"></div><div hx-get=\"/categories\" hx-trigger=\"load\" hx-target=\"#categories-list\" hx-swap=\"innerHTML\"></div><ul id=\"categories-list\" class=\"space-y-6 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-8\"></ul></section></main><aside class=\"fixed bottom-8 right-8 flex flex-col gap-4\"><div hx-get=\"/dashboard/edit/off?initial=true\" hx-trigger=\"load\" hx-swap=\"innerHTML\"></div></aside></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
