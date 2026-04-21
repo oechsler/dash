@@ -97,24 +97,6 @@ templ SettingsModalSessionsSection(input SettingsModalSessionsSectionInput) {
 					>
 						{ i18n.T(ctx, "settings.sessions.pin") }
 					</button>
-				} else if s.IsPinned && s.IsCurrent {
-					<div class="flex gap-2">
-						<a
-							href="/session/refresh?rd=/"
-							class="shrink-0 px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm whitespace-nowrap"
-						>
-							{ i18n.T(ctx, "settings.sessions.refresh_groups") }
-						</a>
-						<button
-							hx-delete={ fmt.Sprintf("/settings/sessions/%s/unpin?sid=%s", s.ID, s.SessionID) }
-							hx-target="#sessions-section"
-							hx-swap="outerHTML"
-							hx-confirm={ i18n.T(ctx, "settings.sessions.unpin_confirm") }
-							class="shrink-0 px-4 py-2 rounded-lg text-primary bg-tertiary/80 hover:bg-tertiary transition-colors duration-200 cursor-pointer text-sm whitespace-nowrap"
-						>
-							{ i18n.T(ctx, "settings.sessions.unpin") }
-						</button>
-					</div>
 				} else if s.IsPinned {
 					<button
 						hx-delete={ fmt.Sprintf("/settings/sessions/%s/unpin?sid=%s", s.ID, s.SessionID) }

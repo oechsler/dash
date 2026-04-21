@@ -31,3 +31,10 @@ func GetCurrentUser(c fiber.Ctx) (domainmodel.Identity, bool) {
 	identity, ok := c.Locals("user").(domainmodel.Identity)
 	return identity, ok
 }
+
+// GetCurrentSessionPinned reports whether the current session is pinned.
+// Set by LoadUserFromSession via SessionStore.LoadIdentity.
+func GetCurrentSessionPinned(c fiber.Ctx) bool {
+	pinned, _ := c.Locals("session_pinned").(bool)
+	return pinned
+}

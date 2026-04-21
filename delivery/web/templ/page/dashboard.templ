@@ -1,11 +1,15 @@
 package page
 
-import "git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/layout"
+import (
+	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/layout"
+	"github.com/invopop/ctxi18n/i18n"
+)
 
 type UserInfo struct {
-	Picture     *string
-	DisplayName string
-	ProfileUrl  *string
+	Picture       *string
+	DisplayName   string
+	ProfileUrl    *string
+	SessionPinned bool
 }
 
 type DashboardInput struct {
@@ -36,12 +40,18 @@ templ Dashboard(input DashboardInput) {
 						<span class="text-sm">{ input.User.DisplayName }</span>
 					</a>
 				}
-				<button class="text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1 cursor-pointer" hx-get="/settings/modal" hx-target="body" hx-swap="beforeend">
+				<button title={ i18n.T(ctx, "nav.settings") } class="text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1 cursor-pointer" hx-get="/settings/modal" hx-target="body" hx-swap="beforeend">
 					<span class="material-icons-round">settings</span>
 				</button>
-				<a href="/session/logout?from_provider=true" class="text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1">
-					<span class="material-icons-round">logout</span>
-				</a>
+				if input.User.SessionPinned {
+					<a href="/session/refresh?rd=/" title={ i18n.T(ctx, "nav.refresh_groups") } class="text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1">
+						<span class="material-icons-round">refresh</span>
+					</a>
+				} else {
+					<a href="/session/logout?from_provider=true" title={ i18n.T(ctx, "nav.logout") } class="text-secondary text-2xl hover:text-secondary/80 transition-colors duration-200 flex items-center gap-1">
+						<span class="material-icons-round">logout</span>
+					</a>
+				}
 			</nav>
 			<hr class="border-tertiary mt-4"/>
 			<main>

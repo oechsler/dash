@@ -88,9 +88,10 @@ func Dashboard(deps DashboardDeps) {
 				},
 			},
 			User: page.UserInfo{
-				Picture:     user.Picture,
-				DisplayName: user.DisplayName,
-				ProfileUrl:  user.ProfileUrl,
+				Picture:       user.Picture,
+				DisplayName:   user.DisplayName,
+				ProfileUrl:    user.ProfileUrl,
+				SessionPinned: middleware.GetCurrentSessionPinned(c),
 			},
 		}))
 	}).Name(DashboardRoute)

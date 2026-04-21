@@ -238,6 +238,7 @@ func (s *SessionStore) LoadIdentity(c fiber.Ctx) (model.Identity, bool) {
 			// If the session is pinned, re-issue the cookie so the browser's max-age
 			// countdown is reset on every request (sliding window on the client side too).
 			if err == nil && pinnedUntil.After(time.Now()) {
+				c.Locals("session_pinned", true)
 				_ = s.PersistCookie(c)
 			}
 			// DB error: fail open
@@ -257,6 +258,7 @@ func (s *SessionStore) LoadIdentity(c fiber.Ctx) (model.Identity, bool) {
 				_ = s.sessionRepo.TouchBySessionID(context.Background(), expired.SessionID, newUntil, c.IP(), c.Get("User-Agent"))
 				// Re-issue cookie with 1-year MaxAge so the browser keeps it.
 				_ = s.PersistCookie(c)
+				c.Locals("session_pinned", true)
 				return sessionRecordToIdentity(pinned), true
 			}
 			// Not found or DB error → fall through to unauthenticated
