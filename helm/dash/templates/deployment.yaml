@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dash.fullname" . }}
+  labels:
+    {{- include "dash.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "dash.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dash.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: dash
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.app.port }}
+              protocol: TCP
+          env:
+            - name: APP_ENV
+              value: {{ .Values.app.env | quote }}
+            - name: APP_PORT
+              value: {{ .Values.app.port | quote }}
+            {{- if .Values.app.tls.certFile }}
+            - name: APP_TLS_CERT_FILE
+              value: {{ .Values.app.tls.certFile | quote }}
+            {{- end }}
+            {{- if .Values.app.tls.keyFile }}
+            - name: APP_TLS_KEY_FILE
+              value: {{ .Values.app.tls.keyFile | quote }}
+            {{- end }}
+
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dash.secrets.name | quote }}
+                  key: {{ .Values.dash.secrets.keys.databaseUrl | quote }}
+
+            - name: OIDC_ISSUER
+              value: {{ required "oidc.issuer is required" .Values.oidc.issuer | quote }}
+            - name: OIDC_CLIENT_ID
+              value: {{ required "oidc.clientId is required" .Values.oidc.clientId | quote }}
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dash.secrets.name | quote }}
+                  key: {{ .Values.dash.secrets.keys.oidcClientSecret | quote }}
+            - name: OIDC_REDIRECT_URL
+              value: {{ required "oidc.redirectUrl is required" .Values.oidc.redirectUrl | quote }}
+            - name: OIDC_SCOPES
+              value: {{ .Values.oidc.scopes | quote }}
+
+            - name: OIDC_ADMIN_GROUP
+              value: {{ .Values.oidc.adminGroup | quote }}
+            {{- if .Values.oidc.profileUrl }}
+            - name: OIDC_PROFILE_URL
+              value: {{ .Values.oidc.profileUrl | quote }}
+            {{- end }}
+            {{- if .Values.oidc.endSessionUrl }}
+            - name: OIDC_END_SESSION_URL
+              value: {{ .Values.oidc.endSessionUrl | quote }}
+            {{- end }}
+
+            - name: OIDC_COOKIE_HASH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dash.secrets.name | quote }}
+                  key: {{ .Values.dash.secrets.keys.oidcCookieHashKey | quote }}
+            - name: OIDC_COOKIE_BLOCK_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dash.secrets.name | quote }}
+                  key: {{ .Values.dash.secrets.keys.oidcCookieBlockKey | quote }}
+            - name: OIDC_COOKIE_NAME
+              value: {{ .Values.oidc.cookie.name | quote }}
+            - name: OIDC_COOKIE_DOMAIN
+              value: {{ .Values.oidc.cookie.domain | quote }}
+            - name: OIDC_COOKIE_SECURE
+              value: {{ .Values.oidc.cookie.secure | quote }}
+            - name: OIDC_COOKIE_MAX_AGE
+              value: {{ .Values.oidc.cookie.maxAge | quote }}
+
+          readinessProbe:
+            exec:
+              command:
+                - /dash/healthcheck
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          livenessProbe:
+            exec:
+              command:
+                - /dash/healthcheck
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
