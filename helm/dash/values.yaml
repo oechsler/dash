@@ -78,6 +78,7 @@ dash:
     name: "dash-secrets"
     keys:
       databaseUrl: DATABASE_URL
+      postgresPassword: POSTGRES_PASSWORD
       oidcClientSecret: OIDC_CLIENT_SECRET
       oidcCookieHashKey: OIDC_COOKIE_HASH_KEY
       oidcCookieBlockKey: OIDC_COOKIE_BLOCK_KEY
@@ -121,8 +122,10 @@ postgres:
       - ReadWriteOnce
     storageClass: ""
 
+  # Secrets for internal Postgres are intentionally shared with Dash to avoid drift.
+  # NOTE: This section is deprecated and must match dash.secrets.* when postgres.enabled=true.
   secrets:
-    name: "postgres-secrets"
+    name: "dash-secrets"
     keys:
       password: POSTGRES_PASSWORD
 

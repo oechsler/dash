@@ -2,23 +2,27 @@ Dash has been deployed.
 
 Required secrets
 
-1) Dash secret (default name from values: {{ .Values.dash.secrets.name }}) must contain:
-   - {{ .Values.dash.secrets.keys.databaseUrl }} (DATABASE_URL)
+Dash uses a single shared secret (default name from values: {{ .Values.dash.secrets.name }}).
+
+It must always contain:
    - {{ .Values.dash.secrets.keys.oidcClientSecret }}
    - {{ .Values.dash.secrets.keys.oidcCookieHashKey }}
    - {{ .Values.dash.secrets.keys.oidcCookieBlockKey }}
 
-2) If internal Postgres is enabled (postgres.enabled=true), Postgres secret (default name: {{ .Values.postgres.secrets.name }}) must contain:
-   - {{ .Values.postgres.secrets.keys.password }} (POSTGRES_PASSWORD)
+If internal Postgres is enabled (postgres.enabled=true), it must also contain:
+   - {{ .Values.dash.secrets.keys.postgresPassword }} (POSTGRES_PASSWORD)
+
+If internal Postgres is disabled (postgres.enabled=false, external DB), it must contain:
+   - {{ .Values.dash.secrets.keys.databaseUrl }} (DATABASE_URL)
 
 Blueprint
 
 - Render secret blueprints (placeholders only) by setting:
-  dash.secrets.blueprint.enabled=true and/or postgres.secrets.blueprint.enabled=true
+   dash.secrets.blueprint.enabled=true and/or postgres.secrets.blueprint.enabled=true
 
 External secret stores
 
-- If you set dash.secrets.external.enabled=true or postgres.secrets.external.enabled=true,
+- If you set dash.secrets.external.enabled=true,
   this chart renders ExternalSecret resources. Ensure External Secrets Operator CRDs are installed.
 
 Ingress
