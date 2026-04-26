@@ -1,0 +1,146 @@
+# Default values for dash.
+# IMPORTANT: Do not put passwords or other secret material in this file.
+
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: ghcr.io/oechsler/dash
+  tag: latest
+  pullPolicy: IfNotPresent
+
+app:
+  env: prod
+  port: 8080
+  tls:
+    # These are passed through to APP_TLS_CERT_FILE / APP_TLS_KEY_FILE.
+    # Most setups terminate TLS at the Ingress and leave these empty.
+    certFile: ""
+    keyFile: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: dash.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+podSecurityContext: {}
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  allowPrivilegeEscalation: false
+
+probes:
+  readiness:
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Dash non-secret configuration (maps to config/config.go env vars)
+oidc:
+  issuer: ""
+  clientId: ""
+  redirectUrl: ""
+  scopes: "openid profile email groups"
+  adminGroup: "admin"
+  profileUrl: ""
+  endSessionUrl: ""
+  cookie:
+    name: "__Secure-dash-session"
+    domain: ""
+    secure: true
+    maxAge: 0
+
+# Dash secrets are referenced by name/key (existing Secret) OR optional ExternalSecret.
+dash:
+  secrets:
+    name: "dash-secrets"
+    keys:
+      databaseUrl: DATABASE_URL
+      postgresPassword: POSTGRES_PASSWORD
+      oidcClientSecret: OIDC_CLIENT_SECRET
+      oidcCookieHashKey: OIDC_COOKIE_HASH_KEY
+      oidcCookieBlockKey: OIDC_COOKIE_BLOCK_KEY
+
+    blueprint:
+      enabled: false
+
+    external:
+      enabled: false
+      # External Secrets Operator (external-secrets.io) CRDs must be installed if enabled.
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: ""
+      # Map remote secrets/properties into the target Kubernetes Secret keys.
+      data: []
+      # - secretKey: DATABASE_URL
+      #   remoteRef:
+      #     key: "path/to/secret"
+      #     property: "DATABASE_URL"
+
+# PostgreSQL (internal by default) - can be disabled for external DB.
+postgres:
+  enabled: true
+
+  image:
+    repository: postgres
+    tag: 18-alpine
+    pullPolicy: IfNotPresent
+
+  database: dash
+  username: dash
+
+  service:
+    port: 5432
+
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+    storageClass: ""
+
+  # Secrets for internal Postgres are intentionally shared with Dash to avoid drift.
+  # NOTE: This section is deprecated and must match dash.secrets.* when postgres.enabled=true.
+  secrets:
+    name: "dash-secrets"
+    keys:
+      password: POSTGRES_PASSWORD
+
+    blueprint:
+      enabled: false
+
+    external:
+      enabled: false
+      refreshInterval: 1h
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: ""
+      data: []
+      # - secretKey: POSTGRES_PASSWORD
+      #   remoteRef:
+      #     key: "path/to/secret"
+      #     property: "POSTGRES_PASSWORD"
+
