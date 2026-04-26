@@ -1,4 +1,5 @@
 {{- if .Values.postgres.enabled -}}
+{{- include "dash.validate" . -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -40,11 +41,11 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.postgres.secrets.name | quote }}
-                  key: {{ .Values.postgres.secrets.keys.password | quote }}
+                  name: {{ .Values.dash.secrets.name | quote }}
+                  key: {{ .Values.dash.secrets.keys.postgresPassword | quote }}
           volumeMounts:
             - name: data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
           readinessProbe:
             exec:
               command:

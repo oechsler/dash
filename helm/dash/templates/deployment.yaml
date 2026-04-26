@@ -1,3 +1,4 @@
+{{- include "dash.validate" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -44,11 +45,21 @@ spec:
               value: {{ .Values.app.tls.keyFile | quote }}
             {{- end }}
 
+            {{- if .Values.postgres.enabled }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dash.secrets.name | quote }}
+                  key: {{ .Values.dash.secrets.keys.postgresPassword | quote }}
+            - name: DATABASE_URL
+              value: "postgres://{{ .Values.postgres.username }}:$(POSTGRES_PASSWORD)@{{ include "dash.postgres.fullname" . }}:{{ .Values.postgres.service.port }}/{{ .Values.postgres.database }}"
+            {{- else }}
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.dash.secrets.name | quote }}
                   key: {{ .Values.dash.secrets.keys.databaseUrl | quote }}
+            {{- end }}
 
             - name: OIDC_ISSUER
               value: {{ required "oidc.issuer is required" .Values.oidc.issuer | quote }}

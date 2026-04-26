@@ -6,18 +6,25 @@ This chart deploys Dash (and optionally an internal PostgreSQL).
 
 By default, the chart expects pre-existing Kubernetes Secrets (no secret values in `values.yaml`).
 
-### Dash secret
+### Shared secret
 
 Create a Secret named `dash.secrets.name` containing:
-- `DATABASE_URL`
 - `OIDC_CLIENT_SECRET`
 - `OIDC_COOKIE_HASH_KEY`
 - `OIDC_COOKIE_BLOCK_KEY`
 
-### Postgres secret (only if postgres.enabled=true)
+#### Internal Postgres (postgres.enabled=true)
 
-Create a Secret named `postgres.secrets.name` containing:
+Add:
 - `POSTGRES_PASSWORD`
+
+The chart will generate `DATABASE_URL` automatically from `POSTGRES_PASSWORD` plus the configured
+Postgres service/user/database values, so you don't need to store `DATABASE_URL` in a Secret.
+
+#### External Postgres (postgres.enabled=false)
+
+Add:
+- `DATABASE_URL`
 
 ## Optional: render blueprints
 
@@ -29,8 +36,8 @@ These manifests contain placeholder values (`REPLACE_ME`) and must be replaced b
 
 ## Optional: External Secrets Operator
 
-If you enable `dash.secrets.external.enabled=true` and/or `postgres.secrets.external.enabled=true`,
-this chart renders `ExternalSecret` resources (requires External Secrets Operator CRDs).
+If you enable `dash.secrets.external.enabled=true`, this chart renders `ExternalSecret` resources
+(requires External Secrets Operator CRDs).
 
 ## External Postgres
 
