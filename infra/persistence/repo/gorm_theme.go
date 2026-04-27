@@ -70,7 +70,7 @@ func (r *GormThemeRepo) ListByUser(ctx context.Context, userID string) ([]domain
 	return records, nil
 }
 
-// GetByID returns the theme for the given user and id, or nil if not found.
+// GetByID returns the theme for the given user and id, or a NotFoundError if not found.
 func (r *GormThemeRepo) GetByID(ctx context.Context, userID string, id uint) (*domainrepo.ThemeRecord, error) {
 	var t model.Theme
 	if err := r.db.WithContext(ctx).Where("user_id = ? AND id = ?", userID, id).First(&t).Error; err != nil {
