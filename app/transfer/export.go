@@ -98,8 +98,7 @@ func MarshalExport(export *UserDataExport) ([]byte, error) {
 }
 
 // UnmarshalExport parses a file produced by MarshalExport.
-// If a "signature" field is present its value is verified against the content;
-// files without a signature field are accepted as-is (backwards compatibility).
+// The signature field is mandatory; files without one are rejected with ErrMissingSignature.
 func UnmarshalExport(data []byte) (*UserDataExport, error) {
 	var export UserDataExport
 	if err := json.Unmarshal(data, &export); err != nil {
