@@ -18,6 +18,6 @@ type ThemeRepository interface {
 	Delete(ctx context.Context, userID string, id uint) error
 	DeleteAllByUser(ctx context.Context, userID string) error
 	ListByUser(ctx context.Context, userID string) ([]ThemeRecord, error)
-	// GetByID returns nil, nil when the theme is not found.
+	// GetByID returns a NotFoundError when the theme is not found.
 	GetByID(ctx context.Context, userID string, id uint) (*ThemeRecord, error)
 }
