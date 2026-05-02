@@ -73,3 +73,9 @@ func (r *GormIdpLinkRepo) ResolveOrCreate(ctx context.Context, issuer, sub strin
 	}
 	return userID, true, nil
 }
+
+func (r *GormIdpLinkRepo) DeleteByUserID(ctx context.Context, userID string) error {
+	return r.db.WithContext(ctx).
+		Where("user_id = ?", userID).
+		Delete(&model.IdpLink{}).Error
+}

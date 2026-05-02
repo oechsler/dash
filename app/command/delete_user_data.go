@@ -18,6 +18,7 @@ type DeleteUserData struct {
 	SettingRepo   domainrepo.SettingRepository
 	ThemeRepo     domainrepo.ThemeRepository
 	SessionRepo   domainrepo.SessionRepository
+	IdpLinkRepo   domainrepo.IdpLinkRepository
 }
 
 func NewDeleteUserData(
@@ -25,12 +26,14 @@ func NewDeleteUserData(
 	settingRepo domainrepo.SettingRepository,
 	themeRepo domainrepo.ThemeRepository,
 	sessionRepo domainrepo.SessionRepository,
+	idpLinkRepo domainrepo.IdpLinkRepository,
 ) *DeleteUserData {
 	return &DeleteUserData{
 		DashboardRepo: dashboardRepo,
 		SettingRepo:   settingRepo,
 		ThemeRepo:     themeRepo,
 		SessionRepo:   sessionRepo,
+		IdpLinkRepo:   idpLinkRepo,
 	}
 }
 
@@ -61,6 +64,11 @@ func (h *DeleteUserData) Handle(ctx context.Context, userID string) error {
 	// Delete all sessions
 	if err := h.SessionRepo.DeleteByUserID(ctx, userID); err != nil {
 		return domainerrors.Internal("delete user data: delete sessions", err)
+	}
+
+	// Delete all IdP links so the user can register fresh from any IdP
+	if err := h.IdpLinkRepo.DeleteByUserID(ctx, userID); err != nil {
+		return domainerrors.Internal("delete user data: delete idp links", err)
 	}
 
 	return nil

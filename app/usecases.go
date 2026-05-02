@@ -99,7 +99,7 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 	resolveOrCreateUser := command.NewResolveOrCreateUser(repos.IdpLink)
 
 	exportUserData := query.NewExportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application)
-	deleteUserData := command.NewDeleteUserData(repos.Dashboard, repos.Setting, repos.Theme, repos.Session)
+	deleteUserData := command.NewDeleteUserData(repos.Dashboard, repos.Setting, repos.Theme, repos.Session, repos.IdpLink)
 	importUserData := command.NewImportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application, ensureDefaultTheme)
 
 	return &UseCases{
