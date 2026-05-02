@@ -10,6 +10,7 @@ import (
 // Repos declares the repository dependencies the application layer needs.
 // Fields are domain interfaces — the application layer does not know about infra.
 type Repos struct {
+	User        domainrepo.UserRepository
 	Dashboard   domainrepo.DashboardRepository
 	Category    domainrepo.CategoryRepository
 	Bookmark    domainrepo.BookmarkRepository
@@ -99,7 +100,7 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 	resolveOrCreateUser := command.NewResolveOrCreateUser(repos.IdpLink)
 
 	exportUserData := query.NewExportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application)
-	deleteUserData := command.NewDeleteUserData(repos.Dashboard, repos.Setting, repos.Theme, repos.Session, repos.IdpLink)
+	deleteUserData := command.NewDeleteUserData(repos.User)
 	importUserData := command.NewImportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application, ensureDefaultTheme)
 
 	return &UseCases{

@@ -8,18 +8,27 @@ import (
 )
 
 type Repos struct {
-	Dashboard   domainrepo.DashboardRepository
-	Category    domainrepo.CategoryRepository
-	Bookmark    domainrepo.BookmarkRepository
-	Application domainrepo.ApplicationRepository
-	Setting     domainrepo.SettingRepository
-	Theme       domainrepo.ThemeRepository
+	User            domainrepo.UserRepository
+	Dashboard       domainrepo.DashboardRepository
+	Category        domainrepo.CategoryRepository
+	Bookmark        domainrepo.BookmarkRepository
+	Application     domainrepo.ApplicationRepository
+	Setting         domainrepo.SettingRepository
+	Theme           domainrepo.ThemeRepository
 	Session         domainrepo.SessionRepository
 	UserIDMigration domainrepo.UserIDMigrationRepository
 	IdpLink         domainrepo.IdpLinkRepository
 }
 
 func NewRepos(db *gorm.DB) (*Repos, error) {
+	// userRepo must be initialised first: it creates the users table, runs the
+	// backfill, and adds ON DELETE CASCADE FK constraints on all dependent
+	// tables before the other repos run their own AutoMigrate calls.
+	userRepo, err := repo.NewGormUserRepo(db)
+	if err != nil {
+		return nil, err
+	}
+
 	dashboardRepo, err := repo.NewGormDashboardRepo(db)
 	if err != nil {
 		return nil, err
@@ -55,12 +64,13 @@ func NewRepos(db *gorm.DB) (*Repos, error) {
 		return nil, err
 	}
 
-	idpLinkRepo, err := repo.NewGormIdpLinkRepo(db)
+	idpLinkRepo, err := repo.NewGormIdpLinkRepo(db, userRepo)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Repos{
+		User:            userRepo,
 		Dashboard:       dashboardRepo,
 		Category:        categoryRepo,
 		Bookmark:        bookmarkRepo,

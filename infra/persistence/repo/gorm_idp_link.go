@@ -32,14 +32,15 @@ func deriveUserID(issuer, sub string) string {
 }
 
 type GormIdpLinkRepo struct {
-	db *gorm.DB
+	db       *gorm.DB
+	userRepo *GormUserRepo
 }
 
-func NewGormIdpLinkRepo(db *gorm.DB) (*GormIdpLinkRepo, error) {
+func NewGormIdpLinkRepo(db *gorm.DB, userRepo *GormUserRepo) (*GormIdpLinkRepo, error) {
 	if err := db.AutoMigrate(&model.IdpLink{}); err != nil {
 		return nil, err
 	}
-	return &GormIdpLinkRepo{db: db}, nil
+	return &GormIdpLinkRepo{db: db, userRepo: userRepo}, nil
 }
 
 // ResolveOrCreate looks up the internal UserID for (issuer, sub).
@@ -59,6 +60,13 @@ func (r *GormIdpLinkRepo) ResolveOrCreate(ctx context.Context, issuer, sub strin
 	}
 
 	userID := deriveUserID(issuer, sub)
+
+	// Ensure the users row exists before creating the idp_link — the FK
+	// constraint requires the parent to be present first.
+	if err := r.userRepo.EnsureExists(ctx, userID); err != nil {
+		return "", false, err
+	}
+
 	newLink := model.IdpLink{
 		UserID:    userID,
 		Issuer:    issuer,
