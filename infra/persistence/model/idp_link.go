@@ -14,4 +14,4 @@ type IdpLink struct {
 	User      User      `gorm:"constraint:fk_idp_links_user,OnDelete:CASCADE"`
 }
 
-func (IdpLink) TableName() string { return "user_idp_links" }
+func (IdpLink) TableName() string { return "idp_links" }

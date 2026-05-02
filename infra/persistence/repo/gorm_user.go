@@ -45,7 +45,7 @@ func NewGormUserRepo(db *gorm.DB) (*GormUserRepo, error) {
 		UNION
 		SELECT DISTINCT user_id FROM sessions      WHERE user_id IS NOT NULL AND user_id != ''
 		UNION
-		SELECT DISTINCT user_id FROM user_idp_links WHERE user_id IS NOT NULL AND user_id != ''
+		SELECT DISTINCT user_id FROM idp_links       WHERE user_id IS NOT NULL AND user_id != ''
 		ON CONFLICT DO NOTHING
 	`
 	if err := db.Exec(backfillSQL).Error; err != nil {
