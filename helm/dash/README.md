@@ -30,7 +30,6 @@ Add:
 
 To render placeholder Secret manifests (for documentation/bootstrapping), enable:
 - `dash.secrets.blueprint.enabled=true`
-- `postgres.secrets.blueprint.enabled=true`
 
 These manifests contain placeholder values (`REPLACE_ME`) and must be replaced before use.
 

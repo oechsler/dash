@@ -18,7 +18,7 @@ If internal Postgres is disabled (postgres.enabled=false, external DB), it must 
 Blueprint
 
 - Render secret blueprints (placeholders only) by setting:
-   dash.secrets.blueprint.enabled=true and/or postgres.secrets.blueprint.enabled=true
+   dash.secrets.blueprint.enabled=true
 
 External secret stores
 
