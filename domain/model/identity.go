@@ -1,7 +1,8 @@
 package model
 
 // Identity represents the authenticated user making a request.
-// It is a value object populated from the OIDC session cookie — no database record exists for it.
+// UserID is always the OIDC sub claim — stable across username/email changes.
+// It is a value object populated from the server-side session record.
 type Identity struct {
 	UserID      string   `json:"user_id"`
 	FirstName   string   `json:"first_name"`

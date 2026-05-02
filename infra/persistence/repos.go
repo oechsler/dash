@@ -14,7 +14,9 @@ type Repos struct {
 	Application domainrepo.ApplicationRepository
 	Setting     domainrepo.SettingRepository
 	Theme       domainrepo.ThemeRepository
-	Session     domainrepo.SessionRepository
+	Session         domainrepo.SessionRepository
+	UserIDMigration domainrepo.UserIDMigrationRepository
+	IdpLink         domainrepo.IdpLinkRepository
 }
 
 func NewRepos(db *gorm.DB) (*Repos, error) {
@@ -53,13 +55,20 @@ func NewRepos(db *gorm.DB) (*Repos, error) {
 		return nil, err
 	}
 
+	idpLinkRepo, err := repo.NewGormIdpLinkRepo(db)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Repos{
-		Dashboard:   dashboardRepo,
-		Category:    categoryRepo,
-		Bookmark:    bookmarkRepo,
-		Application: applicationRepo,
-		Setting:     settingRepo,
-		Theme:       themeRepo,
-		Session:     sessionRepo,
+		Dashboard:       dashboardRepo,
+		Category:        categoryRepo,
+		Bookmark:        bookmarkRepo,
+		Application:     applicationRepo,
+		Setting:         settingRepo,
+		Theme:           themeRepo,
+		Session:         sessionRepo,
+		UserIDMigration: repo.NewGormUserIDMigrationRepo(db),
+		IdpLink:         idpLinkRepo,
 	}, nil
 }

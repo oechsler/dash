@@ -16,7 +16,9 @@ type Repos struct {
 	Application domainrepo.ApplicationRepository
 	Setting     domainrepo.SettingRepository
 	Theme       domainrepo.ThemeRepository
-	Session     domainrepo.SessionRepository
+	Session         domainrepo.SessionRepository
+	UserIDMigration domainrepo.UserIDMigrationRepository
+	IdpLink         domainrepo.IdpLinkRepository
 }
 
 // UseCases bundles all use cases exposed to the delivery layer.
@@ -45,6 +47,8 @@ type UseCases struct {
 	InvalidateSession   command.SessionInvalidator
 	TerminateSession    command.SessionTerminator
 	CleanupSessions     command.SessionCleaner
+	MigrateUserID          command.UserIDMigrator
+	ResolveOrCreateUser    command.UserResolver
 	// Commands
 	DeleteUserData     command.UserDataDeleter
 	ImportUserData     command.UserDataImporter
@@ -91,6 +95,8 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 	invalidateSession := command.NewInvalidateSession(repos.Session)
 	terminateSession := command.NewTerminateSession(repos.Session)
 	cleanupSessions := command.NewCleanupSessions(repos.Session)
+	migrateUserID := command.NewMigrateUserID(repos.UserIDMigration)
+	resolveOrCreateUser := command.NewResolveOrCreateUser(repos.IdpLink)
 
 	exportUserData := query.NewExportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application)
 	deleteUserData := command.NewDeleteUserData(repos.Dashboard, repos.Setting, repos.Theme, repos.Session)
@@ -105,6 +111,8 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 		InvalidateSession:        invalidateSession,
 		TerminateSession:         terminateSession,
 		CleanupSessions:          cleanupSessions,
+		MigrateUserID:            migrateUserID,
+		ResolveOrCreateUser:      resolveOrCreateUser,
 		ExportUserData:           exportUserData,
 		DeleteUserData:           deleteUserData,
 		ImportUserData:           importUserData,

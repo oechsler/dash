@@ -2,11 +2,12 @@ package oidc
 
 import (
 	"context"
-	"git.at.oechsler.it/samuel/dash/v2/domain/model"
-	"git.at.oechsler.it/samuel/dash/v2/config"
 	"fmt"
 	"net/url"
 	"strings"
+
+	"git.at.oechsler.it/samuel/dash/v2/config"
+	"git.at.oechsler.it/samuel/dash/v2/domain/model"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/samber/lo"
@@ -16,6 +17,7 @@ import (
 // Provider wraps the OIDC provider and OAuth2 configuration.
 // It handles discovery, token exchange, and claim extraction.
 type Provider struct {
+	issuer        string
 	oidcProvider  *oidc.Provider
 	verifier      *oidc.IDTokenVerifier
 	oauth2Config  oauth2.Config
@@ -57,6 +59,7 @@ func NewProvider(ctx context.Context, cfg *config.OIDCConfig) (*Provider, error)
 	}
 
 	return &Provider{
+		issuer:        cfg.Issuer,
 		oidcProvider:  oidcProvider,
 		verifier:      verifier,
 		oauth2Config:  oauth2Config,
@@ -65,6 +68,9 @@ func NewProvider(ctx context.Context, cfg *config.OIDCConfig) (*Provider, error)
 		endSessionURL: endSessionURL,
 	}, nil
 }
+
+// Issuer returns the OIDC issuer URL this provider was configured with.
+func (p *Provider) Issuer() string { return p.issuer }
 
 // BeginAuth returns the authorization URL with PKCE S256 challenge and state.
 func (p *Provider) BeginAuth(state, codeVerifier string) string {
@@ -113,34 +119,63 @@ func (p *Provider) EndSessionURL(idTokenHint, postLogoutRedirectURI string) stri
 	return u.String()
 }
 
+// idTokenClaims holds the standard OIDC claims we care about.
+type idTokenClaims struct {
+	Sub               string   `json:"sub"`
+	Name              string   `json:"name"`
+	GivenName         string   `json:"given_name"`
+	FamilyName        string   `json:"family_name"`
+	PreferredUsername string   `json:"preferred_username"`
+	Email             string   `json:"email"`
+	Picture           string   `json:"picture"`
+	Groups            []string `json:"groups"`
+	Exp               int64    `json:"exp"`
+}
+
 // ClaimsToIdentity extracts standard OIDC claims from the verified ID token
 // and maps them to the domain Identity value object.
 func (p *Provider) ClaimsToIdentity(idToken *oidc.IDToken) (model.Identity, error) {
-	var claims struct {
-		Sub               string   `json:"sub"`
-		Name              string   `json:"name"`
-		GivenName         string   `json:"given_name"`
-		FamilyName        string   `json:"family_name"`
-		PreferredUsername string   `json:"preferred_username"`
-		Email             string   `json:"email"`
-		Picture           string   `json:"picture"`
-		Groups            []string `json:"groups"`
-	}
+	var claims idTokenClaims
 	if err := idToken.Claims(&claims); err != nil {
 		return model.Identity{}, fmt.Errorf("extracting claims: %w", err)
 	}
+	return p.claimsToIdentity(claims), nil
+}
 
-	// UserID: prefer preferred_username → name → sub → email
-	userID := claims.PreferredUsername
-	if userID == "" {
-		userID = claims.Name
+// LegacyUserID returns the UserID that was assigned to this user before the
+// migration to sub-based identifiers, reproducing the old fallback chain:
+// preferred_username → name → sub.
+// Returns sub when no legacy override was in effect — in that case oldID == newID
+// and no migration is needed.
+//
+// TODO(v3): remove together with UserIDMigrationRepository once all deployments
+// have gone through at least one login cycle after the issuer-scoped UserID upgrade.
+func (p *Provider) LegacyUserID(idToken *oidc.IDToken) (string, error) {
+	var claims idTokenClaims
+	if err := idToken.Claims(&claims); err != nil {
+		return "", fmt.Errorf("extracting claims for legacy ID: %w", err)
 	}
-	if userID == "" {
-		userID = claims.Sub
+	if claims.PreferredUsername != "" {
+		return claims.PreferredUsername, nil
 	}
-	if userID == "" {
-		userID = claims.Email
+	if claims.Name != "" {
+		return claims.Name, nil
 	}
+	// sub is required by OIDC spec and should always be present at this point,
+	// but we mirror the full original fallback chain for correctness.
+	if claims.Sub != "" {
+		return claims.Sub, nil
+	}
+	return claims.Email, nil
+}
+
+// claimsToIdentity applies the provider-specific mapping to raw OIDC claims.
+func (p *Provider) claimsToIdentity(claims idTokenClaims) model.Identity {
+	// UserID comes from the IdP links table (looked up at login time by the
+	// session handler). Here we use sub as a temporary placeholder so
+	// ClaimsToIdentity can still be called standalone — the handler overwrites
+	// identity.UserID with the internal UUID from ResolveOrCreateUser.
+	userID := claims.Sub
 
 	// FirstName: given_name → name → preferred_username
 	firstName := claims.GivenName
@@ -195,5 +230,5 @@ func (p *Provider) ClaimsToIdentity(idToken *oidc.IDToken) (model.Identity, erro
 		Groups:      claims.Groups,
 		IsAdmin:     isAdmin,
 		ProfileUrl:  profileUrl,
-	}, nil
+	}
 }

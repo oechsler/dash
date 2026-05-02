@@ -336,20 +336,10 @@ func Setting(deps SettingDeps) {
 			}
 
 			// Only touch the cookie when the user unpinned their own current session.
-			if raw, ok := deps.SessionStore.LoadExpired(c); ok && raw.SessionID == c.Query("sid") {
-				if _, tokenValid := deps.SessionStore.Load(c); tokenValid {
-					// Token still valid — just restore normal cookie lifetime.
-					deps.SessionStore.RevertCookie(c)
-				} else {
-					// Token already expired — the session only survived via the pin.
-					// Unpinning it means the user is effectively logged out; redirect now.
-					logoutURL, err := c.GetRouteURL(SessionLogoutRoute, fiber.Map{})
-					if err != nil {
-						logoutURL = "/session/logout"
-					}
-					c.Set("HX-Redirect", logoutURL)
-					return c.SendStatus(fiber.StatusNoContent)
-				}
+			// Revert to normal cookie lifetime; if the OIDC token has already lapsed
+			// the next Touch will deny access and the user will be logged out naturally.
+			if raw, ok := deps.SessionStore.Load(c); ok && raw.SessionID == c.Query("sid") {
+				deps.SessionStore.RevertCookie(c)
 			}
 
 			return renderSessionsSection(c, deps, user)
@@ -402,12 +392,8 @@ func Setting(deps SettingDeps) {
 func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) error {
 	// Extract cookie data — infra concern, stays in the handler.
 	var currentSessionID string
-	var currentExpiresAt time.Time
-	if raw, ok := deps.SessionStore.LoadExpired(c); ok {
+	if raw, ok := deps.SessionStore.Load(c); ok {
 		currentSessionID = raw.SessionID
-	}
-	if valid, ok := deps.SessionStore.Load(c); ok {
-		currentExpiresAt = time.Unix(valid.ExpiresAt, 0)
 	}
 
 	// Resolve user timezone for timestamp display.
@@ -430,7 +416,6 @@ func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) e
 		CurrentSessionID: currentSessionID,
 		CurrentIP:        c.IP(),
 		CurrentUserAgent: c.Get("User-Agent"),
-		CurrentExpiresAt: currentExpiresAt,
 	})
 	if err != nil {
 		return err

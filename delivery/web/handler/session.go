@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/url"
-	"time"
 
 	"git.at.oechsler.it/samuel/dash/v2/app/command"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
@@ -25,6 +24,8 @@ func Session(
 	createSession command.SessionCreator,
 	refreshSession command.SessionRefresher,
 	terminateSession command.SessionTerminator,
+	migrateUserID command.UserIDMigrator,
+	resolveOrCreateUser command.UserResolver,
 ) {
 	router := app.Group("/session")
 
@@ -49,7 +50,7 @@ func Session(
 		return c.Redirect().Status(fiber.StatusFound).To(provider.BeginAuth(state, codeVerifier))
 	}).Name(SessionLoginRoute)
 
-	// Refresh: re-authenticates via OIDC to update groups on the current pinned session.
+	// Refresh: re-authenticates via OIDC to update identity on the current pinned session.
 	// The existing session record is updated in-place — no new SessionID is issued.
 	router.Get("/refresh", func(c fiber.Ctx) error {
 		sessionData, ok := store.LoadExpired(c)
@@ -103,38 +104,50 @@ func Session(
 			return fiber.NewError(fiber.StatusUnauthorized, "failed to extract identity")
 		}
 
+		// Resolve the stable internal UserID via the IdP links table.
+		if resolveOrCreateUser != nil {
+			if userID, isNew, err := resolveOrCreateUser.Handle(c.Context(), provider.Issuer(), idToken.Subject); err == nil {
+				identity.UserID = userID
+				if isNew && migrateUserID != nil {
+					// First login after the UUID-based UserID scheme was introduced.
+					// Move any pre-existing data from sub and the legacy preferred_username
+					// fallback ID to the new stable UUID.
+					// TODO(v3): remove the legacy migration once all deployments have
+					// gone through at least one login cycle after this upgrade.
+					_ = migrateUserID.Handle(c.Context(), idToken.Subject, userID)
+					if legacyID, err := provider.LegacyUserID(idToken); err == nil {
+						_ = migrateUserID.Handle(c.Context(), legacyID, userID)
+					}
+				}
+			}
+		}
+
 		if stateCookie.RefreshSessionID != "" {
-			// Refresh flow: update the existing session record in-place.
-			// The cookie keeps the same SessionID; groups and token data are updated.
-			pic := ""
-			if identity.Picture != nil {
-				pic = *identity.Picture
+			// Resolve UserID also on refresh so the stored identity stays consistent.
+			if resolveOrCreateUser != nil {
+				if userID, _, err := resolveOrCreateUser.Handle(c.Context(), provider.Issuer(), idToken.Subject); err == nil {
+					identity.UserID = userID
+				}
 			}
-			pu := ""
-			if identity.ProfileUrl != nil {
-				pu = *identity.ProfileUrl
-			}
+			// Refresh flow: update identity and token timing on the existing session record.
 			if refreshSession != nil {
 				_ = refreshSession.Handle(c.Context(), command.RefreshSessionCmd{
 					SessionID:   stateCookie.RefreshSessionID,
-					IssuedAt:    idToken.IssuedAt,
-					ExpiresAt:   idToken.Expiry,
-					Sub:         identity.UserID,
+					Sub:         idToken.Subject,
 					Username:    identity.Username,
 					Email:       identity.Email,
 					FirstName:   identity.FirstName,
 					LastName:    identity.LastName,
 					DisplayName: identity.DisplayName,
-					Picture:     pic,
-					ProfileUrl:  pu,
+					Picture:     ptrStr(identity.Picture),
+					ProfileUrl:  ptrStr(identity.ProfileUrl),
 					Groups:      identity.Groups,
 					IsAdmin:     identity.IsAdmin,
+					IssuedAt:    idToken.IssuedAt,
+					ExpiresAt:   idToken.Expiry,
 				})
 			}
-			// Re-issue the cookie with updated identity. Preserve the 1-year MaxAge
-			// (the session was pinned, otherwise the user couldn't have initiated a refresh).
-			if _, err := store.SaveWithID(c, identity, rawIDToken, idToken.Expiry.Unix(),
-				stateCookie.RefreshSessionID, true); err != nil {
+			if _, err := store.SaveWithID(c, rawIDToken, stateCookie.RefreshSessionID, true); err != nil {
 				return err
 			}
 
@@ -145,40 +158,31 @@ func Session(
 			return c.Redirect().Status(fiber.StatusFound).To(returnTo)
 		}
 
-		sessionData, err := store.Save(c, identity, rawIDToken, idToken.Expiry.Unix())
+		sessionData, err := store.Save(c, rawIDToken)
 		if err != nil {
 			return err
 		}
 
 		// Persist the session to the DB so it appears in the session overview.
-		// PinnedUntil is zero until the user explicitly pins it.
 		// Ignore errors — a DB hiccup must not prevent login.
 		if createSession != nil {
-			pic := ""
-			if identity.Picture != nil {
-				pic = *identity.Picture
-			}
-			pu := ""
-			if identity.ProfileUrl != nil {
-				pu = *identity.ProfileUrl
-			}
 			_ = createSession.Handle(c.Context(), command.CreateSessionCmd{
 				SessionID:   sessionData.SessionID,
 				UserID:      identity.UserID,
+				Sub:         idToken.Subject,
+				Username:    identity.Username,
+				Email:       identity.Email,
+				FirstName:   identity.FirstName,
+				LastName:    identity.LastName,
+				DisplayName: identity.DisplayName,
+				Picture:     ptrStr(identity.Picture),
+				ProfileUrl:  ptrStr(identity.ProfileUrl),
+				Groups:      identity.Groups,
+				IsAdmin:     identity.IsAdmin,
 				IssuedAt:    idToken.IssuedAt,
-				ExpiresAt:   time.Unix(sessionData.ExpiresAt, 0),
+				ExpiresAt:   idToken.Expiry,
 				IP:          c.IP(),
 				UserAgent:   c.Get("User-Agent"),
-				Sub:         sessionData.Sub,
-				Username:    sessionData.Username,
-				Email:       sessionData.Email,
-				FirstName:   sessionData.FirstName,
-				LastName:    sessionData.LastName,
-				DisplayName: sessionData.DisplayName,
-				Picture:     pic,
-				ProfileUrl:  pu,
-				Groups:      sessionData.Groups,
-				IsAdmin:     sessionData.IsAdmin,
 			})
 		}
 
@@ -199,6 +203,9 @@ func Session(
 			_ = terminateSession.Handle(c.Context(), sessionData.SessionID)
 		}
 
+		// Use id_token_hint for OIDC end-session when the raw token was stored in
+		// the cookie. For users with very many group memberships the token may have
+		// been omitted (cookie size budget); those users get local-only logout.
 		if !ok || sessionData.RawIDToken == "" {
 			return redirectToLogin(c)
 		}
@@ -244,7 +251,6 @@ func redirectToLogin(c fiber.Ctx) error {
 
 	// HTMX requests need HX-Redirect so the browser performs a full navigation
 	// instead of swapping the login page HTML into the current target element.
-	// Use rd=/ — the current path is an API endpoint, not a page to return to.
 	if c.Get("HX-Request") == "true" {
 		htmxLoginURL, err := c.GetRouteURL(SessionLoginRoute, fiber.Map{})
 		if err != nil {
@@ -255,4 +261,12 @@ func redirectToLogin(c fiber.Ctx) error {
 	}
 
 	return c.Redirect().Status(fiber.StatusFound).To(loginURL)
+}
+
+// ptrStr dereferences a *string, returning "" for nil.
+func ptrStr(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
 }

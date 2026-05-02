@@ -16,7 +16,7 @@ const (
 	EntityTheme       Entity = iota
 	EntitySetting     Entity = iota
 	EntityApplication   Entity = iota
-	EntityPinnedSession Entity = iota
+	EntitySession Entity = iota
 )
 
 func (e Entity) String() string {
@@ -33,8 +33,8 @@ func (e Entity) String() string {
 		return "setting"
 	case EntityApplication:
 		return "application"
-	case EntityPinnedSession:
-		return "pinned_session"
+	case EntitySession:
+		return "session"
 	default:
 		return "entity"
 	}

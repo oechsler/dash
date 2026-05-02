@@ -12,10 +12,9 @@ import (
 // not aware of cookies or HTTP.
 type SessionsOverviewInput struct {
 	UserID           string
-	CurrentSessionID string    // from cookie (empty if no cookie)
-	CurrentIP        string    // client IP from the request
-	CurrentUserAgent string    // User-Agent header from the request
-	CurrentExpiresAt time.Time // OIDC token expiry from cookie; zero if session is expired/missing
+	CurrentSessionID string // from cookie (empty if no cookie)
+	CurrentIP        string // client IP from the request
+	CurrentUserAgent string // User-Agent header from the request
 }
 
 // SessionOverviewItem is the read model for a single session entry.

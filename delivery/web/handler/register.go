@@ -36,7 +36,7 @@ func RegisterAll(
 		BuildInfo:      buildInfo,
 	})
 
-	Session(fiberApp, oidcProvider, sessionStore, uc.CreateSession, uc.RefreshSession, uc.TerminateSession)
+	Session(fiberApp, oidcProvider, sessionStore, uc.CreateSession, uc.RefreshSession, uc.TerminateSession, uc.MigrateUserID, uc.ResolveOrCreateUser)
 	Favicon(sessionStore, fiberApp)
 
 	Dashboard(DashboardDeps{

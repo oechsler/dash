@@ -3,14 +3,12 @@ package oidc
 import (
 	"context"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"time"
 
 	"git.at.oechsler.it/samuel/dash/v2/config"
-	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
-	"git.at.oechsler.it/samuel/dash/v2/domain/model"
 	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
+	"git.at.oechsler.it/samuel/dash/v2/domain/model"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -19,45 +17,18 @@ import (
 
 const stateCookieName = "dash-oidc-state"
 
-// SessionData is the serialisation container stored in the encrypted session cookie.
-// It maps 1:1 to model.Identity plus the infrastructure fields needed for logout.
+// SessionData is the minimal payload stored in the encrypted session cookie.
+//   - SessionID      — used for server-side session revocation and DB lookup.
+//   - RawIDToken     — kept solely for id_token_hint at OIDC logout.
+//     Omitted (empty) when it would push the cookie over cookieSizeBudget.
+//     Never used for identity or expiry checks — the DB is the authority.
+//   - CookieIssuedAt — unix timestamp of the last time the cookie was written;
+//     used to throttle re-issuance so the cookie is only refreshed when it is
+//     within cookieRenewalThreshold of its pinnedSessionMaxAge expiry.
 type SessionData struct {
-	SessionID   string   `json:"sid"`             // random UUID, stable for the lifetime of this cookie
-	Sub         string   `json:"sub"`
-	FirstName   string   `json:"fn"`
-	LastName    string   `json:"ln"`
-	DisplayName string   `json:"dn"`
-	Username    string   `json:"un"`
-	Email       string   `json:"em"`
-	Picture     string   `json:"pic"`
-	Groups      []string `json:"grp"`
-	IsAdmin     bool     `json:"adm"`
-	ProfileUrl  string   `json:"pu"`
-	RawIDToken  string   `json:"idt"` // stored for id_token_hint on logout
-	ExpiresAt   int64    `json:"exp"` // unix seconds; from ID token exp claim
-}
-
-// ToIdentity converts the infrastructure SessionData into the domain Identity value object.
-func (d SessionData) ToIdentity() model.Identity {
-	id := model.Identity{
-		UserID:      d.Sub,
-		FirstName:   d.FirstName,
-		LastName:    d.LastName,
-		DisplayName: d.DisplayName,
-		Username:    d.Username,
-		Email:       d.Email,
-		Groups:      d.Groups,
-		IsAdmin:     d.IsAdmin,
-	}
-	if d.Picture != "" {
-		p := d.Picture
-		id.Picture = &p
-	}
-	if d.ProfileUrl != "" {
-		pu := d.ProfileUrl
-		id.ProfileUrl = &pu
-	}
-	return id
+	SessionID      string `json:"sid"`
+	RawIDToken     string `json:"idt,omitempty"`
+	CookieIssuedAt int64  `json:"cia"`
 }
 
 // SessionStore stores and retrieves the session from an encrypted cookie.
@@ -101,109 +72,47 @@ func NewSessionStore(cfg *config.OIDCCookieConfig, sessionRepo domainrepo.Sessio
 	}, nil
 }
 
-// Save encodes the identity into an encrypted session cookie.
-// A fresh SessionID (UUID) is generated for every new session.
-// The caller is responsible for persisting the session to the DB via CreateSession.
-func (s *SessionStore) Save(c fiber.Ctx, identity model.Identity, rawIDToken string, expiresAt int64) (SessionData, error) {
+// Save writes a new session cookie containing a fresh SessionID and the raw ID token.
+// The caller is responsible for persisting the session (including identity) to the DB.
+func (s *SessionStore) Save(c fiber.Ctx, rawIDToken string) (SessionData, error) {
 	data := SessionData{
-		SessionID:   uuid.New().String(),
-		Sub:         identity.UserID,
-		FirstName:   identity.FirstName,
-		LastName:    identity.LastName,
-		DisplayName: identity.DisplayName,
-		Username:    identity.Username,
-		Email:       identity.Email,
-		Groups:      identity.Groups,
-		IsAdmin:     identity.IsAdmin,
-		RawIDToken:  rawIDToken,
-		ExpiresAt:   expiresAt,
+		SessionID:  uuid.New().String(),
+		RawIDToken: rawIDToken,
 	}
-	if identity.Picture != nil {
-		data.Picture = *identity.Picture
+	if err := s.writeCookie(c, data, s.maxAge); err != nil {
+		return SessionData{}, err
 	}
-	if identity.ProfileUrl != nil {
-		data.ProfileUrl = *identity.ProfileUrl
-	}
-
-	encoded, err := s.codec.Encode(s.cookieName, &data)
-	if err != nil {
-		return SessionData{}, fmt.Errorf("encoding session: %w", err)
-	}
-
-	c.Cookie(&fiber.Cookie{
-		Name:     s.cookieName,
-		Value:    encoded,
-		Domain:   s.domain,
-		MaxAge:   s.maxAge,
-		Secure:   s.secure,
-		HTTPOnly: true,
-		SameSite: "Lax",
-	})
-
 	return data, nil
 }
 
-// SaveWithID encodes the identity into an encrypted session cookie using an existing SessionID.
-// This is used during the group-refresh flow to update the cookie without changing the session.
+// SaveWithID re-issues the session cookie with an existing SessionID.
+// Used during the group-refresh flow so the session identifier stays stable.
 // If persist is true the cookie receives a 1-year MaxAge (for pinned sessions).
-func (s *SessionStore) SaveWithID(c fiber.Ctx, identity model.Identity, rawIDToken string, expiresAt int64, sessionID string, persist bool) (SessionData, error) {
+func (s *SessionStore) SaveWithID(c fiber.Ctx, rawIDToken string, sessionID string, persist bool) (SessionData, error) {
 	data := SessionData{
-		SessionID:   sessionID,
-		Sub:         identity.UserID,
-		FirstName:   identity.FirstName,
-		LastName:    identity.LastName,
-		DisplayName: identity.DisplayName,
-		Username:    identity.Username,
-		Email:       identity.Email,
-		Groups:      identity.Groups,
-		IsAdmin:     identity.IsAdmin,
-		RawIDToken:  rawIDToken,
-		ExpiresAt:   expiresAt,
+		SessionID:  sessionID,
+		RawIDToken: rawIDToken,
 	}
-	if identity.Picture != nil {
-		data.Picture = *identity.Picture
-	}
-	if identity.ProfileUrl != nil {
-		data.ProfileUrl = *identity.ProfileUrl
-	}
-
-	encoded, err := s.codec.Encode(s.cookieName, &data)
-	if err != nil {
-		return SessionData{}, fmt.Errorf("encoding session: %w", err)
-	}
-
 	maxAge := s.maxAge
 	if persist {
 		maxAge = pinnedSessionMaxAge
 	}
-	c.Cookie(&fiber.Cookie{
-		Name:     s.cookieName,
-		Value:    encoded,
-		Domain:   s.domain,
-		MaxAge:   maxAge,
-		Secure:   s.secure,
-		HTTPOnly: true,
-		SameSite: "Lax",
-	})
-
+	if err := s.writeCookie(c, data, maxAge); err != nil {
+		return SessionData{}, err
+	}
 	return data, nil
 }
 
-// Load decodes the session cookie. Returns false if missing, invalid, or expired.
+// Load decodes the session cookie. Returns false only if the cookie is missing
+// or cryptographically invalid. Session validity is determined by the DB, not
+// the token's exp claim.
 func (s *SessionStore) Load(c fiber.Ctx) (SessionData, bool) {
-	data, ok := s.loadRaw(c)
-	if !ok {
-		return SessionData{}, false
-	}
-	if data.ExpiresAt > 0 && time.Now().Unix() > data.ExpiresAt {
-		return SessionData{}, false
-	}
-	return data, true
+	return s.loadRaw(c)
 }
 
-// LoadExpired decodes the session cookie ignoring token expiry.
-// Returns false only if the cookie is missing or cryptographically invalid.
-// Use this to retrieve the SessionID for pinned-session lookup after expiry.
+// LoadExpired decodes the session cookie without any expiry checks.
+// Identical to Load; kept for call-site clarity in flows where token expiry
+// is expected (e.g. refresh, unpin).
 func (s *SessionStore) LoadExpired(c fiber.Ctx) (SessionData, bool) {
 	return s.loadRaw(c)
 }
@@ -220,137 +129,102 @@ func (s *SessionStore) loadRaw(c fiber.Ctx) (SessionData, bool) {
 	return data, true
 }
 
-// LoadIdentity decodes the session cookie and returns the domain Identity.
-// If the session cookie is expired but a matching pinned session exists in the DB,
-// the identity is restored from there — no IDP redirect needed.
+// LoadIdentity resolves the current user's identity entirely from the DB.
+// It calls Touch to verify the session is still active, slide PinnedUntil,
+// and retrieve the stored identity fields — the cookie carries only the SessionID.
 // This method implements the middleware.IdentityLoader interface.
 func (s *SessionStore) LoadIdentity(c fiber.Ctx) (model.Identity, bool) {
-	data, ok := s.Load(c)
-	if ok {
-		// If a session repo is wired up, verify the session record still exists.
-		// Deleting the record is how we invalidate a session from another device.
-		// Fail open on DB errors so a transient outage doesn't lock everyone out.
-		if s.sessionRepo != nil && data.SessionID != "" {
-			exists, pinnedUntil, err := s.sessionRepo.Touch(context.Background(), data.SessionID, c.IP(), c.Get("User-Agent"))
-			if err == nil && !exists {
-				return model.Identity{}, false // record deleted → session invalidated
-			}
-			// If the session is pinned, re-issue the cookie so the browser's max-age
-			// countdown is reset on every request (sliding window on the client side too).
-			if err == nil && pinnedUntil.After(time.Now()) {
-				c.Locals("session_pinned", true)
-				_ = s.PersistCookie(c)
-			}
-			// DB error: fail open
-		}
-		return data.ToIdentity(), true
+	data, ok := s.loadRaw(c)
+	if !ok || data.SessionID == "" {
+		return model.Identity{}, false
+	}
+	if s.sessionRepo == nil {
+		return model.Identity{}, false
 	}
 
-	// Pinned-session fallback: load cookie even if expired to get the SessionID.
-	if s.sessionRepo != nil {
-		expired, ok := s.loadRaw(c)
-		if ok && expired.SessionID != "" {
-			pinned, err := s.sessionRepo.GetBySessionID(context.Background(), expired.SessionID)
-			if err == nil {
-				// Sliding-window renewal: extend PinnedUntil by 1 year on every
-				// fallback load. If unused for 1 year the record expires naturally.
-				newUntil := time.Now().Add(pinnedSessionMaxAge * time.Second)
-				_ = s.sessionRepo.TouchBySessionID(context.Background(), expired.SessionID, newUntil, c.IP(), c.Get("User-Agent"))
-				// Re-issue cookie with 1-year MaxAge so the browser keeps it.
-				_ = s.PersistCookie(c)
-				c.Locals("session_pinned", true)
-				return sessionRecordToIdentity(pinned), true
-			}
-			// Not found or DB error → fall through to unauthenticated
-			var nfe *domainerrors.NotFoundError
-			if !errors.As(err, &nfe) {
-				// Log DB errors but don't fail the request — treat as unauthenticated
-				_ = err
-			}
-		}
+	record, err := s.sessionRepo.Touch(context.Background(), data.SessionID, c.IP(), c.Get("User-Agent"))
+	if err != nil {
+		// DB error: fail closed — with server-side identity we cannot reconstruct
+		// the user without the DB, so we must deny rather than guess.
+		return model.Identity{}, false
+	}
+	if record == nil {
+		return model.Identity{}, false // session not found or fully expired
 	}
 
-	return model.Identity{}, false
+	if record.PinnedUntil.After(time.Now()) {
+		c.Locals("session_pinned", true)
+		_ = s.PersistCookie(c)
+	}
+
+	return recordToIdentity(record), true
 }
 
-// sessionRecordToIdentity converts a SessionRecord into a domain Identity.
-func sessionRecordToIdentity(r *domainrepo.SessionRecord) model.Identity {
-	id := model.Identity{
-		UserID:      r.Sub,
+// recordToIdentity maps a SessionRecord's stored identity fields to a domain Identity.
+func recordToIdentity(r *domainrepo.SessionRecord) model.Identity {
+	var picture *string
+	if r.Picture != "" {
+		picture = &r.Picture
+	}
+	var profileUrl *string
+	if r.ProfileUrl != "" {
+		profileUrl = &r.ProfileUrl
+	}
+	return model.Identity{
+		UserID:      r.UserID,
 		FirstName:   r.FirstName,
 		LastName:    r.LastName,
 		DisplayName: r.DisplayName,
 		Username:    r.Username,
 		Email:       r.Email,
+		Picture:     picture,
 		Groups:      r.Groups,
 		IsAdmin:     r.IsAdmin,
+		ProfileUrl:  profileUrl,
 	}
-	if r.Picture != "" {
-		p := r.Picture
-		id.Picture = &p
-	}
-	if r.ProfileUrl != "" {
-		pu := r.ProfileUrl
-		id.ProfileUrl = &pu
-	}
-	return id
 }
 
 // pinnedSessionMaxAge is the cookie lifetime used when a session is pinned.
-// The cookie must outlive the OIDC token so the SessionID is still readable
-// after expiry, allowing the pinned-session DB lookup to skip the IDP redirect.
 const pinnedSessionMaxAge = 365 * 24 * 60 * 60 // 1 year in seconds
 
-// PersistCookie re-issues the existing session cookie with pinnedSessionMaxAge,
-// so the browser keeps it across restarts even when MaxAge is normally 0.
-// If the OIDC token is already expired the RawIDToken is stripped — it can no
-// longer be used for RP-initiated logout and there is no reason to keep it.
-// Call this immediately after pinning a session.
+// cookieRenewalThreshold is how far before cookie expiry we re-issue it.
+// The cookie is only rewritten when less than this much time remains, avoiding
+// a Set-Cookie header on every response for active pinned sessions.
+const cookieRenewalThreshold = 183 * 24 * time.Hour // ~6 months
+
+// needsRenewal reports whether a pinned session cookie should be re-issued.
+// Returns true when CookieIssuedAt is absent (legacy cookie) or when the cookie
+// expires within cookieRenewalThreshold.
+func needsRenewal(data SessionData) bool {
+	if data.CookieIssuedAt == 0 {
+		return true
+	}
+	expiresAt := time.Unix(data.CookieIssuedAt, 0).Add(pinnedSessionMaxAge * time.Second)
+	return time.Until(expiresAt) < cookieRenewalThreshold
+}
+
+// PersistCookie re-issues the session cookie with pinnedSessionMaxAge when the
+// cookie is within cookieRenewalThreshold of expiry (or has no issue timestamp).
+// This avoids sending Set-Cookie on every response for active pinned sessions.
 func (s *SessionStore) PersistCookie(c fiber.Ctx) error {
 	data, ok := s.loadRaw(c)
 	if !ok {
 		return fmt.Errorf("no session cookie to persist")
 	}
-	if data.ExpiresAt > 0 && time.Now().Unix() > data.ExpiresAt {
-		data.RawIDToken = ""
+	if !needsRenewal(data) {
+		return nil
 	}
-	encoded, err := s.codec.Encode(s.cookieName, &data)
-	if err != nil {
-		return fmt.Errorf("persisting session cookie: %w", err)
-	}
-	c.Cookie(&fiber.Cookie{
-		Name:     s.cookieName,
-		Value:    encoded,
-		Domain:   s.domain,
-		MaxAge:   pinnedSessionMaxAge,
-		Secure:   s.secure,
-		HTTPOnly: true,
-		SameSite: "Lax",
-	})
-	return nil
+	return s.writeCookie(c, data, pinnedSessionMaxAge)
 }
 
 // RevertCookie re-issues the session cookie with the originally configured MaxAge,
-// undoing the 1-year lifetime set by PersistCookie when a session was pinned.
-// Call this immediately after unpinning a session.
+// undoing the 1-year lifetime set by PersistCookie.
 func (s *SessionStore) RevertCookie(c fiber.Ctx) {
 	data, ok := s.loadRaw(c)
 	if !ok {
 		return
 	}
-	encoded, err := s.codec.Encode(s.cookieName, &data)
-	if err != nil {
-		return
-	}
-	c.Cookie(&fiber.Cookie{
-		Name:     s.cookieName,
-		Value:    encoded,
-		Domain:   s.domain,
-		MaxAge:   s.maxAge,
-		Secure:   s.secure,
-		HTTPOnly: true,
-		SameSite: "Lax",
-	})
+	_ = s.writeCookie(c, data, s.maxAge)
 }
 
 // Clear instructs the browser to delete the session cookie.
@@ -364,6 +238,32 @@ func (s *SessionStore) Clear(c fiber.Ctx) {
 		HTTPOnly: true,
 		SameSite: "Lax",
 	})
+}
+
+func (s *SessionStore) writeCookie(c fiber.Ctx, data SessionData, maxAge int) error {
+	data.CookieIssuedAt = time.Now().Unix()
+	encoded, err := s.codec.Encode(s.cookieName, &data)
+	if err != nil && data.RawIDToken != "" {
+		// securecookie returns ErrValueTooLong when the encoded value exceeds its
+		// MaxLength (4096 by default) — this happens for users with many group
+		// memberships. Drop the token and retry: identity is always loaded from the
+		// DB anyway; the token is only kept for id_token_hint at OIDC logout.
+		data.RawIDToken = ""
+		encoded, err = s.codec.Encode(s.cookieName, &data)
+	}
+	if err != nil {
+		return fmt.Errorf("encoding session: %w", err)
+	}
+	c.Cookie(&fiber.Cookie{
+		Name:     s.cookieName,
+		Value:    encoded,
+		Domain:   s.domain,
+		MaxAge:   maxAge,
+		Secure:   s.secure,
+		HTTPOnly: true,
+		SameSite: "Lax",
+	})
+	return nil
 }
 
 // SaveStateCookie stores the PKCE state in a short-lived encrypted cookie.
@@ -391,7 +291,6 @@ func (s *SessionStore) LoadAndClearStateCookie(c fiber.Ctx) (StateCookie, error)
 		return StateCookie{}, fmt.Errorf("state cookie missing")
 	}
 
-	// Delete immediately to prevent replay
 	c.Cookie(&fiber.Cookie{
 		Name:     stateCookieName,
 		Value:    "",
