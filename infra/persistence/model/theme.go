@@ -9,6 +9,7 @@ type Theme struct {
 	Secondary   string `gorm:"not null"`
 	Tertiary    string `gorm:"not null"`
 	Deletable   bool   `gorm:"not null;default:false"`
+	User        User   `gorm:"constraint:fk_themes_user,OnDelete:CASCADE"`
 }
 
 func (t *Theme) TableName() string {

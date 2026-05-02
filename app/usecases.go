@@ -132,7 +132,7 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 		EnsureDefaultTheme:       ensureDefaultTheme,
 		UpdateUserSettings:       command.NewUpdateUserSettings(repos.Setting, repos.Theme, v),
 		CreateUserTheme:          command.NewCreateUserTheme(repos.Theme, v),
-		DeleteUserTheme:          command.NewDeleteUserTheme(repos.Theme),
+		DeleteUserTheme:          command.NewDeleteUserTheme(repos.Theme, repos.Setting),
 		CreateApplication:        command.NewCreateApplication(repos.Application, v),
 		UpdateApplication:        command.NewUpdateApplication(repos.Application, v),
 		DeleteApplication:        command.NewDeleteApplication(repos.Application),

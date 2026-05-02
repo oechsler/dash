@@ -49,12 +49,15 @@ func NewRepos(db *gorm.DB) (*Repos, error) {
 		return nil, err
 	}
 
-	settingRepo, err := repo.NewGormSettingRepo(db)
+	// themeRepo must be initialised before settingRepo: Setting.Theme carries
+	// a constraint tag (fk_settings_theme, ON DELETE RESTRICT) that GORM
+	// resolves during AutoMigrate, which requires the themes table to exist.
+	themeRepo, err := repo.NewGormThemeRepo(db)
 	if err != nil {
 		return nil, err
 	}
 
-	themeRepo, err := repo.NewGormThemeRepo(db)
+	settingRepo, err := repo.NewGormSettingRepo(db)
 	if err != nil {
 		return nil, err
 	}
