@@ -122,25 +122,5 @@ postgres:
       - ReadWriteOnce
     storageClass: ""
 
-  # Secrets for internal Postgres are intentionally shared with Dash to avoid drift.
-  # NOTE: This section is deprecated and must match dash.secrets.* when postgres.enabled=true.
-  secrets:
-    name: "dash-secrets"
-    keys:
-      password: POSTGRES_PASSWORD
-
-    blueprint:
-      enabled: false
-
-    external:
-      enabled: false
-      refreshInterval: 1h
-      secretStoreRef:
-        kind: ClusterSecretStore
-        name: ""
-      data: []
-      # - secretKey: POSTGRES_PASSWORD
-      #   remoteRef:
-      #     key: "path/to/secret"
-      #     property: "POSTGRES_PASSWORD"
+  # Internal Postgres uses the shared Dash secret (dash.secrets.keys.postgresPassword).
 
