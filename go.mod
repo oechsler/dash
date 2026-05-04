@@ -13,6 +13,7 @@ require (
 	github.com/invopop/ctxi18n v0.9.0
 	github.com/mileusna/useragent v1.3.5
 	github.com/samber/lo v1.53.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/image v0.39.0
 	golang.org/x/oauth2 v0.36.0
 	gorm.io/driver/postgres v1.6.0
@@ -25,6 +26,7 @@ require (
 	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cli/browser v1.3.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
@@ -48,6 +50,8 @@ require (
 	github.com/mattn/go-isatty v0.0.21 // indirect
 	github.com/natefinch/atomic v1.0.1 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.70.0 // indirect

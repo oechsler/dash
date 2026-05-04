@@ -25,3 +25,34 @@ jobs:
           go generate ./delivery/web/static
           rm -f ./delivery/web/static/generate.go
           CGO_ENABLED=0 go build ./...
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          GO_VERSION=$(grep '^go ' go.mod | awk '{print $2}')
+          rm -rf /usr/local/go
+          curl -sSfL https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz | tar -xz -C /usr/local
+          echo "/usr/local/go/bin" >> $GITHUB_PATH
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
+      - name: Test
+        run: CGO_ENABLED=0 go test ./domain/... ./app/... ./infra/oidc/...
+
+      - name: Coverage — domain (must be 100%)
+        run: |
+          CGO_ENABLED=0 go test ./domain/... -coverprofile=coverage-domain.out
+          DOMAIN_COV=$(go tool cover -func=coverage-domain.out | grep '^total:' | awk '{print $3}' | tr -d '%')
+          echo "Domain coverage: ${DOMAIN_COV}%"
+          awk -v cov="$DOMAIN_COV" 'BEGIN{if (cov+0 < 100){print "FAIL: domain coverage " cov "% is below 100%"; exit 1}}'
+
+      - name: Coverage — overall (must be ≥ 80%)
+        run: |
+          CGO_ENABLED=0 go test ./domain/... ./app/... -coverprofile=coverage-total.out
+          TOTAL_COV=$(go tool cover -func=coverage-total.out | grep '^total:' | awk '{print $3}' | tr -d '%')
+          echo "Total coverage: ${TOTAL_COV}%"
+          awk -v cov="$TOTAL_COV" 'BEGIN{if (cov+0 < 80){print "FAIL: total coverage " cov "% is below 80%"; exit 1}}'
