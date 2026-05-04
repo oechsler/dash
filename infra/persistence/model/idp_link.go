@@ -11,4 +11,7 @@ type IdpLink struct {
 	Sub       string    `gorm:"not null;primaryKey"`
 	IsPrimary bool      `gorm:"not null;default:true"`
 	LinkedAt  time.Time `gorm:"not null"`
+	User      User      `gorm:"constraint:fk_idp_links_user,OnDelete:CASCADE"`
 }
+
+func (IdpLink) TableName() string { return "idp_links" }

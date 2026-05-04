@@ -14,11 +14,12 @@ type UserThemeDeleter interface {
 }
 
 type DeleteUserTheme struct {
-	Repo domainrepo.ThemeRepository
+	Repo        domainrepo.ThemeRepository
+	SettingRepo domainrepo.SettingRepository
 }
 
-func NewDeleteUserTheme(r domainrepo.ThemeRepository) *DeleteUserTheme {
-	return &DeleteUserTheme{Repo: r}
+func NewDeleteUserTheme(r domainrepo.ThemeRepository, s domainrepo.SettingRepository) *DeleteUserTheme {
+	return &DeleteUserTheme{Repo: r, SettingRepo: s}
 }
 
 func (h *DeleteUserTheme) Handle(ctx context.Context, userID string, id uint) error {
@@ -41,6 +42,21 @@ func (h *DeleteUserTheme) Handle(ctx context.Context, userID string, id uint) er
 	if !t.Deletable {
 		return nil
 	}
+
+	// Prevent deleting the theme that is currently active in the user's settings.
+	// The DB also enforces this via ON DELETE RESTRICT on settings.theme_id, but
+	// checking here first gives a clear domain error instead of a DB-level failure.
+	setting, err := h.SettingRepo.GetByUserID(ctx, userID)
+	if err != nil {
+		var nfe *domainerrors.NotFoundError
+		if !errors.As(err, &nfe) {
+			return domainerrors.Internal("delete user theme: get settings", err)
+		}
+	}
+	if setting != nil && setting.ThemeID == id {
+		return domainerrors.Forbidden("theme is currently active")
+	}
+
 	if err := h.Repo.Delete(ctx, userID, id); err != nil {
 		return domainerrors.Internal("delete user theme: delete", err)
 	}

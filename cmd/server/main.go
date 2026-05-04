@@ -59,6 +59,7 @@ func main() {
 	}
 
 	uc := app.NewUseCases(app.Repos{
+		User:            repos.User,
 		Dashboard:       repos.Dashboard,
 		Category:        repos.Category,
 		Bookmark:        repos.Bookmark,

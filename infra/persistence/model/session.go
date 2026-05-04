@@ -8,6 +8,7 @@ type Session struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	UserID      string    `gorm:"not null;index"`
+	User        User      `gorm:"constraint:fk_sessions_user,OnDelete:CASCADE"`
 	SessionID   string    `gorm:"not null;uniqueIndex"`
 	IssuedAt    time.Time
 	ExpiresAt   time.Time `gorm:"not null"`
