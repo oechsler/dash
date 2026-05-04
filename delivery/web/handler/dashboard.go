@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/invopop/ctxi18n"
-	"github.com/invopop/ctxi18n/i18n"
-	"git.at.oechsler.it/samuel/dash/v2/app/command"
 	"git.at.oechsler.it/samuel/dash/v2/app/query"
 	webi18n "git.at.oechsler.it/samuel/dash/v2/delivery/web/i18n"
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/middleware"
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/layout"
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/page"
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/partials"
+	domainmodel "git.at.oechsler.it/samuel/dash/v2/domain/model"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
+	"github.com/invopop/ctxi18n"
+	"github.com/invopop/ctxi18n/i18n"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -30,12 +30,11 @@ const (
 )
 
 type DashboardDeps struct {
-	SessionStore       *oidc.SessionStore
-	App                *fiber.App
-	GetUserDashboard   query.UserDashboardGetter
-	GetUserSettings    query.UserSettingsGetter
-	EnsureDefaultTheme command.DefaultThemeEnsurer
-	GetUserThemeByID   query.UserThemeByIDGetter
+	SessionStore     *oidc.SessionStore
+	App              *fiber.App
+	GetUserDashboard query.UserDashboardGetter
+	GetUserSettings  query.UserSettingsGetter
+	GetUserThemeByID query.UserThemeByIDGetter
 }
 
 func Dashboard(deps DashboardDeps) {
@@ -74,7 +73,8 @@ func Dashboard(deps DashboardDeps) {
 
 		curTheme, err := deps.GetUserThemeByID.Handle(c.Context(), user.UserID, settings.ThemeID)
 		if err != nil {
-			curTheme, _ = deps.EnsureDefaultTheme.Handle(c.Context(), user.UserID)
+			def := domainmodel.DefaultTheme()
+			curTheme = &def
 		}
 
 		return middleware.Render(c, page.Dashboard(page.DashboardInput{

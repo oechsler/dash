@@ -1,6 +1,5 @@
 package model
 
-
 type Theme struct {
 	Base
 	UserID      string `gorm:"not null;index"`
@@ -9,7 +8,6 @@ type Theme struct {
 	Primary     string `gorm:"not null"`
 	Secondary   string `gorm:"not null"`
 	Tertiary    string `gorm:"not null"`
-	Deletable   bool   `gorm:"not null;default:false"`
 }
 
 func (t *Theme) TableName() string {

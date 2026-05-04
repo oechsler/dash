@@ -10,7 +10,6 @@ type ThemeRecord struct {
 	Primary     string
 	Secondary   string
 	Tertiary    string
-	Deletable   bool
 }
 
 type ThemeRepository interface {

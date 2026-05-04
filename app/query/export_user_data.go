@@ -7,9 +7,10 @@ import (
 	"strings"
 	"time"
 
-	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
-	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 	"git.at.oechsler.it/samuel/dash/v2/app/transfer"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
+	domainmodel "git.at.oechsler.it/samuel/dash/v2/domain/model"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 )
 
 // UserDataExporter handles the export-user-data query.
@@ -69,7 +70,7 @@ func (h *ExportUserData) Handle(ctx context.Context, userID string, username str
 		}
 	}
 
-	// Themes (user-created only, i.e. Deletable = true)
+	// Themes — user-created only; skip synthetic duplicates (old persisted system themes).
 	themes, err := h.ThemeRepo.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, domainerrors.Internal("export user data: list themes", err)
@@ -82,7 +83,7 @@ func (h *ExportUserData) Handle(ctx context.Context, userID string, username str
 		}
 	}
 	for _, t := range themes {
-		if !t.Deletable {
+		if domainmodel.IsSyntheticDuplicate(t.DisplayName, t.Primary, t.Secondary, t.Tertiary) {
 			continue
 		}
 		export.Themes = append(export.Themes, transfer.ThemeExport{

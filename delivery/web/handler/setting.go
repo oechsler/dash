@@ -10,7 +10,7 @@ import (
 	"git.at.oechsler.it/samuel/dash/v2/app/transfer"
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/middleware"
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/partials"
-	"git.at.oechsler.it/samuel/dash/v2/domain/model"
+	domainmodel "git.at.oechsler.it/samuel/dash/v2/domain/model"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
 	"github.com/gofiber/fiber/v3"
@@ -69,15 +69,14 @@ var availableTimezones = []timezone{
 }
 
 type SettingDeps struct {
-	SessionStore       *oidc.SessionStore
-	App                *fiber.App
-	GetUserSettings    query.UserSettingsGetter
-	UpdateUserSettings command.UserSettingsUpdater
-	ListUserThemes     query.UserThemesLister
-	EnsureDefaultTheme command.DefaultThemeEnsurer
-	ExportUserData     query.UserDataExporter
-	DeleteUserData     command.UserDataDeleter
-	ImportUserData     command.UserDataImporter
+	SessionStore        *oidc.SessionStore
+	App                 *fiber.App
+	GetUserSettings     query.UserSettingsGetter
+	UpdateUserSettings  command.UserSettingsUpdater
+	ListUserThemes      query.UserThemesLister
+	ExportUserData      query.UserDataExporter
+	DeleteUserData      command.UserDataDeleter
+	ImportUserData      command.UserDataImporter
 	GetSessionsOverview query.UserSessionsOverviewGetter
 	PinSession          command.SessionPinner
 	UnpinSession        command.SessionUnpinner
@@ -178,7 +177,7 @@ func Setting(deps SettingDeps) {
 					Language: settings.Language,
 					Timezone: settings.Timezone,
 				},
-				Themes: lo.Map(themes, func(theme model.Theme, _ int) partials.SettingsModalInputTheme {
+				Themes: lo.Map(themes, func(theme domainmodel.Theme, _ int) partials.SettingsModalInputTheme {
 					return partials.SettingsModalInputTheme{
 						ID:          theme.ID,
 						DisplayName: theme.Name,
@@ -217,12 +216,15 @@ func Setting(deps SettingDeps) {
 				return err
 			}
 
-			currentTheme, _ := lo.Find(themes, func(t model.Theme) bool {
+			currentTheme, found := lo.Find(themes, func(t domainmodel.Theme) bool {
 				return t.ID == settings.ThemeID
 			})
+			if !found {
+				currentTheme = domainmodel.DefaultTheme()
+			}
 
 			return middleware.Render(c, partials.SettingsModalThemeSection(partials.SettingsModalThemeSectionInput{
-				Themes: lo.Map(themes, func(theme model.Theme, _ int) partials.SettingsModalThemeSectionInputTheme {
+				Themes: lo.Map(themes, func(theme domainmodel.Theme, _ int) partials.SettingsModalThemeSectionInputTheme {
 					return partials.SettingsModalThemeSectionInputTheme{
 						ID:          theme.ID,
 						DisplayName: theme.Name,
@@ -389,7 +391,7 @@ func Setting(deps SettingDeps) {
 // renderSessionsSection renders the sessions section partial for HTMX responses.
 // The handler's only job here is to extract raw infra data (cookie, IP) and map
 // the app-layer result to the template input — no business logic.
-func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) error {
+func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user domainmodel.Identity) error {
 	// Extract cookie data — infra concern, stays in the handler.
 	var currentSessionID string
 	if raw, ok := deps.SessionStore.Load(c); ok {

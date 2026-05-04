@@ -23,29 +23,17 @@ func NewDeleteUserTheme(r domainrepo.ThemeRepository, s domainrepo.SettingReposi
 }
 
 func (h *DeleteUserTheme) Handle(ctx context.Context, userID string, id uint) error {
-	list, err := h.Repo.ListByUser(ctx, userID)
-	if err != nil {
-		return domainerrors.Internal("delete user theme: list", err)
-	}
-	if len(list) <= 1 {
-		return nil
-	}
-
-	t, err := h.Repo.GetByID(ctx, userID, id)
+	_, err := h.Repo.GetByID(ctx, userID, id)
 	if err != nil {
 		var nfe *domainerrors.NotFoundError
 		if errors.As(err, &nfe) {
-			return nil // theme doesn't exist, silently ignore
+			return nil
 		}
 		return domainerrors.Internal("delete user theme: get by id", err)
 	}
-	if !t.Deletable {
-		return nil
-	}
 
 	// Prevent deleting the theme that is currently active in the user's settings.
-	// The DB also enforces this via ON DELETE RESTRICT on settings.theme_id, but
-	// checking here first gives a clear domain error instead of a DB-level failure.
+	// The user must switch to another theme (or the synthetic default) first.
 	setting, err := h.SettingRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		var nfe *domainerrors.NotFoundError

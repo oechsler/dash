@@ -40,12 +40,11 @@ func RegisterAll(
 	Favicon(sessionStore, fiberApp)
 
 	Dashboard(DashboardDeps{
-		SessionStore:       sessionStore,
-		App:                fiberApp,
-		GetUserDashboard:   uc.GetUserDashboard,
-		GetUserSettings:    uc.GetUserSettings,
-		EnsureDefaultTheme: uc.EnsureDefaultTheme,
-		GetUserThemeByID:   uc.GetUserThemeByID,
+		SessionStore:     sessionStore,
+		App:              fiberApp,
+		GetUserDashboard: uc.GetUserDashboard,
+		GetUserSettings:  uc.GetUserSettings,
+		GetUserThemeByID: uc.GetUserThemeByID,
 	})
 
 	Application(ApplicationDeps{
@@ -85,15 +84,14 @@ func RegisterAll(
 	})
 
 	Setting(SettingDeps{
-		SessionStore:       sessionStore,
-		App:                fiberApp,
-		GetUserSettings:    uc.GetUserSettings,
-		UpdateUserSettings: uc.UpdateUserSettings,
-		ListUserThemes:     uc.ListUserThemes,
-		EnsureDefaultTheme: uc.EnsureDefaultTheme,
-		ExportUserData:     uc.ExportUserData,
-		DeleteUserData:     uc.DeleteUserData,
-		ImportUserData:     uc.ImportUserData,
+		SessionStore:        sessionStore,
+		App:                 fiberApp,
+		GetUserSettings:     uc.GetUserSettings,
+		UpdateUserSettings:  uc.UpdateUserSettings,
+		ListUserThemes:      uc.ListUserThemes,
+		ExportUserData:      uc.ExportUserData,
+		DeleteUserData:      uc.DeleteUserData,
+		ImportUserData:      uc.ImportUserData,
 		GetSessionsOverview: uc.GetSessionsOverview,
 		PinSession:          uc.PinSession,
 		UnpinSession:        uc.UnpinSession,
