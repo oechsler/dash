@@ -37,23 +37,36 @@ func NewGormUserRepo(db *gorm.DB) (*GormUserRepo, error) {
 	// TODO(v3): drop this block — by that point all deployments will have
 	// gone through at least one startup that populated users via
 	// IdpLinkRepository.ResolveOrCreate.
+	// Each table is guarded individually: on an upgrade from main, tables
+	// introduced in this branch (sessions, idp_links) may not exist yet while
+	// older tables (dashboards, settings, themes) already do.
 	noPS := db.Session(&gorm.Session{PrepareStmt: false})
 	if err := noPS.Exec(`
 		DO $$
 		BEGIN
-			IF EXISTS (
-				SELECT 1 FROM information_schema.tables WHERE table_name = 'dashboards'
-			) THEN
+			IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'dashboards') THEN
 				INSERT INTO users (id)
-				SELECT DISTINCT user_id FROM dashboards  WHERE user_id IS NOT NULL AND user_id != ''
-				UNION
-				SELECT DISTINCT user_id FROM settings    WHERE user_id IS NOT NULL AND user_id != ''
-				UNION
-				SELECT DISTINCT user_id FROM themes      WHERE user_id IS NOT NULL AND user_id != ''
-				UNION
-				SELECT DISTINCT user_id FROM sessions    WHERE user_id IS NOT NULL AND user_id != ''
-				UNION
-				SELECT DISTINCT user_id FROM idp_links   WHERE user_id IS NOT NULL AND user_id != ''
+				SELECT DISTINCT user_id FROM dashboards WHERE user_id IS NOT NULL AND user_id != ''
+				ON CONFLICT DO NOTHING;
+			END IF;
+			IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'settings') THEN
+				INSERT INTO users (id)
+				SELECT DISTINCT user_id FROM settings WHERE user_id IS NOT NULL AND user_id != ''
+				ON CONFLICT DO NOTHING;
+			END IF;
+			IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'themes') THEN
+				INSERT INTO users (id)
+				SELECT DISTINCT user_id FROM themes WHERE user_id IS NOT NULL AND user_id != ''
+				ON CONFLICT DO NOTHING;
+			END IF;
+			IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'sessions') THEN
+				INSERT INTO users (id)
+				SELECT DISTINCT user_id FROM sessions WHERE user_id IS NOT NULL AND user_id != ''
+				ON CONFLICT DO NOTHING;
+			END IF;
+			IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'idp_links') THEN
+				INSERT INTO users (id)
+				SELECT DISTINCT user_id FROM idp_links WHERE user_id IS NOT NULL AND user_id != ''
 				ON CONFLICT DO NOTHING;
 			END IF;
 		END
