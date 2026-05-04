@@ -226,9 +226,9 @@ func (p *Provider) claimsToIdentity(claims idTokenClaims) model.Identity {
 		DisplayName: displayName,
 		Username:    claims.PreferredUsername,
 		Email:       claims.Email,
-		Picture:     picture,
-		Groups:      claims.Groups,
-		IsAdmin:     isAdmin,
-		ProfileUrl:  profileUrl,
-	}
+		Picture:    picture,
+		Groups:     claims.Groups,
+		IsAdmin:    isAdmin,
+		ProfileUrl: profileUrl,
+	}.WithSyntheticGroups()
 }

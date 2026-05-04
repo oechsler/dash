@@ -24,7 +24,7 @@ func NewGormThemeRepo(db *gorm.DB) (*GormThemeRepo, error) {
 
 func (r *GormThemeRepo) Create(ctx context.Context, record *domainrepo.ThemeRecord) error {
 	m := &model.Theme{
-		UserId:      record.UserID,
+		UserID:      record.UserID,
 		DisplayName: record.DisplayName,
 		Primary:     record.Primary,
 		Secondary:   record.Secondary,
@@ -59,7 +59,7 @@ func (r *GormThemeRepo) ListByUser(ctx context.Context, userID string) ([]domain
 	for i, t := range list {
 		records[i] = domainrepo.ThemeRecord{
 			ID:          t.ID,
-			UserID:      t.UserId,
+			UserID:      t.UserID,
 			DisplayName: t.DisplayName,
 			Primary:     t.Primary,
 			Secondary:   t.Secondary,
@@ -81,7 +81,7 @@ func (r *GormThemeRepo) GetByID(ctx context.Context, userID string, id uint) (*d
 	}
 	return &domainrepo.ThemeRecord{
 		ID:          t.ID,
-		UserID:      t.UserId,
+		UserID:      t.UserID,
 		DisplayName: t.DisplayName,
 		Primary:     t.Primary,
 		Secondary:   t.Secondary,

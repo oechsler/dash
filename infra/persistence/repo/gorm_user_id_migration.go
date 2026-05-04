@@ -31,6 +31,12 @@ func (r *GormUserIDMigrationRepo) MigrateUserID(ctx context.Context, oldID, newI
 		return nil
 	}
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Ensure the new UUID-based user exists before updating child tables.
+		if err := tx.Exec(
+			"INSERT INTO users (user_id) VALUES (?) ON CONFLICT DO NOTHING", newID,
+		).Error; err != nil {
+			return err
+		}
 		for _, table := range []string{"dashboards", "settings", "themes", "sessions"} {
 			if err := tx.Exec(
 				"UPDATE "+table+" SET user_id = ? WHERE user_id = ?",

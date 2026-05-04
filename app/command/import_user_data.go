@@ -208,6 +208,7 @@ func (h *ImportUserData) Handle(ctx context.Context, userID string, isAdmin bool
 				groups = []string{}
 			}
 			rec := &domainrepo.ApplicationRecord{
+				CreatedBy:       &userID,
 				Icon:            a.Icon,
 				DisplayName:     a.DisplayName,
 				Url:             a.URL,

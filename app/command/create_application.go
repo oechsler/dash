@@ -12,6 +12,7 @@ import (
 
 // CreateApplicationCmd is the input for creating a new application link.
 type CreateApplicationCmd struct {
+	CreatedBy       *string
 	Icon            string   `validate:"required"`
 	DisplayName     string   `validate:"required"`
 	Url             string   `validate:"required,url"`
@@ -47,6 +48,7 @@ func (h *CreateApplication) Handle(ctx context.Context, in CreateApplicationCmd)
 	}
 
 	record := &domainrepo.ApplicationRecord{
+		CreatedBy:       in.CreatedBy,
 		Icon:            in.Icon,
 		DisplayName:     in.DisplayName,
 		Url:             in.Url,

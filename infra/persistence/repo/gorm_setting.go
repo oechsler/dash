@@ -26,7 +26,7 @@ func NewGormSettingRepo(db *gorm.DB) (*GormSettingRepo, error) {
 
 func (r *GormSettingRepo) Upsert(ctx context.Context, record *domainrepo.SettingRecord) error {
 	m := &model.Setting{
-		UserId:   record.UserID,
+		UserID:   record.UserID,
 		ThemeID:  record.ThemeID,
 		Language: record.Language,
 		Timezone: record.Timezone,
@@ -50,5 +50,5 @@ func (r *GormSettingRepo) GetByUserID(ctx context.Context, userID string) (*doma
 		}
 		return nil, err
 	}
-	return &domainrepo.SettingRecord{ID: s.ID, UserID: s.UserId, ThemeID: s.ThemeID, Language: s.Language, Timezone: s.Timezone}, nil
+	return &domainrepo.SettingRecord{ID: s.ID, UserID: s.UserID, ThemeID: s.ThemeID, Language: s.Language, Timezone: s.Timezone}, nil
 }

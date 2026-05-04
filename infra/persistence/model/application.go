@@ -3,6 +3,7 @@ package model
 
 type Application struct {
 	Base
+	CreatedBy       *string  `gorm:"index"`
 	Icon            string   `gorm:"not null"`
 	DisplayName     string   `gorm:"not null"`
 	Url             string   `gorm:"not null"`

@@ -29,14 +29,20 @@ func NewGormSessionRepo(db *gorm.DB) (*GormSessionRepo, error) {
 	if err := db.AutoMigrate(&model.Session{}); err != nil {
 		return nil, err
 	}
-	if err := db.Exec(`
-		INSERT INTO sessions
-		SELECT * FROM pinned_sessions
-		WHERE NOT EXISTS (SELECT 1 FROM sessions)
-		  AND EXISTS (
-		        SELECT 1 FROM information_schema.tables
-		        WHERE table_name = 'pinned_sessions'
-		      )
+	// Use a PL/pgSQL block so Postgres does not resolve the pinned_sessions
+	// reference at parse time — without this, PrepareStmt: true causes a
+	// "relation does not exist" error on fresh databases.
+	if err := db.Session(&gorm.Session{PrepareStmt: false}).Exec(`
+		DO $$
+		BEGIN
+			IF EXISTS (
+				SELECT 1 FROM information_schema.tables
+				WHERE table_name = 'pinned_sessions'
+			) AND NOT EXISTS (SELECT 1 FROM sessions) THEN
+				INSERT INTO sessions SELECT * FROM pinned_sessions;
+			END IF;
+		END
+		$$
 	`).Error; err != nil {
 		return nil, err
 	}

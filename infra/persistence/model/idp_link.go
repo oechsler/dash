@@ -7,11 +7,11 @@ import "time"
 // the same UserID, giving them a single unified account.
 type IdpLink struct {
 	UserID    string    `gorm:"not null;index"`
+	User      User      `gorm:"constraint:fk_idp_links_user,OnDelete:CASCADE"`
 	Issuer    string    `gorm:"not null;primaryKey"`
 	Sub       string    `gorm:"not null;primaryKey"`
 	IsPrimary bool      `gorm:"not null;default:true"`
 	LinkedAt  time.Time `gorm:"not null"`
-	User      User      `gorm:"constraint:fk_idp_links_user,OnDelete:CASCADE"`
 }
 
 func (IdpLink) TableName() string { return "idp_links" }
