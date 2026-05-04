@@ -5,6 +5,7 @@ import "context"
 // ApplicationRecord is the data transfer type exchanged with the ApplicationRepository.
 type ApplicationRecord struct {
 	ID              uint
+	CreatedBy       *string
 	Icon            string
 	DisplayName     string
 	Url             string

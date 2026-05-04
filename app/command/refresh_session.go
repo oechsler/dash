@@ -7,11 +7,11 @@ import (
 	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 )
 
-// RefreshSessionCmd carries the updated identity and token data for an existing session.
+// RefreshSessionCmd carries updated token timing and identity for an existing
+// session after re-authentication via OIDC. Identity fields are re-extracted
+// from the new token so group changes take effect immediately.
 type RefreshSessionCmd struct {
 	SessionID   string
-	IssuedAt    time.Time
-	ExpiresAt   time.Time
 	Sub         string
 	Username    string
 	Email       string
@@ -22,6 +22,8 @@ type RefreshSessionCmd struct {
 	ProfileUrl  string
 	Groups      []string
 	IsAdmin     bool
+	IssuedAt    time.Time
+	ExpiresAt   time.Time
 }
 
 // SessionRefresher handles the refresh-session command.
@@ -40,8 +42,6 @@ func NewRefreshSession(repo domainrepo.SessionRepository) *RefreshSession {
 func (h *RefreshSession) Handle(ctx context.Context, cmd RefreshSessionCmd) error {
 	return h.repo.RefreshBySessionID(ctx, &domainrepo.SessionRecord{
 		SessionID:   cmd.SessionID,
-		IssuedAt:    cmd.IssuedAt,
-		ExpiresAt:   cmd.ExpiresAt,
 		Sub:         cmd.Sub,
 		Username:    cmd.Username,
 		Email:       cmd.Email,
@@ -52,5 +52,7 @@ func (h *RefreshSession) Handle(ctx context.Context, cmd RefreshSessionCmd) erro
 		ProfileUrl:  cmd.ProfileUrl,
 		Groups:      cmd.Groups,
 		IsAdmin:     cmd.IsAdmin,
+		IssuedAt:    cmd.IssuedAt,
+		ExpiresAt:   cmd.ExpiresAt,
 	})
 }

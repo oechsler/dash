@@ -121,6 +121,7 @@ func Application(deps ApplicationDeps) {
 			}
 
 			if err := deps.CreateApplication.Handle(c.Context(), command.CreateApplicationCmd{
+				CreatedBy:   &user.UserID,
 				Icon:        body.IconType + ":" + body.IconName,
 				DisplayName: body.DisplayName,
 				Url:         body.Url,

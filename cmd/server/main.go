@@ -59,13 +59,16 @@ func main() {
 	}
 
 	uc := app.NewUseCases(app.Repos{
-		Dashboard:   repos.Dashboard,
-		Category:    repos.Category,
-		Bookmark:    repos.Bookmark,
-		Application: repos.Application,
-		Setting:     repos.Setting,
-		Theme:       repos.Theme,
-		Session:     repos.Session,
+		User:            repos.User,
+		Dashboard:       repos.Dashboard,
+		Category:        repos.Category,
+		Bookmark:        repos.Bookmark,
+		Application:     repos.Application,
+		Setting:         repos.Setting,
+		Theme:           repos.Theme,
+		Session:         repos.Session,
+		UserIDMigration: repos.UserIDMigration,
+		IdpLink:         repos.IdpLink,
 	}, validation.New())
 
 	fiberApp := web.NewFiberApp(&cfg.App)

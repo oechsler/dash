@@ -14,33 +14,37 @@ type UserThemeDeleter interface {
 }
 
 type DeleteUserTheme struct {
-	Repo domainrepo.ThemeRepository
+	Repo        domainrepo.ThemeRepository
+	SettingRepo domainrepo.SettingRepository
 }
 
-func NewDeleteUserTheme(r domainrepo.ThemeRepository) *DeleteUserTheme {
-	return &DeleteUserTheme{Repo: r}
+func NewDeleteUserTheme(r domainrepo.ThemeRepository, s domainrepo.SettingRepository) *DeleteUserTheme {
+	return &DeleteUserTheme{Repo: r, SettingRepo: s}
 }
 
 func (h *DeleteUserTheme) Handle(ctx context.Context, userID string, id uint) error {
-	list, err := h.Repo.ListByUser(ctx, userID)
-	if err != nil {
-		return domainerrors.Internal("delete user theme: list", err)
-	}
-	if len(list) <= 1 {
-		return nil
-	}
-
-	t, err := h.Repo.GetByID(ctx, userID, id)
+	_, err := h.Repo.GetByID(ctx, userID, id)
 	if err != nil {
 		var nfe *domainerrors.NotFoundError
 		if errors.As(err, &nfe) {
-			return nil // theme doesn't exist, silently ignore
+			return nil
 		}
 		return domainerrors.Internal("delete user theme: get by id", err)
 	}
-	if !t.Deletable {
-		return nil
+
+	// Prevent deleting the theme that is currently active in the user's settings.
+	// The user must switch to another theme (or the synthetic default) first.
+	setting, err := h.SettingRepo.GetByUserID(ctx, userID)
+	if err != nil {
+		var nfe *domainerrors.NotFoundError
+		if !errors.As(err, &nfe) {
+			return domainerrors.Internal("delete user theme: get settings", err)
+		}
 	}
+	if setting != nil && setting.ThemeID == id {
+		return domainerrors.Forbidden("theme is currently active")
+	}
+
 	if err := h.Repo.Delete(ctx, userID, id); err != nil {
 		return domainerrors.Internal("delete user theme: delete", err)
 	}

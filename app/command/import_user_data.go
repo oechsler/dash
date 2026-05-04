@@ -6,9 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
-	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 	"git.at.oechsler.it/samuel/dash/v2/app/transfer"
+	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
+	domainmodel "git.at.oechsler.it/samuel/dash/v2/domain/model"
+	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
 )
 
 // UserDataImporter handles the import-user-data command.
@@ -17,13 +18,12 @@ type UserDataImporter interface {
 }
 
 type ImportUserData struct {
-	DashboardRepo      domainrepo.DashboardRepository
-	CategoryRepo       domainrepo.CategoryRepository
-	BookmarkRepo       domainrepo.BookmarkRepository
-	ThemeRepo          domainrepo.ThemeRepository
-	SettingRepo        domainrepo.SettingRepository
-	ApplicationRepo    domainrepo.ApplicationRepository
-	EnsureDefaultTheme *EnsureDefaultTheme
+	DashboardRepo   domainrepo.DashboardRepository
+	CategoryRepo    domainrepo.CategoryRepository
+	BookmarkRepo    domainrepo.BookmarkRepository
+	ThemeRepo       domainrepo.ThemeRepository
+	SettingRepo     domainrepo.SettingRepository
+	ApplicationRepo domainrepo.ApplicationRepository
 }
 
 func NewImportUserData(
@@ -33,16 +33,14 @@ func NewImportUserData(
 	themeRepo domainrepo.ThemeRepository,
 	settingRepo domainrepo.SettingRepository,
 	applicationRepo domainrepo.ApplicationRepository,
-	ensureDefaultTheme *EnsureDefaultTheme,
 ) *ImportUserData {
 	return &ImportUserData{
-		DashboardRepo:      dashboardRepo,
-		CategoryRepo:       categoryRepo,
-		BookmarkRepo:       bookmarkRepo,
-		ThemeRepo:          themeRepo,
-		SettingRepo:        settingRepo,
-		ApplicationRepo:    applicationRepo,
-		EnsureDefaultTheme: ensureDefaultTheme,
+		DashboardRepo:   dashboardRepo,
+		CategoryRepo:    categoryRepo,
+		BookmarkRepo:    bookmarkRepo,
+		ThemeRepo:       themeRepo,
+		SettingRepo:     settingRepo,
+		ApplicationRepo: applicationRepo,
 	}
 }
 
@@ -92,12 +90,6 @@ func (h *ImportUserData) Handle(ctx context.Context, userID string, isAdmin bool
 		}
 	}
 
-	// --- Ensure default theme ---
-	defaultTheme, err := h.EnsureDefaultTheme.Handle(ctx, userID)
-	if err != nil {
-		return err
-	}
-
 	// --- Import themes ---
 	nameToThemeID := map[string]uint{}
 	// Seed with existing themes so settings resolution works for pre-existing themes
@@ -109,13 +101,17 @@ func (h *ImportUserData) Handle(ctx context.Context, userID string, isAdmin bool
 		if _, exists := existingThemeHashes[t.Hash]; exists {
 			continue
 		}
+		// Skip themes that are identical to the synthetic default — they don't
+		// need to be persisted; ThemeID=0 represents them going forward.
+		if domainmodel.IsSyntheticDuplicate(t.Name, t.Primary, t.Secondary, t.Tertiary) {
+			continue
+		}
 		rec := &domainrepo.ThemeRecord{
 			UserID:      userID,
 			DisplayName: t.Name,
 			Primary:     t.Primary,
 			Secondary:   t.Secondary,
 			Tertiary:    t.Tertiary,
-			Deletable:   true,
 		}
 		if err := h.ThemeRepo.Create(ctx, rec); err != nil {
 			return domainerrors.Internal("import user data: create theme", err)
@@ -208,6 +204,7 @@ func (h *ImportUserData) Handle(ctx context.Context, userID string, isAdmin bool
 				groups = []string{}
 			}
 			rec := &domainrepo.ApplicationRecord{
+				CreatedBy:       &userID,
 				Icon:            a.Icon,
 				DisplayName:     a.DisplayName,
 				Url:             a.URL,
@@ -221,7 +218,8 @@ func (h *ImportUserData) Handle(ctx context.Context, userID string, isAdmin bool
 	}
 
 	// --- Upsert settings ---
-	themeID := defaultTheme.ID
+	// ThemeID=0 means synthetic default; override only if the imported name maps to a persisted theme.
+	var themeID uint
 	if in.Settings.ThemeName != "" {
 		if id, ok := nameToThemeID[in.Settings.ThemeName]; ok {
 			themeID = id

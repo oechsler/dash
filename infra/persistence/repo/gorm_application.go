@@ -21,11 +21,28 @@ func NewGormApplicationRepo(db *gorm.DB) (*GormApplicationRepo, error) {
 	if err := db.AutoMigrate(&model.Application{}); err != nil {
 		return nil, err
 	}
+	// ON DELETE SET NULL: when the creator's account is deleted, the application
+	// remains but its created_by field is set to NULL.
+	noPS := db.Session(&gorm.Session{PrepareStmt: false})
+	if err := noPS.Exec(`
+		DO $$ BEGIN
+			IF NOT EXISTS (
+				SELECT 1 FROM pg_constraint WHERE conname = 'fk_applications_created_by'
+			) THEN
+				ALTER TABLE applications ADD CONSTRAINT fk_applications_created_by
+				FOREIGN KEY (created_by) REFERENCES users(id)
+				ON UPDATE CASCADE ON DELETE SET NULL;
+			END IF;
+		END $$
+	`).Error; err != nil {
+		return nil, err
+	}
 	return &GormApplicationRepo{db: db}, nil
 }
 
 func (r *GormApplicationRepo) Upsert(ctx context.Context, record *domainrepo.ApplicationRecord) error {
 	m := &model.Application{
+		CreatedBy:       record.CreatedBy,
 		Icon:            record.Icon,
 		DisplayName:     record.DisplayName,
 		Url:             record.Url,
@@ -47,6 +64,7 @@ func (r *GormApplicationRepo) Get(ctx context.Context, id uint) (*domainrepo.App
 	}
 	return &domainrepo.ApplicationRecord{
 		ID:              app.ID,
+		CreatedBy:       app.CreatedBy,
 		Icon:            app.Icon,
 		DisplayName:     app.DisplayName,
 		Url:             app.Url,
@@ -63,6 +81,7 @@ func (r *GormApplicationRepo) List(ctx context.Context) ([]domainrepo.Applicatio
 	for i, app := range apps {
 		records[i] = domainrepo.ApplicationRecord{
 			ID:              app.ID,
+			CreatedBy:       app.CreatedBy,
 			Icon:            app.Icon,
 			DisplayName:     app.DisplayName,
 			Url:             app.Url,

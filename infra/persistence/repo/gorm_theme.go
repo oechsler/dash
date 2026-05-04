@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	domainerrors "git.at.oechsler.it/samuel/dash/v2/domain/errors"
-	"git.at.oechsler.it/samuel/dash/v2/infra/persistence/model"
 	domainrepo "git.at.oechsler.it/samuel/dash/v2/domain/repo"
+	"git.at.oechsler.it/samuel/dash/v2/infra/persistence/model"
 
 	"gorm.io/gorm"
 )
@@ -19,22 +19,34 @@ func NewGormThemeRepo(db *gorm.DB) (*GormThemeRepo, error) {
 	if err := db.AutoMigrate(&model.Theme{}); err != nil {
 		return nil, err
 	}
+	// Drop the legacy deletable column if it still exists (pre-synthetic-default migration).
+	noPS := db.Session(&gorm.Session{PrepareStmt: false})
+	if err := noPS.Exec(`
+		DO $$
+		BEGIN
+			IF EXISTS (
+				SELECT 1 FROM information_schema.columns
+				WHERE table_name = 'themes' AND column_name = 'deletable'
+			) THEN
+				ALTER TABLE themes DROP COLUMN deletable;
+			END IF;
+		END
+		$$
+	`).Error; err != nil {
+		return nil, err
+	}
 	return &GormThemeRepo{db: db}, nil
 }
 
 func (r *GormThemeRepo) Create(ctx context.Context, record *domainrepo.ThemeRecord) error {
 	m := &model.Theme{
-		UserId:      record.UserID,
+		UserID:      record.UserID,
 		DisplayName: record.DisplayName,
 		Primary:     record.Primary,
 		Secondary:   record.Secondary,
 		Tertiary:    record.Tertiary,
-		Deletable:   record.Deletable,
 	}
-	// Use Select("*") to ensure zero-value fields (like Deletable=false) are persisted
-	// even when the model defines a DB default. GORM omits zero-values on Create when
-	// a default tag is present to leverage DB defaults; this forces explicit persistence.
-	if err := r.db.WithContext(ctx).Select("*").Create(m).Error; err != nil {
+	if err := r.db.WithContext(ctx).Create(m).Error; err != nil {
 		return err
 	}
 	record.ID = m.ID
@@ -46,8 +58,7 @@ func (r *GormThemeRepo) DeleteAllByUser(ctx context.Context, userID string) erro
 }
 
 func (r *GormThemeRepo) Delete(ctx context.Context, userID string, id uint) error {
-	// Only delete themes that are marked as deletable
-	return r.db.WithContext(ctx).Where("user_id = ? AND id = ? AND deletable = ?", userID, id, true).Delete(&model.Theme{}).Error
+	return r.db.WithContext(ctx).Where("user_id = ? AND id = ?", userID, id).Delete(&model.Theme{}).Error
 }
 
 func (r *GormThemeRepo) ListByUser(ctx context.Context, userID string) ([]domainrepo.ThemeRecord, error) {
@@ -59,12 +70,11 @@ func (r *GormThemeRepo) ListByUser(ctx context.Context, userID string) ([]domain
 	for i, t := range list {
 		records[i] = domainrepo.ThemeRecord{
 			ID:          t.ID,
-			UserID:      t.UserId,
+			UserID:      t.UserID,
 			DisplayName: t.DisplayName,
 			Primary:     t.Primary,
 			Secondary:   t.Secondary,
 			Tertiary:    t.Tertiary,
-			Deletable:   t.Deletable,
 		}
 	}
 	return records, nil
@@ -81,11 +91,10 @@ func (r *GormThemeRepo) GetByID(ctx context.Context, userID string, id uint) (*d
 	}
 	return &domainrepo.ThemeRecord{
 		ID:          t.ID,
-		UserID:      t.UserId,
+		UserID:      t.UserID,
 		DisplayName: t.DisplayName,
 		Primary:     t.Primary,
 		Secondary:   t.Secondary,
 		Tertiary:    t.Tertiary,
-		Deletable:   t.Deletable,
 	}, nil
 }

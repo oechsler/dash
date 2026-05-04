@@ -45,7 +45,6 @@ func (h *CreateUserTheme) Handle(ctx context.Context, userID string, in CreateUs
 		Primary:     in.Primary,
 		Secondary:   in.Secondary,
 		Tertiary:    in.Tertiary,
-		Deletable:   true,
 	}
 	if err := h.Repo.Create(ctx, record); err != nil {
 		return domainerrors.Internal("create user theme", err)

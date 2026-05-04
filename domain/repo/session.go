@@ -6,29 +6,30 @@ import (
 )
 
 // SessionRecord is the data transfer type exchanged with the SessionRepository.
-// It stores all sessions — both regular (token-backed) and pinned (fallback-capable).
-// Identity fields are cached here so pinned sessions can authenticate after the OIDC
-// token expires, without an IDP round-trip.
+// All identity data (name, email, groups, etc.) is stored server-side so that
+// the session cookie only needs to carry the SessionID — the raw ID token is
+// never written to the cookie after login.
 type SessionRecord struct {
 	ID             string
 	UserID         string
 	SessionID      string    // matches the SessionID stored in the session cookie
-	IssuedAt       time.Time // OIDC token iat (nbf proxy; used to compute token window)
-	ExpiresAt      time.Time // OIDC token expiry
+	IssuedAt       time.Time // OIDC token iat; used to compute the active-window heuristic
+	ExpiresAt      time.Time // OIDC token expiry; used for cleanup and active-window check
 	PinnedUntil    time.Time // zero = not pinned; sliding-window expiry when pinned
-	LastAccessedAt time.Time // updated on every pinned-fallback load
+	LastAccessedAt time.Time // updated on every touch
 	LastIP         string
 	UserAgent      string
 	CreatedAt      time.Time
-	// Identity fields cached for pinned-session fallback auth after token expiry.
+	// Identity fields — stored at login/refresh time; used by LoadIdentity to
+	// reconstruct the domain Identity without touching the OIDC token.
 	Sub         string
 	Username    string
 	Email       string
 	FirstName   string
 	LastName    string
 	DisplayName string
-	Picture     string
-	ProfileUrl  string
+	Picture     string // empty = no picture
+	ProfileUrl  string // empty = no profile URL
 	Groups      []string
 	IsAdmin     bool
 }
@@ -40,36 +41,22 @@ type SessionRepository interface {
 	// Pin sets PinnedUntil on a session, enabling token-expired fallback auth.
 	Pin(ctx context.Context, sessionID string, userID string, pinnedUntil time.Time) error
 	// Unpin clears PinnedUntil (sets it to zero), disabling fallback auth.
-	// The record is kept alive as long as the OIDC token is valid.
-	Unpin(ctx context.Context, id string, userID string) error
-	// GetBySessionID returns an actively pinned session (PinnedUntil > now).
-	// Used exclusively for fallback auth after token expiry.
-	// Returns NotFound if the session does not exist or is not currently pinned.
-	GetBySessionID(ctx context.Context, sessionID string) (*SessionRecord, error)
-	// ExistsBySessionID returns true if any record with the given SessionID exists,
-	// regardless of pin status. Used to detect invalidated (deleted) sessions.
-	ExistsBySessionID(ctx context.Context, sessionID string) (bool, error)
-	// Touch updates LastIP, UserAgent, and LastAccessedAt for the given session.
-	// Returns (exists, pinnedUntil, error): exists=false if the session was invalidated;
-	// pinnedUntil is the new sliding-window expiry (zero if not pinned).
-	// When the session is pinned, PinnedUntil is extended by 1 year on every touch
-	// so the window slides with usage and the DB record never expires while in use.
-	Touch(ctx context.Context, sessionID string, lastIP string, userAgent string) (bool, time.Time, error)
-	// TouchBySessionID extends PinnedUntil and records the latest access metadata.
-	TouchBySessionID(ctx context.Context, sessionID string, newPinnedUntil time.Time, lastIP string, userAgent string) error
+	Unpin(ctx context.Context, recordID string, userID string) error
+	// Touch updates LastIP, UserAgent, and LastAccessedAt for the given session and
+	// returns the full updated record — nil if the session no longer exists or is
+	// not active (expires_at <= now AND pinned_until <= now).
+	// When the session is pinned, PinnedUntil is extended by 1 year on every touch.
+	Touch(ctx context.Context, sessionID string, lastIP string, userAgent string) (*SessionRecord, error)
 	// ListByUserID returns all sessions still relevant for the given user
 	// (token valid OR pin still active), newest first.
 	ListByUserID(ctx context.Context, userID string) ([]*SessionRecord, error)
-	// DeleteByID removes a specific session, scoped to userID for safety.
-	// Used for forced sign-out / session invalidation from another device.
-	DeleteByID(ctx context.Context, id string, userID string) error
+	// DeleteByID removes a specific session by its DB record ID, scoped to userID for safety.
+	DeleteByID(ctx context.Context, recordID string, userID string) error
 	// DeleteBySessionID removes the session with the given cookie SessionID.
-	// Used on voluntary logout where the cookie is still readable.
 	DeleteBySessionID(ctx context.Context, sessionID string) error
 	// DeleteByUserID removes all sessions for the given user.
 	DeleteByUserID(ctx context.Context, userID string) error
-	// RefreshBySessionID updates identity fields and token timing for an existing session.
-	// Used when the user re-authenticates to refresh group memberships without creating a new session.
+	// RefreshBySessionID updates token timing, groups, and IsAdmin for an existing session.
 	RefreshBySessionID(ctx context.Context, record *SessionRecord) error
 	// DeleteExpired removes all sessions whose token has expired and that are no
 	// longer pinned (or whose pin has also expired).

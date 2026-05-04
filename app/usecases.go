@@ -10,13 +10,16 @@ import (
 // Repos declares the repository dependencies the application layer needs.
 // Fields are domain interfaces — the application layer does not know about infra.
 type Repos struct {
-	Dashboard   domainrepo.DashboardRepository
-	Category    domainrepo.CategoryRepository
-	Bookmark    domainrepo.BookmarkRepository
-	Application domainrepo.ApplicationRepository
-	Setting     domainrepo.SettingRepository
-	Theme       domainrepo.ThemeRepository
-	Session     domainrepo.SessionRepository
+	User            domainrepo.UserRepository
+	Dashboard       domainrepo.DashboardRepository
+	Category        domainrepo.CategoryRepository
+	Bookmark        domainrepo.BookmarkRepository
+	Application     domainrepo.ApplicationRepository
+	Setting         domainrepo.SettingRepository
+	Theme           domainrepo.ThemeRepository
+	Session         domainrepo.SessionRepository
+	UserIDMigration domainrepo.UserIDMigrationRepository
+	IdpLink         domainrepo.IdpLinkRepository
 }
 
 // UseCases bundles all use cases exposed to the delivery layer.
@@ -45,10 +48,11 @@ type UseCases struct {
 	InvalidateSession   command.SessionInvalidator
 	TerminateSession    command.SessionTerminator
 	CleanupSessions     command.SessionCleaner
+	MigrateUserID       command.UserIDMigrator
+	ResolveOrCreateUser command.UserResolver
 	// Commands
 	DeleteUserData     command.UserDataDeleter
 	ImportUserData     command.UserDataImporter
-	EnsureDefaultTheme command.DefaultThemeEnsurer
 	UpdateUserSettings command.UserSettingsUpdater
 	CreateUserTheme    command.UserThemeCreator
 	DeleteUserTheme    command.UserThemeDeleter
@@ -76,12 +80,11 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 
 	getUserDashboard := query.NewGetUserDashboard(repos.Dashboard, getUserCategories, getUserApplications)
 
-	listUserThemes := query.NewListUserThemes(repos.Theme, repos.Setting)
+	listUserThemes := query.NewListUserThemes(repos.Theme)
 	getUserThemeByID := query.NewGetUserThemeByID(repos.Theme)
 	getAvailableIconTypes := query.NewGetAvailableIconTypes()
 
-	ensureDefaultTheme := command.NewEnsureDefaultTheme(repos.Theme)
-	getUserSettings := query.NewGetUserSettings(repos.Setting, repos.Theme, ensureDefaultTheme)
+	getUserSettings := query.NewGetUserSettings(repos.Setting, repos.Theme)
 
 	getSessionsOverview := query.NewGetSessionsOverview(repos.Session)
 	createSession := command.NewCreateSession(repos.Session)
@@ -91,10 +94,12 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 	invalidateSession := command.NewInvalidateSession(repos.Session)
 	terminateSession := command.NewTerminateSession(repos.Session)
 	cleanupSessions := command.NewCleanupSessions(repos.Session)
+	migrateUserID := command.NewMigrateUserID(repos.UserIDMigration)
+	resolveOrCreateUser := command.NewResolveOrCreateUser(repos.IdpLink)
 
 	exportUserData := query.NewExportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application)
-	deleteUserData := command.NewDeleteUserData(repos.Dashboard, repos.Setting, repos.Theme, repos.Session)
-	importUserData := command.NewImportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application, ensureDefaultTheme)
+	deleteUserData := command.NewDeleteUserData(repos.User)
+	importUserData := command.NewImportUserData(repos.Dashboard, repos.Category, repos.Bookmark, repos.Theme, repos.Setting, repos.Application)
 
 	return &UseCases{
 		GetSessionsOverview:      getSessionsOverview,
@@ -105,6 +110,8 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 		InvalidateSession:        invalidateSession,
 		TerminateSession:         terminateSession,
 		CleanupSessions:          cleanupSessions,
+		MigrateUserID:            migrateUserID,
+		ResolveOrCreateUser:      resolveOrCreateUser,
 		ExportUserData:           exportUserData,
 		DeleteUserData:           deleteUserData,
 		ImportUserData:           importUserData,
@@ -120,10 +127,9 @@ func NewUseCases(repos Repos, v validation.Validator) *UseCases {
 		GetUserCategory:          getUserCategory,
 		GetUserBookmark:          getUserBookmark,
 		ListUserThemes:           listUserThemes,
-		EnsureDefaultTheme:       ensureDefaultTheme,
 		UpdateUserSettings:       command.NewUpdateUserSettings(repos.Setting, repos.Theme, v),
 		CreateUserTheme:          command.NewCreateUserTheme(repos.Theme, v),
-		DeleteUserTheme:          command.NewDeleteUserTheme(repos.Theme),
+		DeleteUserTheme:          command.NewDeleteUserTheme(repos.Theme, repos.Setting),
 		CreateApplication:        command.NewCreateApplication(repos.Application, v),
 		UpdateApplication:        command.NewUpdateApplication(repos.Application, v),
 		DeleteApplication:        command.NewDeleteApplication(repos.Application),

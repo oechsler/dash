@@ -10,7 +10,7 @@ import (
 	"git.at.oechsler.it/samuel/dash/v2/app/transfer"
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/middleware"
 	"git.at.oechsler.it/samuel/dash/v2/delivery/web/templ/partials"
-	"git.at.oechsler.it/samuel/dash/v2/domain/model"
+	domainmodel "git.at.oechsler.it/samuel/dash/v2/domain/model"
 	"git.at.oechsler.it/samuel/dash/v2/infra/oidc"
 
 	"github.com/gofiber/fiber/v3"
@@ -69,15 +69,14 @@ var availableTimezones = []timezone{
 }
 
 type SettingDeps struct {
-	SessionStore       *oidc.SessionStore
-	App                *fiber.App
-	GetUserSettings    query.UserSettingsGetter
-	UpdateUserSettings command.UserSettingsUpdater
-	ListUserThemes     query.UserThemesLister
-	EnsureDefaultTheme command.DefaultThemeEnsurer
-	ExportUserData     query.UserDataExporter
-	DeleteUserData     command.UserDataDeleter
-	ImportUserData     command.UserDataImporter
+	SessionStore        *oidc.SessionStore
+	App                 *fiber.App
+	GetUserSettings     query.UserSettingsGetter
+	UpdateUserSettings  command.UserSettingsUpdater
+	ListUserThemes      query.UserThemesLister
+	ExportUserData      query.UserDataExporter
+	DeleteUserData      command.UserDataDeleter
+	ImportUserData      command.UserDataImporter
 	GetSessionsOverview query.UserSessionsOverviewGetter
 	PinSession          command.SessionPinner
 	UnpinSession        command.SessionUnpinner
@@ -178,7 +177,7 @@ func Setting(deps SettingDeps) {
 					Language: settings.Language,
 					Timezone: settings.Timezone,
 				},
-				Themes: lo.Map(themes, func(theme model.Theme, _ int) partials.SettingsModalInputTheme {
+				Themes: lo.Map(themes, func(theme domainmodel.Theme, _ int) partials.SettingsModalInputTheme {
 					return partials.SettingsModalInputTheme{
 						ID:          theme.ID,
 						DisplayName: theme.Name,
@@ -217,12 +216,15 @@ func Setting(deps SettingDeps) {
 				return err
 			}
 
-			currentTheme, _ := lo.Find(themes, func(t model.Theme) bool {
+			currentTheme, found := lo.Find(themes, func(t domainmodel.Theme) bool {
 				return t.ID == settings.ThemeID
 			})
+			if !found {
+				currentTheme = domainmodel.DefaultTheme()
+			}
 
 			return middleware.Render(c, partials.SettingsModalThemeSection(partials.SettingsModalThemeSectionInput{
-				Themes: lo.Map(themes, func(theme model.Theme, _ int) partials.SettingsModalThemeSectionInputTheme {
+				Themes: lo.Map(themes, func(theme domainmodel.Theme, _ int) partials.SettingsModalThemeSectionInputTheme {
 					return partials.SettingsModalThemeSectionInputTheme{
 						ID:          theme.ID,
 						DisplayName: theme.Name,
@@ -336,20 +338,10 @@ func Setting(deps SettingDeps) {
 			}
 
 			// Only touch the cookie when the user unpinned their own current session.
-			if raw, ok := deps.SessionStore.LoadExpired(c); ok && raw.SessionID == c.Query("sid") {
-				if _, tokenValid := deps.SessionStore.Load(c); tokenValid {
-					// Token still valid — just restore normal cookie lifetime.
-					deps.SessionStore.RevertCookie(c)
-				} else {
-					// Token already expired — the session only survived via the pin.
-					// Unpinning it means the user is effectively logged out; redirect now.
-					logoutURL, err := c.GetRouteURL(SessionLogoutRoute, fiber.Map{})
-					if err != nil {
-						logoutURL = "/session/logout"
-					}
-					c.Set("HX-Redirect", logoutURL)
-					return c.SendStatus(fiber.StatusNoContent)
-				}
+			// Revert to normal cookie lifetime; if the OIDC token has already lapsed
+			// the next Touch will deny access and the user will be logged out naturally.
+			if raw, ok := deps.SessionStore.Load(c); ok && raw.SessionID == c.Query("sid") {
+				deps.SessionStore.RevertCookie(c)
 			}
 
 			return renderSessionsSection(c, deps, user)
@@ -399,15 +391,11 @@ func Setting(deps SettingDeps) {
 // renderSessionsSection renders the sessions section partial for HTMX responses.
 // The handler's only job here is to extract raw infra data (cookie, IP) and map
 // the app-layer result to the template input — no business logic.
-func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) error {
+func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user domainmodel.Identity) error {
 	// Extract cookie data — infra concern, stays in the handler.
 	var currentSessionID string
-	var currentExpiresAt time.Time
-	if raw, ok := deps.SessionStore.LoadExpired(c); ok {
+	if raw, ok := deps.SessionStore.Load(c); ok {
 		currentSessionID = raw.SessionID
-	}
-	if valid, ok := deps.SessionStore.Load(c); ok {
-		currentExpiresAt = time.Unix(valid.ExpiresAt, 0)
 	}
 
 	// Resolve user timezone for timestamp display.
@@ -430,7 +418,6 @@ func renderSessionsSection(c fiber.Ctx, deps SettingDeps, user model.Identity) e
 		CurrentSessionID: currentSessionID,
 		CurrentIP:        c.IP(),
 		CurrentUserAgent: c.Get("User-Agent"),
-		CurrentExpiresAt: currentExpiresAt,
 	})
 	if err != nil {
 		return err
