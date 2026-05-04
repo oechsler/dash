@@ -26,7 +26,7 @@ func NewGormDashboardRepo(db *gorm.DB) (*GormDashboardRepo, error) {
 
 func (r *GormDashboardRepo) Upsert(ctx context.Context, record *domainrepo.DashboardRecord) error {
 	m := &model.Dashboard{
-		UserId: record.UserID,
+		UserID: record.UserID,
 	}
 	if record.ID != 0 {
 		m.ID = record.ID
@@ -43,7 +43,7 @@ func (r *GormDashboardRepo) Get(ctx context.Context, id uint) (*domainrepo.Dashb
 		}
 		return nil, err
 	}
-	return &domainrepo.DashboardRecord{ID: dashboard.ID, UserID: dashboard.UserId}, nil
+	return &domainrepo.DashboardRecord{ID: dashboard.ID, UserID: dashboard.UserID}, nil
 }
 
 func (r *GormDashboardRepo) GetByUserID(ctx context.Context, userID string) (*domainrepo.DashboardRecord, error) {
@@ -55,7 +55,7 @@ func (r *GormDashboardRepo) GetByUserID(ctx context.Context, userID string) (*do
 		}
 		return nil, err
 	}
-	return &domainrepo.DashboardRecord{ID: dashboard.ID, UserID: dashboard.UserId}, nil
+	return &domainrepo.DashboardRecord{ID: dashboard.ID, UserID: dashboard.UserID}, nil
 }
 
 func (r *GormDashboardRepo) Delete(ctx context.Context, id uint) error {

@@ -75,9 +75,10 @@ func (h *ExportUserData) Handle(ctx context.Context, userID string, username str
 	if err != nil {
 		return nil, domainerrors.Internal("export user data: list themes", err)
 	}
-	// Resolve active theme name for settings export
+	// Resolve active theme name for settings export — only for real user themes,
+	// not for synthetic duplicates (they map to the default on import anyway).
 	for _, t := range themes {
-		if t.ID == activeThemeID {
+		if t.ID == activeThemeID && !domainmodel.IsSyntheticDuplicate(t.DisplayName, t.Primary, t.Secondary, t.Tertiary) {
 			export.Settings.ThemeName = t.DisplayName
 			break
 		}
