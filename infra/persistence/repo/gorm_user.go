@@ -30,25 +30,35 @@ func NewGormUserRepo(db *gorm.DB) (*GormUserRepo, error) {
 
 	// Backfill: insert every user_id that already exists in dependent tables
 	// so that the FK constraints added by subsequent AutoMigrate calls do not
-	// fail due to missing parent rows.
+	// fail due to missing parent rows. Wrapped in PL/pgSQL so the table
+	// references are only resolved at runtime — on a fresh DB the dependent
+	// tables don't exist yet and the block is skipped safely.
 	//
 	// TODO(v3): drop this block — by that point all deployments will have
 	// gone through at least one startup that populated users via
 	// IdpLinkRepository.ResolveOrCreate.
-	backfillSQL := `
-		INSERT INTO users (id)
-		SELECT DISTINCT user_id FROM dashboards    WHERE user_id IS NOT NULL AND user_id != ''
-		UNION
-		SELECT DISTINCT user_id FROM settings      WHERE user_id IS NOT NULL AND user_id != ''
-		UNION
-		SELECT DISTINCT user_id FROM themes        WHERE user_id IS NOT NULL AND user_id != ''
-		UNION
-		SELECT DISTINCT user_id FROM sessions      WHERE user_id IS NOT NULL AND user_id != ''
-		UNION
-		SELECT DISTINCT user_id FROM idp_links       WHERE user_id IS NOT NULL AND user_id != ''
-		ON CONFLICT DO NOTHING
-	`
-	if err := db.Exec(backfillSQL).Error; err != nil {
+	noPS := db.Session(&gorm.Session{PrepareStmt: false})
+	if err := noPS.Exec(`
+		DO $$
+		BEGIN
+			IF EXISTS (
+				SELECT 1 FROM information_schema.tables WHERE table_name = 'dashboards'
+			) THEN
+				INSERT INTO users (id)
+				SELECT DISTINCT user_id FROM dashboards  WHERE user_id IS NOT NULL AND user_id != ''
+				UNION
+				SELECT DISTINCT user_id FROM settings    WHERE user_id IS NOT NULL AND user_id != ''
+				UNION
+				SELECT DISTINCT user_id FROM themes      WHERE user_id IS NOT NULL AND user_id != ''
+				UNION
+				SELECT DISTINCT user_id FROM sessions    WHERE user_id IS NOT NULL AND user_id != ''
+				UNION
+				SELECT DISTINCT user_id FROM idp_links   WHERE user_id IS NOT NULL AND user_id != ''
+				ON CONFLICT DO NOTHING;
+			END IF;
+		END
+		$$
+	`).Error; err != nil {
 		return nil, err
 	}
 
