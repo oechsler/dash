@@ -20,9 +20,6 @@ type GormUserRepo struct {
 // via GORM constraint tags (e.g. `gorm:"constraint:fk_dashboards_user,OnDelete:CASCADE"`)
 // are created by each repo's own AutoMigrate call, which requires the users
 // table to already exist and be fully populated.
-//
-// TODO(v3): remove the backfill block once all deployments have run at least
-// one startup after upgrading to this version.
 func NewGormUserRepo(db *gorm.DB) (*GormUserRepo, error) {
 	if err := db.AutoMigrate(&model.User{}); err != nil {
 		return nil, err
@@ -37,6 +34,12 @@ func NewGormUserRepo(db *gorm.DB) (*GormUserRepo, error) {
 	// TODO(v3): drop this block — by that point all deployments will have
 	// gone through at least one startup that populated users via
 	// IdpLinkRepository.ResolveOrCreate.
+	// TODO(v3): remove this entire backfill block. It exists solely to populate
+	// the users table on first startup after upgrading from a pre-v2 deployment
+	// that has no users table yet. Once v3 is released, every deployment will
+	// have gone through at least one v2 startup, so the backfill is guaranteed
+	// to have run and EnsureExists keeps the table current on every login.
+	//
 	// Each table is guarded individually: on an upgrade from main, tables
 	// introduced in this branch (sessions, idp_links) may not exist yet while
 	// older tables (dashboards, settings, themes) already do.
