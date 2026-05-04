@@ -64,12 +64,12 @@ func Theme(deps ThemeDeps) {
 				return err
 			}
 
-			themes, err := deps.ListUserThemes.Handle(c.Context(), user.UserID)
+			settings, err := deps.GetUserSettings.Handle(c.Context(), user.UserID)
 			if err != nil {
 				return err
 			}
 
-			settings, err := deps.GetUserSettings.Handle(c.Context(), user.UserID)
+			themes, err := deps.ListUserThemes.Handle(c.Context(), user.UserID, settings.ThemeID)
 			if err != nil {
 				return err
 			}
@@ -117,12 +117,12 @@ func Theme(deps ThemeDeps) {
 				return err
 			}
 
-			themes, err := deps.ListUserThemes.Handle(c.Context(), user.UserID)
+			settings, err := deps.GetUserSettings.Handle(c.Context(), user.UserID)
 			if err != nil {
 				return err
 			}
 
-			settings, err := deps.GetUserSettings.Handle(c.Context(), user.UserID)
+			themes, err := deps.ListUserThemes.Handle(c.Context(), user.UserID, settings.ThemeID)
 			if err != nil {
 				return err
 			}

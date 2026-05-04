@@ -166,7 +166,7 @@ func Setting(deps SettingDeps) {
 				return err
 			}
 
-			themes, err := deps.ListUserThemes.Handle(c.Context(), user.UserID)
+			themes, err := deps.ListUserThemes.Handle(c.Context(), user.UserID, settings.ThemeID)
 			if err != nil {
 				return err
 			}
@@ -211,7 +211,7 @@ func Setting(deps SettingDeps) {
 				return err
 			}
 
-			themes, err := deps.ListUserThemes.Handle(c.Context(), user.UserID)
+			themes, err := deps.ListUserThemes.Handle(c.Context(), user.UserID, settings.ThemeID)
 			if err != nil {
 				return err
 			}

@@ -45,6 +45,7 @@ func (h *DeleteUserTheme) Handle(ctx context.Context, userID string, id uint) er
 		return domainerrors.Forbidden("theme is currently active")
 	}
 
+
 	if err := h.Repo.Delete(ctx, userID, id); err != nil {
 		return domainerrors.Internal("delete user theme: delete", err)
 	}

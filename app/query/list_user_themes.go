@@ -10,7 +10,7 @@ import (
 
 // UserThemesLister handles the list-user-themes query.
 type UserThemesLister interface {
-	Handle(ctx context.Context, userID string) ([]domainmodel.Theme, error)
+	Handle(ctx context.Context, userID string, activeThemeID uint) ([]domainmodel.Theme, error)
 }
 
 type ListUserThemes struct {
@@ -21,7 +21,7 @@ func NewListUserThemes(themeRepo domainrepo.ThemeRepository) *ListUserThemes {
 	return &ListUserThemes{ThemeRepo: themeRepo}
 }
 
-func (h *ListUserThemes) Handle(ctx context.Context, userID string) ([]domainmodel.Theme, error) {
+func (h *ListUserThemes) Handle(ctx context.Context, userID string, activeThemeID uint) ([]domainmodel.Theme, error) {
 	list, err := h.ThemeRepo.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, domainerrors.Internal("list user themes", err)
@@ -29,7 +29,9 @@ func (h *ListUserThemes) Handle(ctx context.Context, userID string) ([]domainmod
 
 	// The synthetic default is always first; skip any DB rows that are identical
 	// to it (old persisted system themes from before the migration).
-	out := []domainmodel.Theme{domainmodel.DefaultTheme()}
+	def := domainmodel.DefaultTheme()
+	def.Deletable = false // default is never deletable regardless of active state
+	out := []domainmodel.Theme{def}
 	for _, t := range list {
 		if domainmodel.IsSyntheticDuplicate(t.DisplayName, t.Primary, t.Secondary, t.Tertiary) {
 			continue
@@ -40,7 +42,7 @@ func (h *ListUserThemes) Handle(ctx context.Context, userID string) ([]domainmod
 			Primary:   t.Primary,
 			Secondary: t.Secondary,
 			Tertiary:  t.Tertiary,
-			Deletable: true,
+			Deletable: t.ID != activeThemeID,
 		})
 	}
 

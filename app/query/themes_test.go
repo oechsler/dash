@@ -22,7 +22,7 @@ func TestListUserThemes_Handle_RepoError(t *testing.T) {
 	themeRepo.On("ListByUser", mock.Anything, "user-1").Return(nil, errors.New("db error"))
 
 	h := query.NewListUserThemes(themeRepo)
-	_, err := h.Handle(context.Background(), "user-1")
+	_, err := h.Handle(context.Background(), "user-1", uint(0))
 
 	var ie *domainerrors.InternalError
 	require.ErrorAs(t, err, &ie)
@@ -33,11 +33,12 @@ func TestListUserThemes_Handle_AlwaysIncludesDefault(t *testing.T) {
 	themeRepo.On("ListByUser", mock.Anything, "user-1").Return([]domainrepo.ThemeRecord{}, nil)
 
 	h := query.NewListUserThemes(themeRepo)
-	themes, err := h.Handle(context.Background(), "user-1")
+	themes, err := h.Handle(context.Background(), "user-1", uint(0))
 
 	require.NoError(t, err)
 	require.Len(t, themes, 1)
 	require.Equal(t, uint(0), themes[0].ID)
+	require.False(t, themes[0].Deletable)
 }
 
 func TestListUserThemes_Handle_FiltersSyntheticDuplicates(t *testing.T) {
@@ -51,7 +52,7 @@ func TestListUserThemes_Handle_FiltersSyntheticDuplicates(t *testing.T) {
 	}, nil)
 
 	h := query.NewListUserThemes(themeRepo)
-	themes, err := h.Handle(context.Background(), "user-1")
+	themes, err := h.Handle(context.Background(), "user-1", uint(0))
 
 	require.NoError(t, err)
 	require.Len(t, themes, 2) // default + My Theme
@@ -66,11 +67,30 @@ func TestListUserThemes_Handle_UserThemeDeletable(t *testing.T) {
 	}, nil)
 
 	h := query.NewListUserThemes(themeRepo)
-	themes, err := h.Handle(context.Background(), "user-1")
+	themes, err := h.Handle(context.Background(), "user-1", uint(0))
 
 	require.NoError(t, err)
 	require.Len(t, themes, 2)
 	require.True(t, themes[1].Deletable)
+}
+
+func TestListUserThemes_Handle_ActiveThemeNotDeletable(t *testing.T) {
+	themeRepo := &repoMock.ThemeRepository{}
+	themeRepo.On("ListByUser", mock.Anything, "user-1").Return([]domainrepo.ThemeRecord{
+		{ID: 3, DisplayName: "Active", Primary: "#111", Secondary: "#222", Tertiary: "#333"},
+		{ID: 4, DisplayName: "Other", Primary: "#aaa", Secondary: "#bbb", Tertiary: "#ccc"},
+	}, nil)
+
+	h := query.NewListUserThemes(themeRepo)
+	themes, err := h.Handle(context.Background(), "user-1", uint(3)) // theme 3 is active
+
+	require.NoError(t, err)
+	require.Len(t, themes, 3) // default + Active + Other
+	active := themes[1]
+	other := themes[2]
+	require.Equal(t, uint(3), active.ID)
+	require.False(t, active.Deletable)
+	require.True(t, other.Deletable)
 }
 
 // ── GetUserThemeByID ───────────────────────────────────────────────────────
