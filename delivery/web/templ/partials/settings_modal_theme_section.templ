@@ -112,15 +112,18 @@ templ SettingsModalThemeSection(input SettingsModalThemeSectionInput) {
 	if input.Settings != nil {
 		<div id="settings-theme-select" hx-swap-oob="outerHTML">
 			<label for="theme-id" class="block text-sm font-medium text-secondary">{ i18n.T(ctx, "settings.theme") }</label>
-			<select id="theme-id" name="theme_id" class="mt-1 block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 focus:outline-none focus:border-tertiary/80">
-				for _, theme := range input.Themes {
-					if theme.ID == input.Settings.ThemeID {
-						<option value={ fmt.Sprint(theme.ID) } selected>{ theme.DisplayName }</option>
-					} else {
-						<option value={ fmt.Sprint(theme.ID) }>{ theme.DisplayName }</option>
+			<div class="relative mt-1">
+				<select id="theme-id" name="theme_id" class="block w-full rounded-lg bg-primary border border-tertiary text-secondary p-2 pr-8 focus:outline-none focus:border-tertiary/80 cursor-pointer appearance-none">
+					for _, theme := range input.Themes {
+						if theme.ID == input.Settings.ThemeID {
+							<option value={ fmt.Sprint(theme.ID) } selected>{ theme.DisplayName }</option>
+						} else {
+							<option value={ fmt.Sprint(theme.ID) }>{ theme.DisplayName }</option>
+						}
 					}
-				}
-			</select>
+				</select>
+				<span class="material-icons-round absolute right-2 top-1/2 -translate-y-1/2 text-tertiary pointer-events-none text-base">expand_more</span>
+			</div>
 		</div>
 	}
 }
