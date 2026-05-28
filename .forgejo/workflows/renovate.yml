@@ -23,6 +23,7 @@ jobs:
       - name: Run Renovate
         env:
           RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          GITHUB_COM_TOKEN: ${{ secrets.GH_TOKEN }}
           RENOVATE_PLATFORM: forgejo
           RENOVATE_ENDPOINT: https://git.at.oechsler.it/
           RENOVATE_REPOSITORIES: '["samuel/dash"]'
