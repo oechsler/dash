@@ -242,11 +242,7 @@ func Session(
 	}).Name(SessionLogoutRoute)
 
 	router.Get("/logout/callback", func(c fiber.Ctx) error {
-		loginURL, err := c.GetRouteURL(SessionLoginRoute, fiber.Map{})
-		if err != nil {
-			return err
-		}
-		return c.Redirect().Status(fiber.StatusFound).To(loginURL)
+		return c.Redirect().Status(fiber.StatusFound).To("/")
 	}).Name(SessionLogoutCallbackRoute)
 }
 
