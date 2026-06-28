@@ -131,6 +131,10 @@ func Session(
 			}
 			// Refresh flow: update identity and token timing on the existing session record.
 			if refreshSession != nil {
+				encToken, err := store.EncryptDBToken(rawIDToken)
+				if err != nil {
+					return err
+				}
 				_ = refreshSession.Handle(c.Context(), command.RefreshSessionCmd{
 					SessionID:   stateCookie.RefreshSessionID,
 					Sub:         idToken.Subject,
@@ -141,13 +145,14 @@ func Session(
 					DisplayName: identity.DisplayName,
 					Picture:     ptrStr(identity.Picture),
 					ProfileUrl:  ptrStr(identity.ProfileUrl),
+					RawIDToken:  encToken,
 					Groups:      identity.Groups,
 					IsAdmin:     identity.IsAdmin,
 					IssuedAt:    idToken.IssuedAt,
 					ExpiresAt:   idToken.Expiry,
 				})
 			}
-			if _, err := store.SaveWithID(c, rawIDToken, stateCookie.RefreshSessionID, true); err != nil {
+			if _, err := store.SaveWithID(c, stateCookie.RefreshSessionID, true); err != nil {
 				return err
 			}
 
@@ -158,7 +163,12 @@ func Session(
 			return c.Redirect().Status(fiber.StatusFound).To(returnTo)
 		}
 
-		sessionData, err := store.Save(c, rawIDToken)
+		sessionData, err := store.Save(c)
+		if err != nil {
+			return err
+		}
+
+		encToken, err := store.EncryptDBToken(rawIDToken)
 		if err != nil {
 			return err
 		}
@@ -177,6 +187,7 @@ func Session(
 				DisplayName: identity.DisplayName,
 				Picture:     ptrStr(identity.Picture),
 				ProfileUrl:  ptrStr(identity.ProfileUrl),
+				RawIDToken:  encToken,
 				Groups:      identity.Groups,
 				IsAdmin:     identity.IsAdmin,
 				IssuedAt:    idToken.IssuedAt,
@@ -197,17 +208,21 @@ func Session(
 		sessionData, ok := store.Load(c)
 		store.Clear(c)
 
+		var idTokenHint string
 		// Delete the DB record so the session disappears from the overview
 		// and the revocation check denies any lingering cookie on other tabs.
-		if ok && sessionData.SessionID != "" && terminateSession != nil {
-			_ = terminateSession.Handle(c.Context(), sessionData.SessionID)
-		}
-
-		// Use id_token_hint for OIDC end-session when the raw token was stored in
-		// the cookie. For users with very many group memberships the token may have
-		// been omitted (cookie size budget); those users get local-only logout.
-		if !ok || sessionData.RawIDToken == "" {
-			return redirectToLogin(c)
+		if ok && sessionData.SessionID != "" {
+			if terminateSession != nil {
+				_ = terminateSession.Handle(c.Context(), sessionData.SessionID)
+			}
+			// Load the encrypted id_token from the DB session for id_token_hint.
+			if sessionRepo := store.SessionRepo(); sessionRepo != nil {
+				if record, _ := sessionRepo.Touch(c.Context(), sessionData.SessionID, c.IP(), c.Get("User-Agent")); record != nil && record.RawIDToken != "" {
+					if raw, err := store.DecryptDBToken(record.RawIDToken); err == nil {
+						idTokenHint = raw
+					}
+				}
+			}
 		}
 
 		logoutCallbackURL, err := c.GetRouteURL(SessionLogoutCallbackRoute, fiber.Map{})
@@ -216,7 +231,7 @@ func Session(
 		}
 
 		endSessionURL := provider.EndSessionURL(
-			sessionData.RawIDToken,
+			idTokenHint,
 			c.BaseURL()+logoutCallbackURL,
 		)
 		if endSessionURL == "" {

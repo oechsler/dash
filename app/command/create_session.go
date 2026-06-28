@@ -22,6 +22,7 @@ type CreateSessionCmd struct {
 	DisplayName string
 	Picture     string
 	ProfileUrl  string
+	RawIDToken  string
 	Groups      []string
 	IsAdmin     bool
 	IssuedAt    time.Time
@@ -56,6 +57,7 @@ func (h *CreateSession) Handle(ctx context.Context, cmd CreateSessionCmd) error 
 		DisplayName: cmd.DisplayName,
 		Picture:     cmd.Picture,
 		ProfileUrl:  cmd.ProfileUrl,
+		RawIDToken:  cmd.RawIDToken,
 		Groups:      cmd.Groups,
 		IsAdmin:     cmd.IsAdmin,
 		IssuedAt:    cmd.IssuedAt,

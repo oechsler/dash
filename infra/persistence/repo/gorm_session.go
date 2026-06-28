@@ -66,6 +66,7 @@ func (r *GormSessionRepo) Create(ctx context.Context, record *domainrepo.Session
 		DisplayName: record.DisplayName,
 		Picture:     record.Picture,
 		ProfileUrl:  record.ProfileUrl,
+		RawIDToken:  record.RawIDToken,
 		Groups:      encodeGroups(record.Groups),
 		IsAdmin:     record.IsAdmin,
 	}
@@ -158,9 +159,10 @@ func (r *GormSessionRepo) RefreshBySessionID(ctx context.Context, record *domain
 			"first_name":   record.FirstName,
 			"last_name":    record.LastName,
 			"display_name": record.DisplayName,
-			"picture":      record.Picture,
-			"profile_url":  record.ProfileUrl,
-			"groups":       encodeGroups(record.Groups),
+			"picture":       record.Picture,
+			"profile_url":   record.ProfileUrl,
+			"raw_id_token":  record.RawIDToken,
+			"groups":        encodeGroups(record.Groups),
 			"is_admin":     record.IsAdmin,
 		}).Error
 }
@@ -192,6 +194,7 @@ func toSessionRecord(m *model.Session) *domainrepo.SessionRecord {
 		DisplayName:    m.DisplayName,
 		Picture:        m.Picture,
 		ProfileUrl:     m.ProfileUrl,
+		RawIDToken:     m.RawIDToken,
 		Groups:         decodeGroups(m.Groups),
 		IsAdmin:        m.IsAdmin,
 	}

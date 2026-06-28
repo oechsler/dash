@@ -19,15 +19,11 @@ const stateCookieName = "dash-oidc-state"
 
 // SessionData is the minimal payload stored in the encrypted session cookie.
 //   - SessionID      — used for server-side session revocation and DB lookup.
-//   - RawIDToken     — kept solely for id_token_hint at OIDC logout.
-//     Omitted (empty) when it would push the cookie over cookieSizeBudget.
-//     Never used for identity or expiry checks — the DB is the authority.
 //   - CookieIssuedAt — unix timestamp of the last time the cookie was written;
 //     used to throttle re-issuance so the cookie is only refreshed when it is
 //     within cookieRenewalThreshold of its pinnedSessionMaxAge expiry.
 type SessionData struct {
 	SessionID      string `json:"sid"`
-	RawIDToken     string `json:"idt,omitempty"`
 	CookieIssuedAt int64  `json:"cia"`
 }
 
@@ -72,12 +68,10 @@ func NewSessionStore(cfg *config.OIDCCookieConfig, sessionRepo domainrepo.Sessio
 	}, nil
 }
 
-// Save writes a new session cookie containing a fresh SessionID and the raw ID token.
-// The caller is responsible for persisting the session (including identity) to the DB.
-func (s *SessionStore) Save(c fiber.Ctx, rawIDToken string) (SessionData, error) {
+// Save writes a new session cookie containing a fresh SessionID.
+func (s *SessionStore) Save(c fiber.Ctx) (SessionData, error) {
 	data := SessionData{
-		SessionID:  uuid.New().String(),
-		RawIDToken: rawIDToken,
+		SessionID: uuid.New().String(),
 	}
 	if err := s.writeCookie(c, data, s.maxAge); err != nil {
 		return SessionData{}, err
@@ -88,10 +82,9 @@ func (s *SessionStore) Save(c fiber.Ctx, rawIDToken string) (SessionData, error)
 // SaveWithID re-issues the session cookie with an existing SessionID.
 // Used during the group-refresh flow so the session identifier stays stable.
 // If persist is true the cookie receives a 1-year MaxAge (for pinned sessions).
-func (s *SessionStore) SaveWithID(c fiber.Ctx, rawIDToken string, sessionID string, persist bool) (SessionData, error) {
+func (s *SessionStore) SaveWithID(c fiber.Ctx, sessionID string, persist bool) (SessionData, error) {
 	data := SessionData{
-		SessionID:  sessionID,
-		RawIDToken: rawIDToken,
+		SessionID: sessionID,
 	}
 	maxAge := s.maxAge
 	if persist {
@@ -124,6 +117,7 @@ func (s *SessionStore) loadRaw(c fiber.Ctx) (SessionData, bool) {
 	}
 	var data SessionData
 	if err := s.codec.Decode(s.cookieName, encoded, &data); err != nil {
+		s.Clear(c) // remove invalid/outdated cookie from browser
 		return SessionData{}, false
 	}
 	return data, true
@@ -240,17 +234,33 @@ func (s *SessionStore) Clear(c fiber.Ctx) {
 	})
 }
 
+// EncryptDBToken encrypts the raw ID token for server-side storage using the
+// same securecookie codec. The returned string is safe to persist in the DB.
+func (s *SessionStore) EncryptDBToken(rawToken string) (string, error) {
+	encoded, err := s.codec.Encode("dash-db-token", rawToken)
+	if err != nil {
+		return "", fmt.Errorf("encrypting db token: %w", err)
+	}
+	return encoded, nil
+}
+
+// DecryptDBToken decrypts a token previously encrypted with EncryptDBToken.
+func (s *SessionStore) DecryptDBToken(encryptedToken string) (string, error) {
+	var raw string
+	if err := s.codec.Decode("dash-db-token", encryptedToken, &raw); err != nil {
+		return "", fmt.Errorf("decrypting db token: %w", err)
+	}
+	return raw, nil
+}
+
+// SessionRepo exposes the session repository for logout flows.
+func (s *SessionStore) SessionRepo() domainrepo.SessionRepository {
+	return s.sessionRepo
+}
+
 func (s *SessionStore) writeCookie(c fiber.Ctx, data SessionData, maxAge int) error {
 	data.CookieIssuedAt = time.Now().Unix()
 	encoded, err := s.codec.Encode(s.cookieName, &data)
-	if err != nil && data.RawIDToken != "" {
-		// securecookie returns ErrValueTooLong when the encoded value exceeds its
-		// MaxLength (4096 by default) — this happens for users with many group
-		// memberships. Drop the token and retry: identity is always loaded from the
-		// DB anyway; the token is only kept for id_token_hint at OIDC logout.
-		data.RawIDToken = ""
-		encoded, err = s.codec.Encode(s.cookieName, &data)
-	}
 	if err != nil {
 		return fmt.Errorf("encoding session: %w", err)
 	}

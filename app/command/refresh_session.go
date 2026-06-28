@@ -20,6 +20,7 @@ type RefreshSessionCmd struct {
 	DisplayName string
 	Picture     string
 	ProfileUrl  string
+	RawIDToken  string
 	Groups      []string
 	IsAdmin     bool
 	IssuedAt    time.Time
@@ -50,6 +51,7 @@ func (h *RefreshSession) Handle(ctx context.Context, cmd RefreshSessionCmd) erro
 		DisplayName: cmd.DisplayName,
 		Picture:     cmd.Picture,
 		ProfileUrl:  cmd.ProfileUrl,
+		RawIDToken:  cmd.RawIDToken,
 		Groups:      cmd.Groups,
 		IsAdmin:     cmd.IsAdmin,
 		IssuedAt:    cmd.IssuedAt,

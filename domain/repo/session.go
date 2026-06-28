@@ -30,6 +30,7 @@ type SessionRecord struct {
 	DisplayName string
 	Picture     string // empty = no picture
 	ProfileUrl  string // empty = no profile URL
+	RawIDToken  string // raw OIDC id_token for logout (id_token_hint)
 	Groups      []string
 	IsAdmin     bool
 }

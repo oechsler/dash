@@ -24,6 +24,7 @@ type Session struct {
 	DisplayName string
 	Picture     string
 	ProfileUrl  string
-	Groups      string `gorm:"type:text"` // JSON-encoded []string
+	RawIDToken  string    `gorm:"type:text"`
+	Groups      string    `gorm:"type:text"` // JSON-encoded []string
 	IsAdmin     bool
 }
