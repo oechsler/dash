@@ -6,6 +6,35 @@
   "dependencyDashboard": false,
   "labels": ["dependencies"],
   "postUpdateOptions": ["gomodTidy"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/cmd\\/genstatic\\/main\\.go$/"],
+      "matchStrings": [
+        "https://unpkg\\.com/htmx\\.org@(?<currentValue>[^/]+)/"
+      ],
+      "depNameTemplate": "htmx.org",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/cmd\\/genstatic\\/main\\.go$/"],
+      "matchStrings": [
+        "https://cdn\\.jsdelivr\\.net/npm/@tailwindcss/browser@(?<currentValue>[^\"]+)"
+      ],
+      "depNameTemplate": "@tailwindcss/browser",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/cmd\\/genstatic\\/main\\.go$/"],
+      "matchStrings": [
+        "https://unpkg\\.com/simple-icons-font@(?<currentValue>[^/]+)/"
+      ],
+      "depNameTemplate": "simple-icons-font",
+      "datasourceTemplate": "npm"
+    }
+  ],
   "packageRules": [
     {
       "matchManagers": ["gomod"],
