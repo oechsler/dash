@@ -16,7 +16,7 @@ import (
 
 const (
 	userAgentHdr          = "Go-Generate-Assets/1.0"
-	htmxURL               = "https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js"
+	htmxURL               = "https://unpkg.com/htmx.org@2.0.11/dist/htmx.min.js"
 	tailwindCDNURL        = "https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"
 	materialCSSURL        = "https://fonts.googleapis.com/icon?family=Material+Icons"
 	simpleIconsFontCSSURL = "https://unpkg.com/simple-icons-font@16.31.0/font/simple-icons.min.css"
