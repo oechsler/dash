@@ -1,0 +1,25 @@
+[package]
+name = "dash-rs"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "dash"
+path = "src/lib.rs"
+
+[dependencies]
+async-trait = "0.1"
+actix-web = "4"
+bon = "3"
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.10"
+getset = "0.1"
+sea-orm = { version = "1", features = ["sqlx-postgres", "runtime-tokio-rustls", "with-uuid", "with-chrono"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+uuid = { version = "1", features = ["serde", "v4"] }
+url = "2"
