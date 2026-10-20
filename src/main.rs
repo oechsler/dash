@@ -1,4 +1,4 @@
-use dash::domain::{dashboard::UserDashboard, user::UserId};
+use dash::{dashboard::domain::UserDashboard, user::domain::UserId};
 
 fn main() {
     let owner = UserId::new("local-user").expect("user ID must not be empty");
