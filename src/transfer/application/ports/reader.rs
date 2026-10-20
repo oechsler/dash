@@ -1,8 +1,9 @@
 use async_trait::async_trait;
 
-use crate::{shared::application::ApplicationError, user::domain::UserId};
-
-use super::snapshot::UserDataSnapshot;
+use crate::{
+    shared::application::ApplicationError, transfer::application::models::UserDataSnapshot,
+    user::domain::UserId,
+};
 
 #[async_trait]
 pub trait UserDataReader: Send + Sync {

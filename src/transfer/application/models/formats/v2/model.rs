@@ -4,6 +4,7 @@ use sha2::{Digest, Sha256};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserDataExport {
     pub version: u32,
+    pub exported_at: String,
     pub username: String,
     pub settings: SettingsExport,
     pub themes: Vec<ThemeExport>,
@@ -77,12 +78,6 @@ impl UserDataExport {
         let digest: [u8; 32] = Sha256::digest(serde_json::to_vec(&unsigned)?).into();
         Ok(hex(&digest) == *signature)
     }
-}
-
-pub fn content_hash(parts: &[&str]) -> String {
-    let joined = parts.join("\0");
-    let digest: [u8; 32] = Sha256::digest(joined.as_bytes()).into();
-    hex(&digest)[..16].to_owned()
 }
 
 fn hex<const N: usize>(bytes: &[u8; N]) -> String {

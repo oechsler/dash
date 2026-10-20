@@ -3,6 +3,7 @@ use super::{SettingsExport, UserDataExport};
 fn export() -> UserDataExport {
     UserDataExport {
         version: 2,
+        exported_at: "2026-01-01T00:00:00Z".into(),
         username: "sam".into(),
         settings: SettingsExport::default(),
         themes: Vec::new(),

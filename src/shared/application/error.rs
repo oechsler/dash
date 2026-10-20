@@ -4,7 +4,8 @@ use thiserror::Error;
 use crate::{
     catalog::domain::CatalogError, dashboard::domain::DashboardError, icon::domain::IconError,
     preferences::domain::PreferencesError, session::domain::SessionError,
-    shared::domain::DomainError, theme::domain::ThemeError, user::domain::UserError,
+    shared::domain::DomainError, theme::domain::ThemeError, transfer::application::TransferError,
+    user::domain::UserError,
 };
 
 #[derive(Debug, Error)]
@@ -19,11 +20,17 @@ pub enum ApplicationError {
         source: Box<dyn StdError + Send + Sync>,
     },
 
-    #[error("failed to serialize user data: {0}")]
-    Serialization(#[from] serde_json::Error),
+    #[error("transfer application error: {0}")]
+    Transfer(#[from] TransferError),
 
     #[error("{0} was not found")]
     NotFound(&'static str),
+}
+
+impl From<serde_json::Error> for ApplicationError {
+    fn from(error: serde_json::Error) -> Self {
+        Self::Transfer(TransferError::Serialization(error))
+    }
 }
 
 impl ApplicationError {

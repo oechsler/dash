@@ -1,4 +1,4 @@
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct UserDataSnapshot {
     pub dashboard: Option<crate::dashboard::domain::UserDashboard>,
     pub preferences: Option<crate::preferences::domain::UserPreferences>,
