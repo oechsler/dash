@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use super::TimeZoneError;
+use super::{PreferencesError, TimeZoneError};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
 pub enum TimeZone {
@@ -10,14 +10,16 @@ pub enum TimeZone {
 }
 
 impl TimeZone {
-    pub fn parse(value: impl Into<String>) -> Result<Self, TimeZoneError> {
+    pub fn parse(value: impl Into<String>) -> Result<Self, PreferencesError> {
         let value = value.into();
         if value == "auto" {
             return Ok(Self::Auto);
         }
 
-        chrono_tz::Tz::from_str(&value).map_err(|_| TimeZoneError::InvalidIanaName {
-            value: value.clone(),
+        chrono_tz::Tz::from_str(&value).map_err(|_| {
+            PreferencesError::from(TimeZoneError::InvalidIanaName {
+                value: value.clone(),
+            })
         })?;
         Ok(Self::Iana(value))
     }

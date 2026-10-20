@@ -1,10 +1,14 @@
 use thiserror::Error;
 
+use super::TimeZoneError;
 use crate::domain::theme::ThemeId;
 use crate::domain::user::UserId;
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum PreferencesError {
+    #[error("preference timezone is invalid: {0}")]
+    TimeZone(#[from] TimeZoneError),
+
     #[error("theme {theme_id:?} is not available to user {user_id:?}")]
     ThemeNotAvailableToUser { theme_id: ThemeId, user_id: UserId },
 

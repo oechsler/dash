@@ -1,4 +1,4 @@
-use super::{Bookmark, CategoryError, CategoryId};
+use super::{Bookmark, CategoryError, CategoryId, DashboardError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Category {
@@ -9,11 +9,11 @@ pub struct Category {
 }
 
 impl Category {
-    pub fn new(name: impl Into<String>) -> Result<Self, CategoryError> {
+    pub fn new(name: impl Into<String>) -> Result<Self, DashboardError> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(CategoryError::EmptyName { value: name });
+            return Err(CategoryError::EmptyName { value: name }.into());
         }
         Ok(Self {
             id: CategoryId::new(),
@@ -68,11 +68,11 @@ impl Category {
         self.shelved = false;
     }
 
-    pub fn rename(&mut self, name: impl Into<String>) -> Result<(), CategoryError> {
+    pub fn rename(&mut self, name: impl Into<String>) -> Result<(), DashboardError> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(CategoryError::EmptyName { value: name });
+            return Err(CategoryError::EmptyName { value: name }.into());
         }
         self.name = trimmed.to_owned();
         Ok(())

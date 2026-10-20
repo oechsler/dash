@@ -126,6 +126,8 @@ fn language_and_timezone_preferences_are_typed_and_validated() {
     assert_eq!(TimeZone::parse("auto").unwrap(), TimeZone::Auto);
     assert!(matches!(
         TimeZone::parse("Not/ATimezone"),
-        Err(TimeZoneError::InvalidIanaName { .. })
+        Err(PreferencesError::TimeZone(
+            TimeZoneError::InvalidIanaName { .. }
+        ))
     ));
 }

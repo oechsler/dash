@@ -1,13 +1,13 @@
-use super::{Category, CategoryError};
+use super::{Category, CategoryError, DashboardError};
 
 #[test]
 fn category_rejects_blank_names_without_mutating() {
     let mut category = Category::new("Work").unwrap();
     assert_eq!(
         category.rename("  "),
-        Err(CategoryError::EmptyName {
+        Err(DashboardError::Category(CategoryError::EmptyName {
             value: "  ".to_owned()
-        })
+        }))
     );
     assert_eq!(category.name(), "Work");
 }

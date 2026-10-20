@@ -1,13 +1,13 @@
-use super::IdentifierError;
+use super::{IdentifierError, UserError};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct GroupId(String);
 
 impl GroupId {
-    pub fn new(value: impl Into<String>) -> Result<Self, IdentifierError> {
+    pub fn new(value: impl Into<String>) -> Result<Self, UserError> {
         let value = value.into();
         if value.trim().is_empty() {
-            return Err(IdentifierError::EmptyGroupId { value });
+            return Err(IdentifierError::EmptyGroupId { value }.into());
         }
         Ok(Self(value))
     }

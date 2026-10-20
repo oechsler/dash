@@ -5,7 +5,7 @@ use getset::Getters;
 
 use crate::domain::{dashboard::WebAddress, icon::IconReference, user::GroupId};
 
-use super::{ApplicationError, ApplicationId, ApplicationVisibility};
+use super::{ApplicationError, ApplicationId, ApplicationVisibility, CatalogError};
 
 /// An administrator-maintained application in the shared catalog.
 #[derive(Debug, Clone, PartialEq, Eq, Getters)]
@@ -26,11 +26,11 @@ impl Application {
         icon: IconReference,
         address: WebAddress,
         visibility: ApplicationVisibility,
-    ) -> Result<Self, ApplicationError> {
+    ) -> Result<Self, CatalogError> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(ApplicationError::EmptyName { value: name });
+            return Err(ApplicationError::EmptyName { value: name }.into());
         }
 
         Ok(Self {
@@ -58,11 +58,11 @@ impl Application {
         &self.icon
     }
 
-    pub fn rename(&mut self, name: impl Into<String>) -> Result<(), ApplicationError> {
+    pub fn rename(&mut self, name: impl Into<String>) -> Result<(), CatalogError> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(ApplicationError::EmptyName { value: name });
+            return Err(ApplicationError::EmptyName { value: name }.into());
         }
         self.name = trimmed.to_owned();
         Ok(())

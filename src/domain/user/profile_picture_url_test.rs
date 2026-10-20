@@ -1,4 +1,4 @@
-use super::{ProfilePictureUrl, ProfilePictureUrlError};
+use super::{ProfilePictureUrl, ProfilePictureUrlError, UserError};
 
 #[test]
 fn profile_picture_url_accepts_http_and_https() {
@@ -14,6 +14,8 @@ fn profile_picture_url_accepts_http_and_https() {
 fn profile_picture_url_rejects_non_web_schemes() {
     assert!(matches!(
         ProfilePictureUrl::parse("file:///tmp/avatar.png"),
-        Err(ProfilePictureUrlError::InvalidUrl { .. })
+        Err(UserError::ProfilePicture(
+            ProfilePictureUrlError::InvalidUrl { .. }
+        ))
     ));
 }

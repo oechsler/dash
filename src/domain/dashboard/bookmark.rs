@@ -1,6 +1,6 @@
 use crate::domain::icon::IconReference;
 
-use super::{BookmarkError, BookmarkId, WebAddress};
+use super::{BookmarkError, BookmarkId, DashboardError, WebAddress};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Bookmark {
@@ -15,11 +15,11 @@ impl Bookmark {
         name: impl Into<String>,
         icon: IconReference,
         address: WebAddress,
-    ) -> Result<Self, BookmarkError> {
+    ) -> Result<Self, DashboardError> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(BookmarkError::EmptyName { value: name });
+            return Err(BookmarkError::EmptyName { value: name }.into());
         }
         Ok(Self {
             id: BookmarkId::new(),
@@ -45,11 +45,11 @@ impl Bookmark {
         &self.icon
     }
 
-    pub fn rename(&mut self, name: impl Into<String>) -> Result<(), BookmarkError> {
+    pub fn rename(&mut self, name: impl Into<String>) -> Result<(), DashboardError> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(BookmarkError::EmptyName { value: name });
+            return Err(BookmarkError::EmptyName { value: name }.into());
         }
         self.name = trimmed.to_owned();
         Ok(())

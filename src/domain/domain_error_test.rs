@@ -2,7 +2,10 @@ use std::error::Error;
 
 use crate::domain::{
     DomainError,
+    catalog::{Application, ApplicationError, ApplicationVisibility, CatalogError},
+    dashboard::WebAddress,
     dashboard::{Category, DashboardError, UserDashboard},
+    icon::IconReference,
     user::UserId,
 };
 
@@ -27,4 +30,29 @@ fn errors_keep_context_from_the_domain_down_to_the_entity() {
         Some(DashboardError::Category(_))
     ));
     assert!(dashboard_error.source().is_some());
+}
+
+#[test]
+fn application_errors_flow_through_catalog_to_domain_error() {
+    let catalog_error = Application::builder()
+        .name(" ")
+        .icon(IconReference::parse("pack:app").unwrap())
+        .address(WebAddress::parse("https://app.example").unwrap())
+        .visibility(ApplicationVisibility::everyone())
+        .build()
+        .unwrap_err();
+    let domain_error = DomainError::from(catalog_error);
+
+    assert!(matches!(
+        domain_error,
+        DomainError::Catalog(CatalogError::Application(
+            ApplicationError::EmptyName { .. }
+        ))
+    ));
+    let catalog_error = domain_error.source().unwrap();
+    assert!(matches!(
+        catalog_error.downcast_ref::<CatalogError>(),
+        Some(CatalogError::Application(_))
+    ));
+    assert!(catalog_error.source().is_some());
 }

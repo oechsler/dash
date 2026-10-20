@@ -1,10 +1,10 @@
-use super::ProfilePictureUrlError;
+use super::{ProfilePictureUrlError, UserError};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ProfilePictureUrl(String);
 
 impl ProfilePictureUrl {
-    pub fn parse(value: impl Into<String>) -> Result<Self, ProfilePictureUrlError> {
+    pub fn parse(value: impl Into<String>) -> Result<Self, UserError> {
         let value = value.into();
         let parsed =
             url::Url::parse(&value).map_err(|source| ProfilePictureUrlError::InvalidUrl {
@@ -16,7 +16,8 @@ impl ProfilePictureUrl {
             return Err(ProfilePictureUrlError::InvalidUrl {
                 value,
                 reason: "expected an absolute HTTP(S) URL with a host".to_owned(),
-            });
+            }
+            .into());
         }
 
         Ok(Self(value))

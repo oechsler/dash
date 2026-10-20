@@ -1,17 +1,17 @@
-use super::WebAddressError;
+use super::{DashboardError, WebAddressError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WebAddress(String);
 
 impl WebAddress {
-    pub fn parse(value: impl Into<String>) -> Result<Self, WebAddressError> {
+    pub fn parse(value: impl Into<String>) -> Result<Self, DashboardError> {
         let value = value.into();
         let parsed = url::Url::parse(&value).map_err(|source| WebAddressError::Malformed {
             value: value.clone(),
             reason: source.to_string(),
         })?;
         if parsed.host().is_none() {
-            return Err(WebAddressError::MissingHost { value });
+            return Err(WebAddressError::MissingHost { value }.into());
         }
 
         Ok(Self(value))

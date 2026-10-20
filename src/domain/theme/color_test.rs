@@ -1,4 +1,4 @@
-use super::{Color, ColorError};
+use super::{Color, ColorError, ThemeError};
 
 #[test]
 fn color_accepts_three_and_six_digit_hex_values() {
@@ -10,8 +10,8 @@ fn color_accepts_three_and_six_digit_hex_values() {
 fn color_rejects_non_hex_values_with_context() {
     assert_eq!(
         Color::parse("red"),
-        Err(ColorError::InvalidHex {
+        Err(ThemeError::Color(ColorError::InvalidHex {
             value: "red".to_owned()
-        })
+        }))
     );
 }
