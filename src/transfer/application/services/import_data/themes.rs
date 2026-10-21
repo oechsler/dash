@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use crate::{
     shared::application::ApplicationError,
-    theme::domain::{Theme, ThemeId, ThemeMode, ThemeScope},
-    transfer::application::models::{UserDataSnapshot, formats::content_hash},
+    theme::domain::{ThemeId, ThemeScope},
+    transfer::application::models::{UserDataSnapshot, formats::theme_hash},
 };
 
 pub(super) fn merge(
@@ -36,18 +36,4 @@ pub(super) fn merge(
         id_map.insert(theme.id(), target_id);
     }
     Ok(id_map)
-}
-
-fn theme_hash(theme: &Theme) -> String {
-    let mode = match theme.mode() {
-        ThemeMode::Light => "light",
-        ThemeMode::Dark => "dark",
-    };
-    content_hash(&[
-        theme.name(),
-        mode,
-        theme.palette().primary().as_str(),
-        theme.palette().secondary().as_str(),
-        theme.palette().tertiary().as_str(),
-    ])
 }

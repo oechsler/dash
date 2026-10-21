@@ -29,12 +29,12 @@ impl<R: ApplicationReader + ApplicationWriter> CreateApplication<R> {
         input: CreateApplicationInput,
     ) -> Result<ApplicationId, ApplicationError> {
         let groups = parse_groups(input.visible_to_groups)?;
-        let application = Application::builder()
-            .name(input.name)
-            .icon(IconReference::parse(input.icon)?)
-            .address(WebAddress::parse(input.address)?)
-            .visibility(ApplicationVisibility::groups(groups))
-            .build()?;
+        let application = Application::create(
+            input.name,
+            IconReference::parse(input.icon)?,
+            WebAddress::parse(input.address)?,
+            ApplicationVisibility::groups(groups),
+        )?;
         let id = application.id();
         self.repository.save(&application).await?;
         Ok(id)

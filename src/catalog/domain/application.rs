@@ -20,6 +20,20 @@ pub struct Application {
 
 #[bon]
 impl Application {
+    pub fn create(
+        name: impl Into<String>,
+        icon: IconReference,
+        address: WebAddress,
+        visibility: ApplicationVisibility,
+    ) -> Result<Self, CatalogError> {
+        Self::builder()
+            .name(name)
+            .icon(icon)
+            .address(address)
+            .visibility(visibility)
+            .build()
+    }
+
     #[builder]
     pub fn new(
         name: impl Into<String>,

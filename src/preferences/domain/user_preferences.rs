@@ -36,24 +36,14 @@ impl UserPreferences {
     }
 
     pub fn select_theme(&mut self, theme: &Theme) -> Result<(), PreferencesError> {
-        if !theme.scope().is_available_to(&self.user_id) {
-            return Err(PreferencesError::ThemeNotAvailableToUser {
-                theme_id: theme.id(),
-                user_id: self.user_id.clone(),
-            });
-        }
+        self.ensure_theme_available(theme)?;
         self.selected_themes.select(theme.mode(), theme.id());
         Ok(())
     }
 
     /// Validates deletion against ownership, global scope, and both mode selections.
     pub fn ensure_theme_can_be_deleted(&self, theme: &Theme) -> Result<(), PreferencesError> {
-        if !theme.scope().is_available_to(&self.user_id) {
-            return Err(PreferencesError::ThemeNotAvailableToUser {
-                theme_id: theme.id(),
-                user_id: self.user_id.clone(),
-            });
-        }
+        self.ensure_theme_available(theme)?;
         if !theme.is_deletable() {
             return Err(PreferencesError::ThemeNotDeletable {
                 theme_id: theme.id(),
@@ -66,6 +56,16 @@ impl UserPreferences {
             });
         }
         Ok(())
+    }
+
+    fn ensure_theme_available(&self, theme: &Theme) -> Result<(), PreferencesError> {
+        if theme.scope().is_available_to(&self.user_id) {
+            return Ok(());
+        }
+        Err(PreferencesError::ThemeNotAvailableToUser {
+            theme_id: theme.id(),
+            user_id: self.user_id.clone(),
+        })
     }
 
     pub fn clear_theme_selection(&mut self, mode: ThemeMode) {

@@ -1,7 +1,7 @@
 use crate::{
     dashboard::domain::{Bookmark, Category},
     transfer::application::models::formats::{
-        content_hash,
+        bookmark_hash, category_hash,
         v2::{BookmarkExport, CategoryExport},
     },
 };
@@ -14,7 +14,7 @@ fn export_category(category: &Category) -> CategoryExport {
     let bookmarks = category.bookmarks().iter().map(export_bookmark).collect();
     let name = category.name().to_owned();
     let shelved = category.is_shelved();
-    let hash = content_hash(&[&name, if shelved { "true" } else { "false" }]);
+    let hash = category_hash(category);
     CategoryExport {
         hash,
         name,
@@ -27,7 +27,7 @@ fn export_bookmark(bookmark: &Bookmark) -> BookmarkExport {
     let name = bookmark.name().to_owned();
     let icon = bookmark.icon().as_str().to_owned();
     let address = bookmark.address().as_str().to_owned();
-    let hash = content_hash(&[&icon, &name, &address]);
+    let hash = bookmark_hash(bookmark);
     BookmarkExport {
         hash,
         name,

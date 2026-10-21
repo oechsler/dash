@@ -1,9 +1,12 @@
 use std::collections::HashSet;
 
 use crate::{
-    dashboard::domain::{Bookmark, Category, UserDashboard},
+    dashboard::domain::{Category, UserDashboard},
     shared::application::ApplicationError,
-    transfer::application::models::{UserDataSnapshot, formats::content_hash},
+    transfer::application::models::{
+        UserDataSnapshot,
+        formats::{bookmark_hash, category_hash},
+    },
     user::domain::UserId,
 };
 
@@ -46,23 +49,4 @@ pub(super) fn merge(
         }
     }
     Ok(())
-}
-
-fn category_hash(category: &Category) -> String {
-    content_hash(&[
-        category.name(),
-        if category.is_shelved() {
-            "true"
-        } else {
-            "false"
-        },
-    ])
-}
-
-fn bookmark_hash(bookmark: &Bookmark) -> String {
-    content_hash(&[
-        bookmark.icon().as_str(),
-        bookmark.name(),
-        bookmark.address().as_str(),
-    ])
 }

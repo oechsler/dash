@@ -1,7 +1,6 @@
 use crate::{
-    catalog::domain::Application,
     shared::application::ApplicationError,
-    transfer::application::models::{UserDataSnapshot, formats::content_hash},
+    transfer::application::models::{UserDataSnapshot, formats::application_hash},
 };
 
 pub(super) fn merge(
@@ -17,25 +16,4 @@ pub(super) fn merge(
         }
     }
     Ok(())
-}
-
-fn application_hash(application: &Application) -> String {
-    let mut groups: Vec<_> = application
-        .visibility()
-        .visible_to_groups()
-        .map(|groups| {
-            groups
-                .iter()
-                .map(|group| group.as_str().to_owned())
-                .collect()
-        })
-        .unwrap_or_default();
-    groups.sort();
-    let joined = groups.join(",");
-    content_hash(&[
-        application.icon().as_str(),
-        application.name(),
-        application.address().as_str(),
-        &joined,
-    ])
 }

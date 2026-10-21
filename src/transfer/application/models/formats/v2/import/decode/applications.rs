@@ -16,12 +16,12 @@ pub(super) fn build(records: Vec<ApplicationExport>) -> Result<Vec<Application>,
                 .into_iter()
                 .map(GroupId::new)
                 .collect::<Result<Vec<_>, _>>()?;
-            Ok(Application::builder()
-                .name(record.name)
-                .icon(IconReference::parse(record.icon)?)
-                .address(WebAddress::parse(record.address)?)
-                .visibility(ApplicationVisibility::groups(groups))
-                .build()?)
+            Ok(Application::create(
+                record.name,
+                IconReference::parse(record.icon)?,
+                WebAddress::parse(record.address)?,
+                ApplicationVisibility::groups(groups),
+            )?)
         })
         .collect()
 }

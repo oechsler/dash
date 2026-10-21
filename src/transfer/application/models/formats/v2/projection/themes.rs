@@ -1,6 +1,6 @@
 use crate::{
     theme::domain::{Theme, ThemeId, ThemeMode},
-    transfer::application::models::formats::{content_hash, v2::ThemeExport},
+    transfer::application::models::formats::{theme_hash, v2::ThemeExport},
 };
 
 pub(super) fn name_for(themes: &[Theme], id: ThemeId) -> Option<String> {
@@ -20,7 +20,7 @@ pub(super) fn export(theme: &Theme) -> ThemeExport {
     let primary = theme.palette().primary().as_str().to_owned();
     let secondary = theme.palette().secondary().as_str().to_owned();
     let tertiary = theme.palette().tertiary().as_str().to_owned();
-    let hash = content_hash(&[&name, &mode, &primary, &secondary, &tertiary]);
+    let hash = theme_hash(theme);
     ThemeExport {
         hash,
         name,
