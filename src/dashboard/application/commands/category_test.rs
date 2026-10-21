@@ -51,7 +51,7 @@ async fn create_category_persists_it_in_the_owners_dashboard() {
     assert_eq!(dashboard.owner(), &owner);
     assert_eq!(dashboard.categories()[0].id(), category_id);
     assert_eq!(dashboard.categories()[0].name(), "Homelab");
-    assert!(dashboard.categories()[0].is_shelved());
+    assert!(dashboard.categories()[0].as_shelved().is_some());
 }
 
 #[tokio::test]

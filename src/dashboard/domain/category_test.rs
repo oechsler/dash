@@ -1,4 +1,4 @@
-use super::{Category, CategoryError, DashboardError};
+use super::{Category, CategoryError, DashboardCategory, DashboardError, ShelvedCategory};
 
 #[test]
 fn category_rejects_blank_names_without_mutating() {
@@ -13,10 +13,14 @@ fn category_rejects_blank_names_without_mutating() {
 }
 
 #[test]
-fn category_can_be_shelved_and_unshelved() {
-    let mut category = Category::new("Work").unwrap();
-    category.shelve();
-    assert!(category.is_shelved());
-    category.unshelve();
-    assert!(!category.is_shelved());
+fn category_changes_between_distinct_active_and_shelved_types() {
+    let category = Category::new("Work").unwrap();
+    let shelved: ShelvedCategory = category.into();
+    assert_eq!(shelved.name(), "Work");
+    let category = shelved.unshelve();
+    assert_eq!(category.name(), "Work");
+    assert!(matches!(
+        DashboardCategory::from(category),
+        DashboardCategory::Active(_)
+    ));
 }

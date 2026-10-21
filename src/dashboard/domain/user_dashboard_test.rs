@@ -84,3 +84,19 @@ fn removing_category_returns_it_with_bookmarks_for_cascade_removal() {
     assert_eq!(removed.bookmarks().len(), 1);
     assert!(dashboard.categories().is_empty());
 }
+
+#[test]
+fn changing_category_state_preserves_its_identity_and_contents() {
+    let mut dashboard = UserDashboard::new(UserId::new("user-1").unwrap());
+    let category = Category::new("Work").unwrap();
+    let category_id = category.id();
+    dashboard.add_category(category);
+
+    dashboard.shelve_category(category_id).unwrap();
+    assert!(dashboard.categories()[0].as_shelved().is_some());
+    assert_eq!(dashboard.categories()[0].id(), category_id);
+
+    dashboard.unshelve_category(category_id).unwrap();
+    assert!(dashboard.categories()[0].as_active().is_some());
+    assert_eq!(dashboard.categories()[0].id(), category_id);
+}

@@ -1,7 +1,7 @@
 use crate::{
     dashboard::{
         application::ports::DashboardReader,
-        domain::{Category, CategoryId},
+        domain::{CategoryId, DashboardCategory},
     },
     shared::application::ApplicationError,
     user::domain::UserId,
@@ -20,7 +20,7 @@ impl<R: DashboardReader> GetUserCategory<R> {
         &self,
         owner: &UserId,
         id: CategoryId,
-    ) -> Result<Category, ApplicationError> {
+    ) -> Result<DashboardCategory, ApplicationError> {
         self.repository
             .load(owner)
             .await?

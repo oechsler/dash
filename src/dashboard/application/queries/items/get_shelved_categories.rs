@@ -1,5 +1,5 @@
 use crate::{
-    dashboard::{application::ports::DashboardReader, domain::Category},
+    dashboard::{application::ports::DashboardReader, domain::ShelvedCategory},
     shared::application::ApplicationError,
     user::domain::UserId,
 };
@@ -13,15 +13,14 @@ impl<R: DashboardReader> GetUserShelvedCategories<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, owner: &UserId) -> Result<Vec<Category>, ApplicationError> {
+    pub async fn execute(&self, owner: &UserId) -> Result<Vec<ShelvedCategory>, ApplicationError> {
         let Some(dashboard) = self.repository.load(owner).await? else {
             return Ok(Vec::new());
         };
         Ok(dashboard
             .categories()
             .iter()
-            .filter(|category| category.is_shelved())
-            .cloned()
+            .filter_map(|category| category.as_shelved().cloned())
             .collect())
     }
 }

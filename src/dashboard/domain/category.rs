@@ -4,7 +4,6 @@ use super::{Bookmark, CategoryError, CategoryId, DashboardError};
 pub struct Category {
     id: CategoryId,
     name: String,
-    shelved: bool,
     bookmarks: Vec<Bookmark>,
 }
 
@@ -18,7 +17,6 @@ impl Category {
         Ok(Self {
             id: CategoryId::new(),
             name: trimmed.to_owned(),
-            shelved: false,
             bookmarks: Vec::new(),
         })
     }
@@ -29,10 +27,6 @@ impl Category {
 
     pub fn name(&self) -> &str {
         &self.name
-    }
-
-    pub fn is_shelved(&self) -> bool {
-        self.shelved
     }
 
     pub fn bookmarks(&self) -> &[Bookmark] {
@@ -58,14 +52,6 @@ impl Category {
             .iter()
             .position(|bookmark| bookmark.id() == id)
             .map(|index| self.bookmarks.remove(index))
-    }
-
-    pub fn shelve(&mut self) {
-        self.shelved = true;
-    }
-
-    pub fn unshelve(&mut self) {
-        self.shelved = false;
     }
 
     pub fn rename(&mut self, name: impl Into<String>) -> Result<(), DashboardError> {

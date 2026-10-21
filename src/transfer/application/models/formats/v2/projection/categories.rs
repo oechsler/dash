@@ -1,19 +1,19 @@
 use crate::{
-    dashboard::domain::{Bookmark, Category},
+    dashboard::domain::{Bookmark, DashboardCategory},
     transfer::application::models::formats::{
         bookmark_hash, category_hash,
         v2::{BookmarkExport, CategoryExport},
     },
 };
 
-pub(super) fn export(categories: &[Category]) -> Vec<CategoryExport> {
+pub(super) fn export(categories: &[DashboardCategory]) -> Vec<CategoryExport> {
     categories.iter().map(export_category).collect()
 }
 
-fn export_category(category: &Category) -> CategoryExport {
+fn export_category(category: &DashboardCategory) -> CategoryExport {
     let bookmarks = category.bookmarks().iter().map(export_bookmark).collect();
     let name = category.name().to_owned();
-    let shelved = category.is_shelved();
+    let shelved = matches!(category, DashboardCategory::Shelved(_));
     let hash = category_hash(category);
     CategoryExport {
         hash,

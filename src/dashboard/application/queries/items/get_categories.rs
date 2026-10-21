@@ -20,8 +20,7 @@ impl<R: DashboardReader> GetUserCategories<R> {
         Ok(dashboard
             .categories()
             .iter()
-            .filter(|category| !category.is_shelved())
-            .cloned()
+            .filter_map(|category| category.as_active().cloned())
             .collect())
     }
 }

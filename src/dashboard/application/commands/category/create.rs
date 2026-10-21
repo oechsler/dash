@@ -1,5 +1,5 @@
 use crate::{
-    dashboard::domain::{Category, CategoryId, UserDashboard},
+    dashboard::domain::{Category, CategoryId, DashboardCategory, ShelvedCategory, UserDashboard},
     shared::application::ApplicationError,
     user::domain::UserId,
 };
@@ -30,10 +30,12 @@ impl<R: DashboardReader + DashboardWriter> CreateCategory<R> {
             .load(&input.owner)
             .await?
             .unwrap_or_else(|| UserDashboard::new(input.owner));
-        let mut category = Category::new(input.name)?;
-        if input.shelved {
-            category.shelve();
-        }
+        let category = Category::new(input.name)?;
+        let category: DashboardCategory = if input.shelved {
+            ShelvedCategory::from(category).into()
+        } else {
+            category.into()
+        };
         let id = category.id();
         dashboard.add_category(category);
         self.repository.save(&dashboard).await?;

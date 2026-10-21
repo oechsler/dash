@@ -1,6 +1,6 @@
 use crate::{
     catalog::domain::Application,
-    dashboard::domain::{Bookmark, Category},
+    dashboard::domain::{Bookmark, DashboardCategory},
     theme::domain::{Theme, ThemeMode},
     transfer::application::models::formats::content_hash,
 };
@@ -30,10 +30,10 @@ pub(crate) fn application_groups(application: &Application) -> Vec<String> {
         .unwrap_or_default()
 }
 
-pub(crate) fn category_hash(category: &Category) -> String {
+pub(crate) fn category_hash(category: &DashboardCategory) -> String {
     content_hash(&[
         category.name(),
-        if category.is_shelved() {
+        if matches!(category, DashboardCategory::Shelved(_)) {
             "true"
         } else {
             "false"

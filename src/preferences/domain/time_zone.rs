@@ -6,7 +6,7 @@ use super::{PreferencesError, TimeZoneError};
 pub enum TimeZone {
     #[default]
     Auto,
-    Iana(String),
+    Iana(chrono_tz::Tz),
 }
 
 impl TimeZone {
@@ -16,18 +16,18 @@ impl TimeZone {
             return Ok(Self::Auto);
         }
 
-        chrono_tz::Tz::from_str(&value).map_err(|_| {
+        let timezone = chrono_tz::Tz::from_str(&value).map_err(|_| {
             PreferencesError::from(TimeZoneError::InvalidIanaName {
                 value: value.clone(),
             })
         })?;
-        Ok(Self::Iana(value))
+        Ok(Self::Iana(timezone))
     }
 
     pub fn as_str(&self) -> &str {
         match self {
             Self::Auto => "auto",
-            Self::Iana(value) => value,
+            Self::Iana(timezone) => timezone.name(),
         }
     }
 }

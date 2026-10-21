@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::{
-    dashboard::domain::{Category, UserDashboard},
+    dashboard::domain::UserDashboard,
     shared::application::ApplicationError,
     transfer::application::models::{
         UserDataSnapshot,
@@ -28,7 +28,7 @@ pub(super) fn merge(
             .categories()
             .iter()
             .find(|category| category_hash(category) == imported_hash)
-            .map(Category::id);
+            .map(|category| category.id());
         let Some(category_id) = matching_id else {
             target_dashboard.add_category(imported_category.clone());
             continue;

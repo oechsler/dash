@@ -1,5 +1,5 @@
 use crate::{
-    dashboard::domain::{Bookmark, Category, UserDashboard, WebAddress},
+    dashboard::domain::{Bookmark, Category, ShelvedCategory, UserDashboard, WebAddress},
     icon::domain::IconReference,
     shared::application::ApplicationError,
     transfer::application::models::formats::v2::CategoryExport,
@@ -13,9 +13,6 @@ pub(super) fn build(
     let mut dashboard = UserDashboard::new(owner.clone());
     for record in records {
         let mut category = Category::new(record.name)?;
-        if record.shelved {
-            category.shelve();
-        }
         for bookmark in record.bookmarks {
             category.add_bookmark(Bookmark::new(
                 bookmark.name,
@@ -23,7 +20,11 @@ pub(super) fn build(
                 WebAddress::parse(bookmark.address)?,
             )?);
         }
-        dashboard.add_category(category);
+        if record.shelved {
+            dashboard.add_category(ShelvedCategory::from(category));
+        } else {
+            dashboard.add_category(category);
+        }
     }
     Ok(dashboard)
 }

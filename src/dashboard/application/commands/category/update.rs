@@ -29,13 +29,10 @@ impl<R: DashboardReader + DashboardWriter> UpdateCategory<R> {
             .await?
             .unwrap_or_else(|| UserDashboard::new(input.owner.clone()));
         dashboard.rename_category(input.category_id, input.name)?;
-        let category = dashboard
-            .category_mut(input.category_id)
-            .expect("rename verifies category exists");
         if input.shelved {
-            category.shelve();
+            dashboard.shelve_category(input.category_id)?;
         } else {
-            category.unshelve();
+            dashboard.unshelve_category(input.category_id)?;
         }
         self.repository.save(&dashboard).await?;
         Ok(())

@@ -1,12 +1,12 @@
 use crate::user::domain::UserId;
 
-use super::{Bookmark, BookmarkId, Category, CategoryId, DashboardError};
+use super::{Bookmark, BookmarkId, CategoryId, DashboardCategory, DashboardError};
 
 /// The personal dashboard aggregate. Its categories and bookmarks are owned by one user.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UserDashboard {
     owner: UserId,
-    categories: Vec<Category>,
+    categories: Vec<DashboardCategory>,
 }
 
 impl UserDashboard {
@@ -21,15 +21,15 @@ impl UserDashboard {
         &self.owner
     }
 
-    pub fn categories(&self) -> &[Category] {
+    pub fn categories(&self) -> &[DashboardCategory] {
         &self.categories
     }
 
-    pub fn add_category(&mut self, category: Category) {
-        self.categories.push(category);
+    pub fn add_category(&mut self, category: impl Into<DashboardCategory>) {
+        self.categories.push(category.into());
     }
 
-    pub fn category_mut(&mut self, id: CategoryId) -> Option<&mut Category> {
+    pub fn category_mut(&mut self, id: CategoryId) -> Option<&mut DashboardCategory> {
         self.categories
             .iter_mut()
             .find(|category| category.id() == id)
@@ -47,13 +47,36 @@ impl UserDashboard {
     }
 
     /// Removes a category and returns it with its bookmarks for cascading persistence.
-    pub fn remove_category(&mut self, id: CategoryId) -> Result<Category, DashboardError> {
+    pub fn remove_category(&mut self, id: CategoryId) -> Result<DashboardCategory, DashboardError> {
         let index = self
             .categories
             .iter()
             .position(|category| category.id() == id)
             .ok_or(DashboardError::CategoryNotFound { category_id: id })?;
         Ok(self.categories.remove(index))
+    }
+
+    pub fn shelve_category(&mut self, id: CategoryId) -> Result<(), DashboardError> {
+        self.transition_category(id, DashboardCategory::shelve)
+    }
+
+    pub fn unshelve_category(&mut self, id: CategoryId) -> Result<(), DashboardError> {
+        self.transition_category(id, DashboardCategory::unshelve)
+    }
+
+    fn transition_category(
+        &mut self,
+        id: CategoryId,
+        transition: fn(DashboardCategory) -> DashboardCategory,
+    ) -> Result<(), DashboardError> {
+        let index = self
+            .categories
+            .iter()
+            .position(|category| category.id() == id)
+            .ok_or(DashboardError::CategoryNotFound { category_id: id })?;
+        let category = transition(self.categories.remove(index));
+        self.categories.insert(index, category);
+        Ok(())
     }
 
     pub fn add_bookmark(
