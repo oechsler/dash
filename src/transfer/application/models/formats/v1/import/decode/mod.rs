@@ -8,11 +8,11 @@ use crate::{
     user::domain::UserId,
 };
 
-use super::super::UserDataExport;
+use super::model::GoExportV1;
 
 pub(super) fn into_snapshot(
     owner: &UserId,
-    document: UserDataExport,
+    document: GoExportV1,
 ) -> Result<UserDataSnapshot, ApplicationError> {
     let (themes, theme_ids) = themes::build(owner, document.themes)?;
     let preferences = preferences::build(owner, document.settings, &themes, &theme_ids)?;

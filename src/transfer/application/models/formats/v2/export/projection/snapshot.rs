@@ -1,15 +1,15 @@
 use crate::{
     preferences::domain::UserPreferences,
     shared::application::ApplicationError,
-    theme::domain::{ThemeMode, ThemeScope},
+    theme::domain::{ThemeIdentity, ThemeMode},
     transfer::application::models::UserDataSnapshot,
     user::domain::UserId,
 };
 
-use super::super::model::{SettingsExport, UserDataExport};
+use super::super::super::{SettingsExport, UserDataExport};
 use super::{applications, categories, themes};
 
-pub fn build(
+pub(crate) fn build(
     snapshot: UserDataSnapshot,
     owner: &UserId,
     username: String,
@@ -21,7 +21,7 @@ pub fn build(
     let themes = snapshot
         .themes
         .iter()
-        .filter(|theme| matches!(theme.scope(), ThemeScope::UserDefined(_)))
+        .filter(|theme| matches!(theme.identity(), ThemeIdentity::UserDefined { .. }))
         .map(themes::export)
         .collect();
     let light_theme = preferences

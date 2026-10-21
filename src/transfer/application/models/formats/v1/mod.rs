@@ -1,21 +1,31 @@
+mod export;
 mod import;
-mod model;
 
 use crate::{
     shared::application::ApplicationError, transfer::application::models::UserDataSnapshot,
     user::domain::UserId,
 };
 
-use super::ImportFormat;
+use super::TransferFormat;
 
 pub struct V1Format;
 
-impl ImportFormat for V1Format {
+impl TransferFormat for V1Format {
     fn version(&self) -> u32 {
         1
     }
 
-    fn decode(&self, payload: &[u8], owner: &UserId) -> Result<UserDataSnapshot, ApplicationError> {
-        import::decode(payload, owner)
+    fn import(&self, payload: &[u8], owner: &UserId) -> Result<UserDataSnapshot, ApplicationError> {
+        import::import(payload, owner)
+    }
+
+    fn export(
+        &self,
+        snapshot: UserDataSnapshot,
+        owner: &UserId,
+        username: String,
+        include_applications: bool,
+    ) -> Result<Vec<u8>, ApplicationError> {
+        export::export(snapshot, owner, username, include_applications)
     }
 }

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     shared::application::ApplicationError,
-    theme::domain::{ThemeId, ThemeScope},
+    theme::domain::{ThemeId, ThemeIdentity},
     transfer::application::models::{UserDataSnapshot, formats::theme_hash},
 };
 
@@ -14,7 +14,7 @@ pub(super) fn merge(
     for theme in target
         .themes
         .iter()
-        .filter(|theme| matches!(theme.scope(), ThemeScope::UserDefined(_)))
+        .filter(|theme| matches!(theme.identity(), ThemeIdentity::UserDefined { .. }))
     {
         known.insert(theme_hash(theme), theme.id());
     }
@@ -22,7 +22,7 @@ pub(super) fn merge(
     for theme in imported
         .themes
         .iter()
-        .filter(|theme| matches!(theme.scope(), ThemeScope::UserDefined(_)))
+        .filter(|theme| matches!(theme.identity(), ThemeIdentity::UserDefined { .. }))
     {
         let key = theme_hash(theme);
         let target_id = match known.get(&key) {

@@ -5,7 +5,7 @@ use crate::{
     transfer::application::{error::TransferError, models::formats::content_hash::sha256_hex},
 };
 
-use super::super::model::GoExportV1;
+use super::model::GoExportV1;
 
 pub(super) fn parse(payload: &[u8]) -> Result<GoExportV1, ApplicationError> {
     let mut legacy: GoExportV1 = serde_json::from_slice(payload)?;

@@ -33,6 +33,8 @@ async fn export_emits_signed_v2_transfer_contract() {
         .await
         .unwrap();
 
+    let export: crate::transfer::application::models::formats::v2::UserDataExport =
+        serde_json::from_slice(&export).unwrap();
     assert_eq!(export.version, 2);
     assert_eq!(export.username, "sam");
     assert!(export.applications.is_empty());

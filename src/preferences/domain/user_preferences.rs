@@ -59,7 +59,7 @@ impl UserPreferences {
     }
 
     fn ensure_theme_available(&self, theme: &Theme) -> Result<(), PreferencesError> {
-        if theme.scope().is_available_to(&self.user_id) {
+        if theme.identity().is_available_to(&self.user_id) {
             return Ok(());
         }
         Err(PreferencesError::ThemeNotAvailableToUser {

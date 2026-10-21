@@ -1,16 +1,14 @@
 use crate::{
     shared::application::ApplicationError,
-    transfer::application::models::{UserDataSnapshot, formats::v2::UserDataExport},
+    transfer::application::models::{UserDataSnapshot, formats::TransferFormat},
     user::domain::UserId,
 };
-
-use crate::transfer::application::models::formats::ExportFormat;
 
 pub struct ExportService<F> {
     format: F,
 }
 
-impl<F: ExportFormat> ExportService<F> {
+impl<F: TransferFormat> ExportService<F> {
     pub fn new(format: F) -> Self {
         Self { format }
     }
@@ -25,7 +23,7 @@ impl<F: ExportFormat> ExportService<F> {
         owner: &UserId,
         username: String,
         include_applications: bool,
-    ) -> Result<UserDataExport, ApplicationError> {
+    ) -> Result<Vec<u8>, ApplicationError> {
         self.format
             .export(snapshot, owner, username, include_applications)
     }

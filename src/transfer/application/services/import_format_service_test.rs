@@ -6,7 +6,7 @@ use crate::{
 #[test]
 fn service_rejects_unregistered_transfer_versions() {
     let error = ImportFormatService::supported_versions()
-        .decode(
+        .import(
             br#"{"version":99}"#,
             &crate::user::domain::UserId::new("user").unwrap(),
         )

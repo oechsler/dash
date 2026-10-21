@@ -1,15 +1,15 @@
 use crate::user::domain::UserId;
 use bon::bon;
 
-use super::{GlobalThemeId, ThemeError, ThemeId, ThemeMode, ThemePalette, ThemeScope};
+use super::{
+    GlobalThemeId, ThemeAppearance, ThemeError, ThemeId, ThemeIdentity, ThemeMode, ThemePalette,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Theme {
-    id: ThemeId,
-    scope: ThemeScope,
-    mode: ThemeMode,
+    identity: ThemeIdentity,
+    appearance: ThemeAppearance,
     name: String,
-    palette: ThemePalette,
 }
 
 #[bon]
@@ -21,7 +21,7 @@ impl Theme {
         mode: ThemeMode,
         palette: ThemePalette,
     ) -> Result<Self, ThemeError> {
-        Self::create(ThemeId::Global(id), ThemeScope::Global, name, mode, palette)
+        Self::create(ThemeIdentity::Global(id), name, mode, palette)
     }
 
     #[builder]
@@ -31,18 +31,11 @@ impl Theme {
         mode: ThemeMode,
         palette: ThemePalette,
     ) -> Result<Self, ThemeError> {
-        Self::create(
-            ThemeId::user_defined(),
-            ThemeScope::UserDefined(owner),
-            name,
-            mode,
-            palette,
-        )
+        Self::create(ThemeIdentity::user_defined(owner), name, mode, palette)
     }
 
     fn create(
-        id: ThemeId,
-        scope: ThemeScope,
+        identity: ThemeIdentity,
         name: impl Into<String>,
         mode: ThemeMode,
         palette: ThemePalette,
@@ -54,24 +47,22 @@ impl Theme {
         }
 
         Ok(Self {
-            id,
-            scope,
-            mode,
+            identity,
+            appearance: ThemeAppearance::new(mode, palette),
             name: trimmed.to_owned(),
-            palette,
         })
     }
 
     pub fn id(&self) -> ThemeId {
-        self.id
+        self.identity.id()
     }
 
-    pub fn scope(&self) -> &ThemeScope {
-        &self.scope
+    pub fn identity(&self) -> &ThemeIdentity {
+        &self.identity
     }
 
     pub fn mode(&self) -> ThemeMode {
-        self.mode
+        self.appearance.mode()
     }
 
     pub fn name(&self) -> &str {
@@ -79,10 +70,10 @@ impl Theme {
     }
 
     pub fn palette(&self) -> &ThemePalette {
-        &self.palette
+        self.appearance.palette()
     }
 
     pub fn is_deletable(&self) -> bool {
-        self.scope.is_user_defined()
+        self.identity.is_user_defined()
     }
 }

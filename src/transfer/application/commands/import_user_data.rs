@@ -36,7 +36,7 @@ impl<R: UserDataReader, W: UserDataWriter> ImportUserData<R, W> {
     }
 
     pub async fn execute(&self, input: ImportUserDataInput) -> Result<(), ApplicationError> {
-        let imported = self.importer.decode(&input.payload, &input.owner)?;
+        let imported = self.importer.import(&input.payload, &input.owner)?;
         let mut snapshot = self.reader.load(&input.owner).await?;
         self.apply_import
             .apply(&mut snapshot, &input.owner, imported, input.is_admin)?;

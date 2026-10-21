@@ -1,10 +1,10 @@
 use crate::{
     shared::application::ApplicationError,
-    transfer::application::{models::formats::v2::UserDataExport, ports::UserDataReader},
+    transfer::application::{models::formats::TransferFormat, ports::UserDataReader},
     user::domain::UserId,
 };
 
-use crate::transfer::application::{models::formats::ExportFormat, services::ExportService};
+use crate::transfer::application::services::ExportService;
 
 pub struct ExportUserDataInput {
     pub owner: UserId,
@@ -17,7 +17,7 @@ pub struct ExportUserData<R, F> {
     service: ExportService<F>,
 }
 
-impl<R: UserDataReader, F: ExportFormat> ExportUserData<R, F> {
+impl<R: UserDataReader, F: TransferFormat> ExportUserData<R, F> {
     pub fn new(repository: R, service: ExportService<F>) -> Self {
         Self {
             repository,
@@ -25,10 +25,7 @@ impl<R: UserDataReader, F: ExportFormat> ExportUserData<R, F> {
         }
     }
 
-    pub async fn execute(
-        &self,
-        input: ExportUserDataInput,
-    ) -> Result<UserDataExport, ApplicationError> {
+    pub async fn execute(&self, input: ExportUserDataInput) -> Result<Vec<u8>, ApplicationError> {
         let snapshot = self.repository.load(&input.owner).await?;
         self.service.export(
             snapshot,

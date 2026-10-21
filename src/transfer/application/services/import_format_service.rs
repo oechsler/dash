@@ -4,14 +4,14 @@ use crate::{
     user::domain::UserId,
 };
 
-use crate::transfer::application::models::formats::{ImportFormat, V1Format, V2Format};
+use crate::transfer::application::models::formats::{TransferFormat, V1Format, V2Format};
 
 pub struct ImportFormatService {
-    formats: Vec<Box<dyn ImportFormat>>,
+    formats: Vec<Box<dyn TransferFormat>>,
 }
 
 impl ImportFormatService {
-    pub fn new(formats: Vec<Box<dyn ImportFormat>>) -> Self {
+    pub fn new(formats: Vec<Box<dyn TransferFormat>>) -> Self {
         Self { formats }
     }
 
@@ -19,7 +19,7 @@ impl ImportFormatService {
         Self::new(vec![Box::new(V1Format), Box::new(V2Format)])
     }
 
-    pub fn decode(
+    pub fn import(
         &self,
         payload: &[u8],
         owner: &UserId,
@@ -38,6 +38,6 @@ impl ImportFormatService {
             .iter()
             .find(|format| format.version() == version)
             .ok_or(TransferError::UnsupportedVersion(version))?
-            .decode(payload, owner)
+            .import(payload, owner)
     }
 }
