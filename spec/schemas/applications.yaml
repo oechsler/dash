@@ -1,0 +1,67 @@
+---
+schemas:
+  application:
+    type: object
+    required: [id, name, icon, address, visible_to_groups]
+    examples:
+      - id: 34f5b56c-bf9a-4f05-8739-bc1d327f76a4
+        name: Status page
+        icon: mdi:chart-line
+        address: https://status.example.test
+        visible_to_groups: [family]
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+        examples: [Status page]
+      icon:
+        type: string
+      address:
+        type: string
+        format: uri
+        examples: [https://status.example.test]
+      visible_to_groups:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+        description: >-
+          Choose which groups can see this app. An empty list makes it visible
+          to everyone.
+        examples:
+          - [family]
+          - []
+
+  application_write:
+    type: object
+    required: [name, icon, address, visible_to_groups]
+    additionalProperties: false
+    examples:
+      - name: Status page
+        icon: mdi:chart-line
+        address: https://status.example.test
+        visible_to_groups: [family]
+    properties:
+      name:
+        type: string
+        minLength: 1
+      icon:
+        type: string
+        minLength: 1
+      address:
+        type: string
+        format: uri
+        examples: [https://status.example.test]
+      visible_to_groups:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+        description: >-
+          Choose which groups can see this app. An empty list makes it visible
+          to everyone.
+        examples:
+          - [family]
+          - []

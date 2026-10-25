@@ -1,0 +1,336 @@
+---
+schemas:
+  transfer_document_v1:
+    type: object
+    description: Older backup file format. Dash can still restore these backups.
+    required:
+      - version
+      - exported_at
+      - username
+      - settings
+      - themes
+      - categories
+      - signature
+    properties:
+      version:
+        description: Identifies this as an older Dash backup.
+        const: 1
+      exported_at:
+        description: When Dash created this backup.
+        type: string
+        format: date-time
+      username:
+        description: >-
+          Account name shown in the backup; it does not change its owner.
+        type: string
+      settings:
+        type: object
+        required: [language, timezone]
+        properties:
+          language:
+            type: string
+          timezone:
+            type: string
+          theme_name:
+            type: [string, 'null']
+      themes:
+        type: array
+        items:
+          $ref: '#/schemas/theme_transfer_v1'
+      categories:
+        type: array
+        items:
+          $ref: '#/schemas/category_transfer_v1'
+      applications:
+        type: array
+        items:
+          $ref: '#/schemas/application_transfer_v1'
+      signature:
+        description: Dash uses this value to check that the backup is unchanged.
+        type: string
+    examples:
+      - version: 1
+        exported_at: '2026-05-02T09:30:00Z'
+        username: alex
+        settings:
+          language: en
+          timezone: Europe/Berlin
+          theme_name: Ocean
+        themes:
+          - hash: 2fd4e1c6
+            name: Ocean
+            primary: '#145da0'
+            secondary: '#0c2d48'
+            tertiary: '#b1d4e0'
+        categories:
+          - hash: b08f6f2a
+            display_name: Home lab
+            is_shelved: false
+            bookmarks:
+              - hash: 936c3b53
+                icon: mdi:router-network
+                display_name: Router
+                url: http://192.168.1.1
+        applications: []
+        signature: "c4ed15727d6c3309688ac1d2e808b920\
+          84b59b9c303b6c6c3ef0622eeacb4e4d"
+
+  theme_transfer_v1:
+    type: object
+    required: [hash, name, primary, secondary, tertiary]
+    examples:
+      - hash: 2fd4e1c6
+        name: Ocean
+        primary: '#145da0'
+        secondary: '#0c2d48'
+        tertiary: '#b1d4e0'
+    properties:
+      hash:
+        type: string
+      name:
+        type: string
+      primary:
+        $ref: './themes.yaml#/schemas/color'
+      secondary:
+        $ref: './themes.yaml#/schemas/color'
+      tertiary:
+        $ref: './themes.yaml#/schemas/color'
+
+  category_transfer_v1:
+    type: object
+    required: [hash, display_name, is_shelved, bookmarks]
+    examples:
+      - hash: b08f6f2a
+        display_name: Home lab
+        is_shelved: false
+        bookmarks: []
+    properties:
+      hash:
+        type: string
+      display_name:
+        type: string
+      is_shelved:
+        type: boolean
+      bookmarks:
+        type: array
+        items:
+          $ref: '#/schemas/bookmark_transfer_v1'
+
+  bookmark_transfer_v1:
+    type: object
+    required: [hash, icon, display_name, url]
+    examples:
+      - hash: 936c3b53
+        icon: mdi:router-network
+        display_name: Router
+        url: http://192.168.1.1
+    properties:
+      hash:
+        type: string
+      icon:
+        type: string
+      display_name:
+        type: string
+      url:
+        type: string
+        format: uri
+
+  application_transfer_v1:
+    type: object
+    required: [hash, icon, display_name, url]
+    examples:
+      - hash: 199acbc2
+        icon: mdi:chart-line
+        display_name: Status page
+        url: https://status.example.test
+        visible_to_groups: [family]
+    properties:
+      hash:
+        type: string
+      icon:
+        type: string
+      display_name:
+        type: string
+      url:
+        type: string
+        format: uri
+      visible_to_groups:
+        type: array
+        items:
+          type: string
+
+  transfer_document_v2:
+    type: object
+    description: Current backup file format used for downloads and restores.
+    required:
+      - version
+      - exported_at
+      - username
+      - settings
+      - themes
+      - categories
+      - applications
+      - signature
+    properties:
+      version:
+        description: Identifies this as a current Dash backup.
+        const: 2
+      exported_at:
+        description: When Dash created this backup.
+        type: string
+        format: date-time
+      username:
+        description: >-
+          Account name shown in the backup; it does not change its owner.
+        type: string
+      settings:
+        $ref: '#/schemas/settings_transfer_v2'
+      themes:
+        type: array
+        items:
+          $ref: '#/schemas/theme_transfer_v2'
+      categories:
+        type: array
+        items:
+          $ref: '#/schemas/category_transfer_v2'
+      applications:
+        type: array
+        items:
+          $ref: '#/schemas/application_transfer_v2'
+      signature:
+        description: Dash uses this value to check that the backup is unchanged.
+        type: string
+    examples:
+      - version: 2
+        exported_at: '2026-05-02T09:30:00Z'
+        username: alex
+        settings:
+          language: en
+          time_zone: Europe/Berlin
+          light_theme: null
+          dark_theme: Ocean
+        themes:
+          - hash: 2fd4e1c6
+            name: Ocean
+            mode: dark
+            primary: '#145da0'
+            secondary: '#0c2d48'
+            tertiary: '#b1d4e0'
+        categories:
+          - hash: b08f6f2a
+            name: Home lab
+            shelved: false
+            bookmarks:
+              - hash: 936c3b53
+                name: Router
+                icon: mdi:router-network
+                address: http://192.168.1.1
+        applications: []
+        signature: "fe8b7f13bdc7ee0f9d885520fd2c2c0a\
+          54b97462493d9ea8d1df570af891cb57"
+
+  settings_transfer_v2:
+    type: object
+    required: [language, time_zone]
+    examples:
+      - language: en
+        time_zone: Europe/Berlin
+        light_theme: null
+        dark_theme: Ocean
+    properties:
+      language:
+        type: string
+      time_zone:
+        type: string
+      light_theme:
+        type: [string, 'null']
+      dark_theme:
+        type: [string, 'null']
+
+  theme_transfer_v2:
+    type: object
+    required: [hash, name, mode, primary, secondary, tertiary]
+    examples:
+      - hash: 2fd4e1c6
+        name: Ocean
+        mode: dark
+        primary: '#145da0'
+        secondary: '#0c2d48'
+        tertiary: '#b1d4e0'
+    properties:
+      hash:
+        type: string
+      name:
+        type: string
+      mode:
+        type: string
+        enum: [light, dark]
+      primary:
+        $ref: './themes.yaml#/schemas/color'
+      secondary:
+        $ref: './themes.yaml#/schemas/color'
+      tertiary:
+        $ref: './themes.yaml#/schemas/color'
+
+  category_transfer_v2:
+    type: object
+    required: [hash, name, shelved, bookmarks]
+    examples:
+      - hash: b08f6f2a
+        name: Home lab
+        shelved: false
+        bookmarks: []
+    properties:
+      hash:
+        type: string
+      name:
+        type: string
+      shelved:
+        type: boolean
+      bookmarks:
+        type: array
+        items:
+          $ref: '#/schemas/bookmark_transfer_v2'
+
+  bookmark_transfer_v2:
+    type: object
+    required: [hash, name, icon, address]
+    examples:
+      - hash: 936c3b53
+        name: Router
+        icon: mdi:router-network
+        address: http://192.168.1.1
+    properties:
+      hash:
+        type: string
+      name:
+        type: string
+      icon:
+        type: string
+      address:
+        type: string
+        format: uri
+
+  application_transfer_v2:
+    type: object
+    required: [hash, name, icon, address, visible_to_groups]
+    examples:
+      - hash: 199acbc2
+        name: Status page
+        icon: mdi:chart-line
+        address: https://status.example.test
+        visible_to_groups: [family]
+    properties:
+      hash:
+        type: string
+      name:
+        type: string
+      icon:
+        type: string
+      address:
+        type: string
+        format: uri
+      visible_to_groups:
+        type: array
+        items:
+          type: string

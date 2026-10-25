@@ -1,0 +1,166 @@
+---
+schemas:
+  dashboard:
+    type: object
+    required: [categories, applications]
+    examples:
+      - categories:
+          - id: 1eec8b0f-4821-42d2-9323-5974cef94b4e
+            name: Home lab
+            shelved: false
+            bookmarks:
+              - id: 25fe3a58-90d3-45a0-942d-216e8375d882
+                name: Router
+                icon: mdi:router-network
+                address: http://192.168.1.1
+        applications:
+          - id: 34f5b56c-bf9a-4f05-8739-bc1d327f76a4
+            name: Status page
+            icon: mdi:chart-line
+            address: https://status.example.test
+    properties:
+      categories:
+        type: array
+        items:
+          $ref: '#/schemas/category'
+      applications:
+        type: array
+        items:
+          $ref: '#/schemas/dashboard_application'
+
+  dashboard_application:
+    type: object
+    required: [id, name, icon, address]
+    examples:
+      - id: 34f5b56c-bf9a-4f05-8739-bc1d327f76a4
+        name: Status page
+        icon: mdi:chart-line
+        address: https://status.example.test
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      icon:
+        type: string
+      address:
+        type: string
+        format: uri
+
+  category:
+    type: object
+    required: [id, name, shelved, bookmarks]
+    examples:
+      - id: 1eec8b0f-4821-42d2-9323-5974cef94b4e
+        name: Home lab
+        shelved: false
+        bookmarks:
+          - id: 25fe3a58-90d3-45a0-942d-216e8375d882
+            name: Router
+            icon: mdi:router-network
+            address: http://192.168.1.1
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+        minLength: 1
+      shelved:
+        type: boolean
+      bookmarks:
+        type: array
+        items:
+          $ref: '#/schemas/bookmark'
+
+  create_category_request:
+    type: object
+    required: [name]
+    additionalProperties: false
+    examples:
+      - name: Home lab
+        shelved: false
+    properties:
+      name:
+        type: string
+        minLength: 1
+        examples: [Home lab, Favorites]
+      shelved:
+        type: boolean
+        default: false
+
+  update_category_request:
+    type: object
+    required: [name, shelved]
+    additionalProperties: false
+    examples:
+      - name: Home lab
+        shelved: true
+    properties:
+      name:
+        type: string
+        minLength: 1
+      shelved:
+        type: boolean
+
+  bookmark:
+    type: object
+    required: [id, name, icon, address]
+    examples:
+      - id: 25fe3a58-90d3-45a0-942d-216e8375d882
+        name: Router
+        icon: mdi:router-network
+        address: http://192.168.1.1
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      icon:
+        type: string
+        description: Icon name used to display this bookmark.
+        examples: [mdi:router-network, mdi:home]
+      address:
+        type: string
+        format: uri
+        examples: [http://192.168.1.1, https://router.example.test]
+
+  create_bookmark_request:
+    type: object
+    required: [name, icon, address]
+    additionalProperties: false
+    examples:
+      - name: Router
+        icon: mdi:router-network
+        address: http://192.168.1.1
+    properties:
+      name:
+        type: string
+        minLength: 1
+      icon:
+        type: string
+        minLength: 1
+      address:
+        type: string
+        format: uri
+
+  update_bookmark_request:
+    type: object
+    required: [name, icon, address]
+    additionalProperties: false
+    examples:
+      - name: Router admin
+        icon: mdi:router-network
+        address: http://192.168.1.1
+    properties:
+      name:
+        type: string
+        minLength: 1
+      icon:
+        type: string
+        minLength: 1
+      address:
+        type: string
+        format: uri

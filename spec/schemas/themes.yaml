@@ -1,0 +1,75 @@
+---
+schemas:
+  theme:
+    type: object
+    required: [id, name, mode, palette, scope]
+    examples:
+      - id: 197fbdc4-92fd-4b18-b805-b2ad6d08aa92
+        name: Ocean
+        mode: dark
+        palette:
+          primary: '#145da0'
+          secondary: '#0c2d48'
+          tertiary: '#b1d4e0'
+        scope: user
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      mode:
+        $ref: '#/schemas/theme_mode'
+      palette:
+        $ref: '#/schemas/theme_palette'
+      scope:
+        type: string
+        enum: [global, user]
+        description: Whether this theme comes with Dash or was created by you.
+
+  create_theme_request:
+    type: object
+    required: [name, mode, palette]
+    additionalProperties: false
+    examples:
+      - name: Ocean
+        mode: dark
+        palette:
+          primary: '#145da0'
+          secondary: '#0c2d48'
+          tertiary: '#b1d4e0'
+    properties:
+      name:
+        type: string
+        minLength: 1
+      mode:
+        $ref: '#/schemas/theme_mode'
+      palette:
+        $ref: '#/schemas/theme_palette'
+
+  theme_mode:
+    type: string
+    enum: [light, dark]
+    examples: [light, dark]
+
+  theme_palette:
+    type: object
+    required: [primary, secondary, tertiary]
+    additionalProperties: false
+    description: The three colors used to draw your theme.
+    examples:
+      - primary: '#145da0'
+        secondary: '#0c2d48'
+        tertiary: '#b1d4e0'
+    properties:
+      primary:
+        $ref: '#/schemas/color'
+      secondary:
+        $ref: '#/schemas/color'
+      tertiary:
+        $ref: '#/schemas/color'
+
+  color:
+    type: string
+    pattern: '^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$'
+    examples: ['#145da0', '#abc']

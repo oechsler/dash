@@ -1,0 +1,71 @@
+---
+schemas:
+  problem:
+    type: object
+    description: >-
+      Dash returns this information when it can't complete a request. The app
+      can use `code` to respond appropriately and show `message` to you.
+    required: [title, status, code, message]
+    examples:
+      - type: about:blank
+        title: Not found
+        status: 404
+        code: category_not_found
+        message: We couldn't find that category.
+    properties:
+      type:
+        type: string
+        format: uri-reference
+        default: about:blank
+      title:
+        type: string
+      status:
+        type: integer
+        minimum: 400
+        maximum: 599
+      detail:
+        type: string
+      instance:
+        type: string
+        format: uri-reference
+      code:
+        type: string
+        description: Short label that helps the app handle this problem.
+        examples: [category_not_found, validation_error]
+      message:
+        type: string
+        description: Short, user-readable explanation of the error.
+        examples:
+          - We couldn't find that category.
+          - Check the highlighted values and try again.
+
+  user:
+    type: object
+    required: [id, username, groups]
+    examples:
+      - id: oidc|123456
+        username: alex
+        first_name: Alex
+        last_name: Rivera
+        profile_picture: https://id.example.test/alex.png
+        groups: [family, admins]
+    properties:
+      id:
+        type: string
+        minLength: 1
+        examples: ['oidc|123456']
+      username:
+        type: string
+        examples: [alex]
+      first_name:
+        type: [string, 'null']
+      last_name:
+        type: [string, 'null']
+      profile_picture:
+        type: [string, 'null']
+        format: uri
+      groups:
+        type: array
+        uniqueItems: true
+        items:
+          type: string

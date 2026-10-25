@@ -1,0 +1,74 @@
+---
+schemas:
+  session:
+    type: object
+    required:
+      - id
+      - issued_at
+      - last_accessed_at
+      - expires_at
+      - is_active
+      - is_current
+      - lifetime
+      - metadata
+    examples:
+      - id: 6e06964a-67f9-4797-8bab-26219e354c1d
+        issued_at: '2026-05-02T08:00:00Z'
+        last_accessed_at: '2026-05-02T09:15:00Z'
+        expires_at: '2026-05-02T10:00:00Z'
+        is_active: true
+        is_current: true
+        lifetime: short
+        metadata:
+          browser: Firefox
+          operating_system: Linux
+          ip_address: 192.168.1.42
+    properties:
+      id:
+        type: string
+        format: uuid
+      issued_at:
+        type: string
+        format: date-time
+        description: When this device signed in.
+      last_accessed_at:
+        type: string
+        format: date-time
+        description: Most recent activity from this device.
+      expires_at:
+        type: string
+        format: date-time
+        description: When this device will need to sign in again.
+      is_active:
+        type: boolean
+        description: Whether this device is still signed in.
+      is_current:
+        type: boolean
+        description: Whether this is the device making this request.
+      lifetime:
+        type: string
+        enum: [short, long]
+        description: Whether this device uses a short or long sign-in.
+        examples: [short, long]
+      metadata:
+        $ref: '#/schemas/session_metadata'
+
+  session_metadata:
+    type: object
+    properties:
+      browser:
+        type: [string, 'null']
+        examples: [Firefox, Chrome]
+        description: Browser used by this device, when available.
+      operating_system:
+        type: [string, 'null']
+        examples: [Linux, macOS, Windows]
+        description: Operating system used by this device, when available.
+      ip_address:
+        oneOf:
+          - type: string
+            format: ipv4
+          - type: string
+            format: ipv6
+          - type: 'null'
+        description: Network address seen the last time this device connected.
