@@ -3,9 +3,9 @@ schemas:
   application_catalog:
     type: object
     additionalProperties: false
-    required: [sort_order, applications]
+    required: [applications_sort_order, applications]
     properties:
-      sort_order:
+      applications_sort_order:
         $ref: './sort_order.yaml#/schemas/collection_sort_order'
       applications:
         type: array
@@ -15,9 +15,9 @@ schemas:
   update_application_sort_order_request:
     type: object
     additionalProperties: false
-    required: [sort_order]
+    required: [applications_sort_order]
     properties:
-      sort_order:
+      applications_sort_order:
         $ref: './sort_order.yaml#/schemas/collection_sort_order'
 
   update_application_order_request:

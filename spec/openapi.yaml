@@ -474,7 +474,7 @@ paths:
                             icon: mdi:router-network
                             address: http://192.168.1.1
                             last_accessed_at: '2026-05-02T09:15:00Z'
-                    application_sort_order: user_defined
+                    applications_sort_order: user_defined
                     applications:
                       - hash: 199acbc2
                         name: Status page

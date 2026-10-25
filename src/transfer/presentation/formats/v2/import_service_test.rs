@@ -14,7 +14,7 @@ fn document() -> UserDataModel {
         themes: Vec::new(),
         categories_sort_order: "user_defined".into(),
         categories: Vec::new(),
-        application_sort_order: None,
+        applications_sort_order: None,
         applications: Vec::new(),
         signature: None,
     }

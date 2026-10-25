@@ -60,7 +60,7 @@ impl ImportService {
             Self::build_dashboard(owner, document.categories, &document.categories_sort_order)?;
         let applications = Self::build_applications(document.applications)?;
         let application_catalog_settings = document
-            .application_sort_order
+            .applications_sort_order
             .as_deref()
             .map(|sort_order| Self::build_application_catalog_settings(sort_order, &applications))
             .transpose()?;

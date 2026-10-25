@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub struct UpdateApplicationCatalogSortOrderInput {
-    pub sort_order: CollectionSortOrder,
+    pub applications_sort_order: CollectionSortOrder,
 }
 
 pub struct UpdateApplicationCatalogSortOrder<S> {
@@ -31,7 +31,7 @@ where
             .load()
             .await?
             .unwrap_or_else(ApplicationCatalogSettings::default);
-        settings.set_sort_order(input.sort_order);
+        settings.set_sort_order(input.applications_sort_order);
         self.settings.save(&settings).await
     }
 }

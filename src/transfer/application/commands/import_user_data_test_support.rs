@@ -78,7 +78,7 @@ pub(super) fn export() -> UserDataModel {
                 last_accessed_at: None,
             }],
         }],
-        application_sort_order: Some("user_defined".into()),
+        applications_sort_order: Some("user_defined".into()),
         applications: vec![ApplicationModel {
             hash: "ignored-app-hash".into(),
             name: "Portal".into(),

@@ -13,7 +13,7 @@ pub struct UserDataModel {
     pub categories_sort_order: String,
     pub categories: Vec<CategoryModel>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub application_sort_order: Option<String>,
+    pub applications_sort_order: Option<String>,
     #[serde(default)]
     pub applications: Vec<ApplicationModel>,
     #[serde(skip_serializing_if = "Option::is_none", default)]

@@ -10,7 +10,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ApplicationCatalogView {
-    pub sort_order: CollectionSortOrder,
+    pub applications_sort_order: CollectionSortOrder,
     pub applications: Vec<Application>,
 }
 
@@ -52,7 +52,7 @@ where
             preferences.recently_accessed_application_ids(),
         );
         Ok(ApplicationCatalogView {
-            sort_order: settings.sort_order(),
+            applications_sort_order: settings.sort_order(),
             applications,
         })
     }

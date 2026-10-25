@@ -71,7 +71,7 @@ impl ExportService {
         } else {
             None
         };
-        let application_sort_order = application_catalog_settings
+        let applications_sort_order = application_catalog_settings
             .as_ref()
             .map(|settings| settings.sort_order().as_str().to_owned());
         let applications = if let Some(settings) = application_catalog_settings {
@@ -101,7 +101,7 @@ impl ExportService {
             themes,
             categories_sort_order,
             categories,
-            application_sort_order,
+            applications_sort_order,
             applications,
             signature: None,
         };
