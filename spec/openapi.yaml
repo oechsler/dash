@@ -181,7 +181,7 @@ paths:
                 value:
                   name: Home lab
                   shelved: false
-                  bookmarks_sort_order: user_defined
+                  sort_order: user_defined
       responses:
         '201':
           description: Your new category is ready to use.
@@ -215,7 +215,7 @@ paths:
             examples:
               recently_accessed:
                 value:
-                  categories_sort_order: recently_accessed
+                  sort_order: recently_accessed
       responses:
         '204':
           description: Your category sorting rule has been saved.
@@ -363,6 +363,10 @@ paths:
           application/json:
             schema:
               $ref: './schemas/applications.yaml#/schemas/update_application_sort_order_request'  # yamllint disable-line rule:line-length
+            examples:
+              recently_accessed:
+                value:
+                  sort_order: recently_accessed
       responses:
         '204':
           description: The app catalog sorting rule has been saved.
@@ -506,6 +510,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
+              additionalProperties: false
               required: [file]
               properties:
                 file:
@@ -798,7 +803,7 @@ paths:
                 value:
                   name: Home lab
                   shelved: true
-                  bookmarks_sort_order: user_defined
+                  sort_order: user_defined
       responses:
         '200':
           description: Your category has been updated.

@@ -109,7 +109,7 @@ schemas:
     examples:
       - name: Home lab
         shelved: false
-        bookmarks_sort_order: user_defined
+        sort_order: user_defined
     properties:
       name:
         type: string
@@ -118,33 +118,33 @@ schemas:
       shelved:
         type: boolean
         default: false
-      bookmarks_sort_order:
+      sort_order:
         $ref: './sort_order.yaml#/schemas/collection_sort_order'
         default: alphabetical
 
   update_categories_sort_order_request:
     type: object
-    required: [categories_sort_order]
+    required: [sort_order]
     additionalProperties: false
     properties:
-      categories_sort_order:
+      sort_order:
         $ref: './sort_order.yaml#/schemas/collection_sort_order'
 
   update_category_request:
     type: object
-    required: [name, shelved, bookmarks_sort_order]
+    required: [name, shelved, sort_order]
     additionalProperties: false
     examples:
       - name: Home lab
         shelved: true
-        bookmarks_sort_order: recently_accessed
+        sort_order: recently_accessed
     properties:
       name:
         type: string
         minLength: 1
       shelved:
         type: boolean
-      bookmarks_sort_order:
+      sort_order:
         $ref: './sort_order.yaml#/schemas/collection_sort_order'
 
   bookmark:

@@ -15,9 +15,9 @@ schemas:
   update_application_sort_order_request:
     type: object
     additionalProperties: false
-    required: [applications_sort_order]
+    required: [sort_order]
     properties:
-      applications_sort_order:
+      sort_order:
         $ref: './sort_order.yaml#/schemas/collection_sort_order'
 
   update_application_order_request:

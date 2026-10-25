@@ -12,7 +12,7 @@ pub struct UpdateCategoryInput {
     pub category_id: CategoryId,
     pub name: String,
     pub shelved: bool,
-    pub bookmarks_sort_order: CollectionSortOrder,
+    pub sort_order: CollectionSortOrder,
 }
 
 pub struct UpdateCategory<R> {
@@ -39,7 +39,7 @@ impl<R: DashboardReader + DashboardWriter> UpdateCategory<R> {
         dashboard
             .category_mut(input.category_id)
             .ok_or(ApplicationError::NotFound("category"))?
-            .set_bookmarks_sort_order(input.bookmarks_sort_order);
+            .set_bookmarks_sort_order(input.sort_order);
         self.repository.save(&dashboard).await?;
         Ok(())
     }

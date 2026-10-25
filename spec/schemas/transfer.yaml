@@ -2,6 +2,7 @@
 schemas:
   transfer_document_v1:
     type: object
+    additionalProperties: false
     description: Older backup file format. Dash can still restore these backups.
     required:
       - version
@@ -25,6 +26,7 @@ schemas:
         type: string
       settings:
         type: object
+        additionalProperties: false
         required: [language, timezone]
         properties:
           language:
@@ -76,6 +78,7 @@ schemas:
 
   theme_transfer_v1:
     type: object
+    additionalProperties: false
     required: [hash, name, primary, secondary, tertiary]
     examples:
       - hash: 2fd4e1c6
@@ -97,6 +100,7 @@ schemas:
 
   category_transfer_v1:
     type: object
+    additionalProperties: false
     required: [hash, display_name, is_shelved, bookmarks]
     examples:
       - hash: b08f6f2a
@@ -120,6 +124,7 @@ schemas:
 
   bookmark_transfer_v1:
     type: object
+    additionalProperties: false
     required: [hash, icon, display_name, url]
     examples:
       - hash: 936c3b53
@@ -142,6 +147,7 @@ schemas:
 
   application_transfer_v1:
     type: object
+    additionalProperties: false
     required: [hash, icon, display_name, url]
     examples:
       - hash: 199acbc2
@@ -166,6 +172,7 @@ schemas:
 
   transfer_document_v2:
     type: object
+    additionalProperties: false
     description: Current backup file format used for downloads and restores.
     required:
       - version
@@ -264,6 +271,7 @@ schemas:
 
   settings_transfer_v2:
     type: object
+    additionalProperties: false
     required: [language, time_zone]
     examples:
       - language: en
@@ -282,6 +290,7 @@ schemas:
 
   theme_transfer_v2:
     type: object
+    additionalProperties: false
     required: [hash, name, mode, primary, secondary, tertiary]
     examples:
       - hash: 2fd4e1c6
@@ -307,6 +316,7 @@ schemas:
 
   category_transfer_v2:
     type: object
+    additionalProperties: false
     required: [hash, name, shelved, bookmarks]
     examples:
       - hash: b08f6f2a
@@ -335,6 +345,7 @@ schemas:
 
   bookmark_transfer_v2:
     type: object
+    additionalProperties: false
     required: [hash, name, icon, address]
     examples:
       - hash: 936c3b53
@@ -357,6 +368,7 @@ schemas:
 
   application_transfer_v2:
     type: object
+    additionalProperties: false
     required: [hash, name, icon, address, visible_to_groups]
     examples:
       - hash: 199acbc2

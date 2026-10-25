@@ -11,7 +11,7 @@ pub struct CreateCategoryInput {
     pub owner: UserId,
     pub name: String,
     pub shelved: bool,
-    pub bookmarks_sort_order: Option<CollectionSortOrder>,
+    pub sort_order: Option<CollectionSortOrder>,
 }
 
 pub struct CreateCategory<R> {
@@ -33,7 +33,7 @@ impl<R: DashboardReader + DashboardWriter> CreateCategory<R> {
             .await?
             .unwrap_or_else(|| UserDashboard::new(input.owner));
         let mut category = Category::new(input.name)?;
-        if let Some(sort_order) = input.bookmarks_sort_order {
+        if let Some(sort_order) = input.sort_order {
             category.set_bookmarks_sort_order(sort_order);
         }
         let category: DashboardCategory = if input.shelved {
