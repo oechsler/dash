@@ -3,12 +3,8 @@ use async_trait::async_trait;
 use crate::{
     shared::application::ApplicationError,
     transfer::{
-        application::{models::UserDataSnapshot, ports::UserDataReader},
-        application::{
-            models::formats::V2Format,
-            queries::{ExportUserData, ExportUserDataInput},
-            services::ExportService,
-        },
+        application::queries::{ExportUserData, ExportUserDataInput},
+        application::{models::UserDataSnapshot, ports::UserDataSnapshotReader},
     },
     user::domain::UserId,
 };
@@ -16,27 +12,23 @@ use crate::{
 struct EmptyUserData;
 
 #[async_trait]
-impl UserDataReader for EmptyUserData {
+impl UserDataSnapshotReader for EmptyUserData {
     async fn load(&self, _owner: &UserId) -> Result<UserDataSnapshot, ApplicationError> {
         Ok(UserDataSnapshot::default())
     }
 }
 
 #[tokio::test]
-async fn export_emits_signed_v2_transfer_contract() {
-    let export = ExportUserData::new(EmptyUserData, ExportService::new(V2Format))
+async fn export_returns_the_user_snapshot() {
+    let snapshot = ExportUserData::new(EmptyUserData)
         .execute(ExportUserDataInput {
             owner: UserId::new("user-1").unwrap(),
-            username: "sam".into(),
-            include_applications: false,
         })
         .await
         .unwrap();
 
-    let export: crate::transfer::application::models::formats::v2::UserDataExport =
-        serde_json::from_slice(&export).unwrap();
-    assert_eq!(export.version, 2);
-    assert_eq!(export.username, "sam");
-    assert!(export.applications.is_empty());
-    assert!(export.verify().unwrap());
+    assert!(snapshot.dashboard.is_none());
+    assert!(snapshot.preferences.is_none());
+    assert!(snapshot.themes.is_empty());
+    assert!(snapshot.applications.is_empty());
 }

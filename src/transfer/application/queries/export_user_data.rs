@@ -1,37 +1,26 @@
 use crate::{
     shared::application::ApplicationError,
-    transfer::application::{models::formats::TransferFormat, ports::UserDataReader},
+    transfer::application::{models::UserDataSnapshot, ports::UserDataSnapshotReader},
     user::domain::UserId,
 };
 
-use crate::transfer::application::services::ExportService;
-
 pub struct ExportUserDataInput {
     pub owner: UserId,
-    pub username: String,
-    pub include_applications: bool,
 }
 
-pub struct ExportUserData<R, F> {
+pub struct ExportUserData<R> {
     repository: R,
-    service: ExportService<F>,
 }
 
-impl<R: UserDataReader, F: TransferFormat> ExportUserData<R, F> {
-    pub fn new(repository: R, service: ExportService<F>) -> Self {
-        Self {
-            repository,
-            service,
-        }
+impl<R: UserDataSnapshotReader> ExportUserData<R> {
+    pub fn new(repository: R) -> Self {
+        Self { repository }
     }
 
-    pub async fn execute(&self, input: ExportUserDataInput) -> Result<Vec<u8>, ApplicationError> {
-        let snapshot = self.repository.load(&input.owner).await?;
-        self.service.export(
-            snapshot,
-            &input.owner,
-            input.username,
-            input.include_applications,
-        )
+    pub async fn execute(
+        &self,
+        input: ExportUserDataInput,
+    ) -> Result<UserDataSnapshot, ApplicationError> {
+        self.repository.load(&input.owner).await
     }
 }

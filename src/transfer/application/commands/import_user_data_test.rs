@@ -72,9 +72,9 @@ async fn import_rejects_a_tampered_payload_before_writing() {
     let mut data = export();
     data.username = "tampered".into();
 
-    let error = command(&repository)
-        .execute(input(UserId::new("target-user").unwrap(), false, data))
-        .await
+    let payload = serde_json::to_vec(&data).unwrap();
+    let error = crate::transfer::presentation::formats::ImportFormatRegistry::supported_versions()
+        .import(&payload, &UserId::new("target-user").unwrap())
         .unwrap_err();
 
     assert!(matches!(

@@ -5,17 +5,15 @@ use async_trait::async_trait;
 use crate::{
     shared::application::ApplicationError,
     transfer::{
-        application::models::formats::v2::{
-            ApplicationExport, BookmarkExport, CategoryExport, SettingsExport, ThemeExport,
-            UserDataExport,
-        },
-        application::{
-            commands::{ImportUserData, ImportUserDataInput},
-            services::{ImportDataService, ImportFormatService},
-        },
+        application::commands::{ImportUserData, ImportUserDataInput},
         application::{
             models::UserDataSnapshot,
-            ports::{UserDataReader, UserDataWriter},
+            ports::{UserDataSnapshotReader, UserDataSnapshotWriter},
+            services::MergeUserDataService,
+        },
+        presentation::formats::v2::{
+            ApplicationModel, BookmarkModel, CategoryModel, SettingsModel, ThemeModel,
+            UserDataModel,
         },
     },
     user::domain::UserId,
@@ -28,14 +26,14 @@ pub(super) struct MemoryUserData {
 }
 
 #[async_trait]
-impl UserDataReader for MemoryUserData {
+impl UserDataSnapshotReader for MemoryUserData {
     async fn load(&self, _owner: &UserId) -> Result<UserDataSnapshot, ApplicationError> {
         Ok(self.snapshot.lock().unwrap().clone())
     }
 }
 
 #[async_trait]
-impl UserDataWriter for MemoryUserData {
+impl UserDataSnapshotWriter for MemoryUserData {
     async fn save(
         &self,
         _owner: &UserId,
@@ -47,18 +45,18 @@ impl UserDataWriter for MemoryUserData {
     }
 }
 
-pub(super) fn export() -> UserDataExport {
-    let mut export = UserDataExport {
+pub(super) fn export() -> UserDataModel {
+    let mut export = UserDataModel {
         version: 2,
         exported_at: "2026-01-01T00:00:00Z".into(),
         username: "source-user".into(),
-        settings: SettingsExport {
+        settings: SettingsModel {
             language: "de".into(),
             time_zone: "Europe/Berlin".into(),
             light_theme: Some("Soft".into()),
             dark_theme: None,
         },
-        themes: vec![ThemeExport {
+        themes: vec![ThemeModel {
             hash: "ignored-client-hash".into(),
             name: "Soft".into(),
             mode: "light".into(),
@@ -66,18 +64,18 @@ pub(super) fn export() -> UserDataExport {
             secondary: "#222222".into(),
             tertiary: "#333333".into(),
         }],
-        categories: vec![CategoryExport {
+        categories: vec![CategoryModel {
             hash: "ignored-category-hash".into(),
             name: "Work".into(),
             shelved: false,
-            bookmarks: vec![BookmarkExport {
+            bookmarks: vec![BookmarkModel {
                 hash: "ignored-bookmark-hash".into(),
                 name: "Docs".into(),
                 icon: "mdi:book".into(),
                 address: "https://docs.example".into(),
             }],
         }],
-        applications: vec![ApplicationExport {
+        applications: vec![ApplicationModel {
             hash: "ignored-app-hash".into(),
             name: "Portal".into(),
             icon: "mdi:portal".into(),
@@ -90,29 +88,33 @@ pub(super) fn export() -> UserDataExport {
     export
 }
 
-pub(super) fn input(owner: UserId, is_admin: bool, data: UserDataExport) -> ImportUserDataInput {
+pub(super) fn input(owner: UserId, is_admin: bool, data: UserDataModel) -> ImportUserDataInput {
+    let payload = serde_json::to_vec(&data).unwrap();
+    let snapshot =
+        crate::transfer::presentation::formats::ImportFormatRegistry::supported_versions()
+            .import(&payload, &owner)
+            .unwrap();
     ImportUserDataInput {
         owner,
         is_admin,
-        payload: serde_json::to_vec(&data).unwrap(),
+        snapshot,
     }
 }
 
 pub(super) fn raw_input(owner: UserId, is_admin: bool, payload: Vec<u8>) -> ImportUserDataInput {
+    let snapshot =
+        crate::transfer::presentation::formats::ImportFormatRegistry::supported_versions()
+            .import(&payload, &owner)
+            .unwrap_or_default();
     ImportUserDataInput {
         owner,
         is_admin,
-        payload,
+        snapshot,
     }
 }
 
 pub(super) fn command(
     repository: &MemoryUserData,
 ) -> ImportUserData<MemoryUserData, MemoryUserData> {
-    ImportUserData::new(
-        repository.clone(),
-        repository.clone(),
-        ImportFormatService::supported_versions(),
-        ImportDataService,
-    )
+    ImportUserData::new(repository.clone(), repository.clone(), MergeUserDataService)
 }

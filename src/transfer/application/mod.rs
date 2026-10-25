@@ -9,4 +9,4 @@ pub mod services;
 #[cfg(test)]
 mod error_test;
 
-pub use error::TransferError;
+pub use error::{TransferError, TransferOperation};

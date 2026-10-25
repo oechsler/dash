@@ -1,8 +1,9 @@
 use crate::{
     shared::application::ApplicationError,
     transfer::application::{
-        ports::{UserDataReader, UserDataWriter},
-        services::{ImportDataService, ImportFormatService},
+        models::UserDataSnapshot,
+        ports::{UserDataSnapshotReader, UserDataSnapshotWriter},
+        services::MergeUserDataService,
     },
     user::domain::UserId,
 };
@@ -10,36 +11,28 @@ use crate::{
 pub struct ImportUserDataInput {
     pub owner: UserId,
     pub is_admin: bool,
-    pub payload: Vec<u8>,
+    pub snapshot: UserDataSnapshot,
 }
 
 pub struct ImportUserData<R, W> {
     reader: R,
     writer: W,
-    importer: ImportFormatService,
-    apply_import: ImportDataService,
+    merge_user_data: MergeUserDataService,
 }
 
-impl<R: UserDataReader, W: UserDataWriter> ImportUserData<R, W> {
-    pub fn new(
-        reader: R,
-        writer: W,
-        importer: ImportFormatService,
-        apply_import: ImportDataService,
-    ) -> Self {
+impl<R: UserDataSnapshotReader, W: UserDataSnapshotWriter> ImportUserData<R, W> {
+    pub fn new(reader: R, writer: W, merge_user_data: MergeUserDataService) -> Self {
         Self {
             reader,
             writer,
-            importer,
-            apply_import,
+            merge_user_data,
         }
     }
 
     pub async fn execute(&self, input: ImportUserDataInput) -> Result<(), ApplicationError> {
-        let imported = self.importer.import(&input.payload, &input.owner)?;
         let mut snapshot = self.reader.load(&input.owner).await?;
-        self.apply_import
-            .apply(&mut snapshot, &input.owner, imported, input.is_admin)?;
+        self.merge_user_data
+            .merge(&mut snapshot, &input.snapshot, &input.owner, input.is_admin)?;
         self.writer.save(&input.owner, &snapshot).await
     }
 }
