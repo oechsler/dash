@@ -2,6 +2,7 @@
 schemas:
   preferences:
     type: object
+    additionalProperties: false
     required: [language, time_zone, selected_themes]
     examples:
       - language: en
@@ -18,6 +19,7 @@ schemas:
         example: Europe/Berlin
       selected_themes:
         type: object
+        additionalProperties: false
         required: [light, dark]
         properties:
           light:
@@ -26,28 +28,6 @@ schemas:
           dark:
             type: [string, 'null']
             format: uuid
-
-  update_preferences:
-    type: object
-    additionalProperties: false
-    minProperties: 1
-    examples:
-      - mode: dark
-        theme_id: 197fbdc4-92fd-4b18-b805-b2ad6d08aa92
-        language: en
-        time_zone: Europe/Berlin
-    properties:
-      mode:
-        $ref: './themes.yaml#/schemas/theme_mode'
-      theme_id:
-        type: [string, 'null']
-        format: uuid
-        description: Theme to use for this mode, or null to use the default.
-      language:
-        $ref: '#/schemas/language'
-      time_zone:
-        type: string
-        description: Choose your local time zone or let Dash detect it.
 
   language:
     type: string

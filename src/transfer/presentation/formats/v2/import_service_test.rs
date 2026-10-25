@@ -12,7 +12,9 @@ fn document() -> UserDataModel {
         username: "sam".into(),
         settings: SettingsModel::default(),
         themes: Vec::new(),
+        categories_sort_order: "user_defined".into(),
         categories: Vec::new(),
+        application_sort_order: None,
         applications: Vec::new(),
         signature: None,
     }

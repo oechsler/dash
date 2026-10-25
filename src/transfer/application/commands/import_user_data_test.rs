@@ -63,7 +63,14 @@ async fn admin_imports_shared_catalog_applications() {
         .await
         .unwrap();
 
-    assert_eq!(repository.snapshot.lock().unwrap().applications.len(), 1);
+    let snapshot = repository.snapshot.lock().unwrap().clone();
+    assert_eq!(snapshot.applications.len(), 1);
+    let settings = snapshot.application_catalog_settings.unwrap();
+    assert_eq!(
+        settings.sort_order(),
+        crate::shared::domain::CollectionSortOrder::UserDefined
+    );
+    assert_eq!(settings.manual_order(), &[snapshot.applications[0].id()]);
 }
 
 #[tokio::test]
@@ -109,12 +116,16 @@ async fn command_imports_current_go_v1_backup_into_the_snapshot() {
         .unwrap();
 
     let snapshot = repository.snapshot.lock().unwrap().clone();
+    let dashboard = snapshot.dashboard.unwrap();
     assert_eq!(
-        snapshot.dashboard.unwrap().categories()[0]
-            .bookmarks()
-            .len(),
-        1
+        dashboard.categories_sort_order(),
+        crate::shared::domain::CollectionSortOrder::Alphabetical
     );
+    assert_eq!(
+        dashboard.categories()[0].bookmarks_sort_order(),
+        crate::shared::domain::CollectionSortOrder::Alphabetical
+    );
+    assert_eq!(dashboard.categories()[0].bookmarks().len(), 1);
     assert_eq!(snapshot.themes[0].mode(), ThemeMode::Light);
     assert!(
         snapshot

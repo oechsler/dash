@@ -1,27 +1,81 @@
 ---
 schemas:
+  application_catalog:
+    type: object
+    additionalProperties: false
+    required: [sort_order, applications]
+    properties:
+      sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
+      applications:
+        type: array
+        items:
+          $ref: '#/schemas/application'
+
+  update_application_sort_order_request:
+    type: object
+    additionalProperties: false
+    required: [sort_order]
+    properties:
+      sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
+
+  update_application_order_request:
+    type: object
+    additionalProperties: false
+    required: [application_ids]
+    properties:
+      application_ids:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+          format: uuid
+        description: Complete custom order of every application in the catalog.
+
   application:
     type: object
-    required: [id, name, icon, address, visible_to_groups]
+    additionalProperties: false
+    required:
+      - id
+      - name
+      - icon
+      - address
+      - health_check
+      - visible_to_groups
     examples:
       - id: 34f5b56c-bf9a-4f05-8739-bc1d327f76a4
         name: Status page
         icon: mdi:chart-line
         address: https://status.example.test
+        health_check:
+          url: https://status.example.test/health
+          expected_status_class: 2xx
+          ignore_tls_errors: false
+        health: up
         visible_to_groups: [family]
     properties:
       id:
         type: string
         format: uuid
+        examples: [34f5b56c-bf9a-4f05-8739-bc1d327f76a4]
       name:
         type: string
         examples: [Status page]
       icon:
         type: string
+        examples: [mdi:chart-line]
       address:
         type: string
         format: uri
         examples: [https://status.example.test]
+      health_check:
+        $ref: '#/schemas/health_check_settings'
+      health:
+        type: string
+        enum: [up, down]
+        description: Omitted until a configured health check has run.
+        examples: [up, down]
       visible_to_groups:
         type: array
         uniqueItems: true
@@ -34,7 +88,7 @@ schemas:
           - [family]
           - []
 
-  application_write:
+  application_write_request:
     type: object
     required: [name, icon, address, visible_to_groups]
     additionalProperties: false
@@ -42,18 +96,26 @@ schemas:
       - name: Status page
         icon: mdi:chart-line
         address: https://status.example.test
+        health_check:
+          url: https://status.example.test/health
+          expected_status_class: 2xx
+          ignore_tls_errors: false
         visible_to_groups: [family]
     properties:
       name:
         type: string
         minLength: 1
+        examples: [Status page]
       icon:
         type: string
         minLength: 1
+        examples: [mdi:chart-line]
       address:
         type: string
         format: uri
         examples: [https://status.example.test]
+      health_check:
+        $ref: '#/schemas/health_check_settings'
       visible_to_groups:
         type: array
         uniqueItems: true
@@ -65,3 +127,37 @@ schemas:
         examples:
           - [family]
           - []
+
+  health_check_settings:
+    type: [object, 'null']
+    additionalProperties: false
+    description: >-
+      Omit or set to null to turn checks off. If `url` is omitted, Dash checks
+      the app's address.
+    examples:
+      - url: https://status.example.test/health
+        expected_status_class: 2xx
+        ignore_tls_errors: false
+      - url: null
+        expected_status_class: 4xx
+        ignore_tls_errors: true
+    properties:
+      url:
+        type: [string, 'null']
+        format: uri
+        description: >-
+          Optional HTTP or HTTPS address to check instead of the app address.
+        examples: [https://status.example.test/health, null]
+      expected_status_class:
+        type: string
+        enum: [2xx, 3xx, 4xx]
+        default: 2xx
+        description: HTTP response class that means the app is up.
+        examples: [2xx, 3xx, 4xx]
+      ignore_tls_errors:
+        type: boolean
+        default: false
+        description: >-
+          Allow invalid or self-signed certificates. Use only for trusted
+          internal services.
+        examples: [false, true]

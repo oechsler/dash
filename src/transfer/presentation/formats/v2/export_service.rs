@@ -7,8 +7,8 @@ use crate::{
     transfer::{
         application::models::UserDataSnapshot,
         presentation::formats::v2::{
-            ApplicationModel, BookmarkModel, CategoryModel, SettingsModel, ThemeModel,
-            UserDataModel,
+            ApplicationModel, BookmarkModel, CategoryModel, HealthCheckModel, SettingsModel,
+            ThemeModel, UserDataModel,
         },
     },
     user::domain::UserId,
@@ -25,7 +25,7 @@ impl ExportService {
         include_applications: bool,
     ) -> Result<Vec<u8>, ApplicationError> {
         let document = Self::build_document(snapshot, owner, username, include_applications)?;
-        Ok(serde_json::to_vec(&document)?)
+        Ok(serde_json::to_vec_pretty(&document)?)
     }
 
     fn build_document(
@@ -54,8 +54,36 @@ impl ExportService {
             .as_ref()
             .map(|dashboard| Self::export_categories(dashboard.categories()))
             .unwrap_or_default();
-        let applications = if include_applications {
-            Self::export_applications(&snapshot.applications)
+        let categories_sort_order = snapshot
+            .dashboard
+            .as_ref()
+            .map(|dashboard| dashboard.categories_sort_order())
+            .unwrap_or_default()
+            .as_str()
+            .to_owned();
+        let application_catalog_settings = if include_applications {
+            Some(
+                snapshot
+                    .application_catalog_settings
+                    .clone()
+                    .unwrap_or_default(),
+            )
+        } else {
+            None
+        };
+        let application_sort_order = application_catalog_settings
+            .as_ref()
+            .map(|settings| settings.sort_order().as_str().to_owned());
+        let applications = if let Some(settings) = application_catalog_settings {
+            let mut applications = snapshot.applications.clone();
+            match settings.sort_order() {
+                crate::shared::domain::CollectionSortOrder::Alphabetical
+                | crate::shared::domain::CollectionSortOrder::UserDefined => {
+                    settings.sort_applications(&mut applications, &[]);
+                }
+                crate::shared::domain::CollectionSortOrder::RecentlyAccessed => {}
+            }
+            Self::export_applications(&applications)
         } else {
             Vec::new()
         };
@@ -71,7 +99,9 @@ impl ExportService {
                 dark_theme,
             },
             themes,
+            categories_sort_order,
             categories,
+            application_sort_order,
             applications,
             signature: None,
         };
@@ -86,12 +116,18 @@ impl ExportService {
     fn export_application(application: &Application) -> ApplicationModel {
         let mut visible_to_groups = UserDataSnapshot::application_groups(application);
         visible_to_groups.sort();
+        let health_check = application.health_check().map(|config| HealthCheckModel {
+            url: config.url().map(|url| url.as_str().to_owned()),
+            expected_status_class: config.expected_status_class().as_str().to_owned(),
+            ignore_tls_errors: config.ignore_tls_errors(),
+        });
         ApplicationModel {
             hash: UserDataSnapshot::application_hash(application),
             name: application.name().to_owned(),
             icon: application.icon().as_str().to_owned(),
             address: application.address().as_str().to_owned(),
             visible_to_groups,
+            health_check,
         }
     }
 
@@ -109,6 +145,7 @@ impl ExportService {
             hash: UserDataSnapshot::category_hash(category),
             name: category.name().to_owned(),
             shelved: matches!(category, DashboardCategory::Shelved(_)),
+            bookmarks_sort_order: category.bookmarks_sort_order().as_str().to_owned(),
         }
     }
 
@@ -118,6 +155,7 @@ impl ExportService {
             name: bookmark.name().to_owned(),
             icon: bookmark.icon().as_str().to_owned(),
             address: bookmark.address().as_str().to_owned(),
+            last_accessed_at: bookmark.last_accessed_at().map(|time| time.to_rfc3339()),
         }
     }
 

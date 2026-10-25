@@ -4,6 +4,7 @@ use crate::{
     dashboard::domain::UserDashboard,
     preferences::domain::UserPreferences,
     shared::application::ApplicationError,
+    shared::domain::CollectionSortOrder,
     theme::domain::{Theme, ThemeId, ThemeIdentity, ThemeMode},
     transfer::application::models::UserDataSnapshot,
     user::domain::UserId,
@@ -110,17 +111,64 @@ impl MergeUserDataService {
         target: &mut UserDataSnapshot,
         imported: &UserDataSnapshot,
     ) -> Result<(), ApplicationError> {
-        let mut known: Vec<_> = target
+        let mut known: HashMap<_, _> = target
             .applications
             .iter()
-            .map(UserDataSnapshot::application_hash)
+            .map(|application| {
+                (
+                    UserDataSnapshot::application_hash(application),
+                    application.id(),
+                )
+            })
             .collect();
+        let mut imported_id_map = HashMap::new();
         for application in &imported.applications {
             let hash = UserDataSnapshot::application_hash(application);
-            if !known.contains(&hash) {
+            let target_id = if let Some(id) = known.get(&hash) {
+                *id
+            } else {
                 target.applications.push(application.clone());
-                known.push(hash);
+                known.insert(hash, application.id());
+                application.id()
+            };
+            imported_id_map.insert(application.id(), target_id);
+        }
+
+        if let Some(imported_settings) = &imported.application_catalog_settings {
+            let mut settings = target
+                .application_catalog_settings
+                .clone()
+                .unwrap_or_default();
+            settings.set_sort_order(imported_settings.sort_order());
+            if imported_settings.sort_order() == CollectionSortOrder::UserDefined {
+                let available_ids = target
+                    .applications
+                    .iter()
+                    .map(|application| application.id())
+                    .collect::<Vec<_>>();
+                let available: HashSet<_> = available_ids.iter().copied().collect();
+                let mut ordered_ids = Vec::new();
+                for id in imported_settings.manual_order() {
+                    if let Some(target_id) = imported_id_map.get(id).copied()
+                        && available.contains(&target_id)
+                        && !ordered_ids.contains(&target_id)
+                    {
+                        ordered_ids.push(target_id);
+                    }
+                }
+                for id in settings.manual_order() {
+                    if available.contains(id) && !ordered_ids.contains(id) {
+                        ordered_ids.push(*id);
+                    }
+                }
+                for id in &available_ids {
+                    if !ordered_ids.contains(id) {
+                        ordered_ids.push(*id);
+                    }
+                }
+                settings.set_manual_order(ordered_ids, &available_ids)?;
             }
+            target.application_catalog_settings = Some(settings);
         }
         Ok(())
     }
@@ -142,6 +190,7 @@ impl MergeUserDataService {
             &mut preferences,
             ThemeMode::Light,
             imported_preferences,
+            imported.imported_theme_names.as_ref(),
             theme_ids,
             &target.themes,
         )?;
@@ -149,6 +198,7 @@ impl MergeUserDataService {
             &mut preferences,
             ThemeMode::Dark,
             imported_preferences,
+            imported.imported_theme_names.as_ref(),
             theme_ids,
             &target.themes,
         )?;
@@ -161,20 +211,104 @@ impl MergeUserDataService {
         preferences: &mut UserPreferences,
         mode: ThemeMode,
         imported_preferences: &UserPreferences,
+        imported_theme_names: Option<&crate::transfer::application::models::ImportedThemeNames>,
         theme_ids: &ThemeIdMap,
         themes: &[Theme],
     ) -> Result<(), ApplicationError> {
-        let Some(imported_id) = imported_preferences.theme_id(mode) else {
+        if let Some(imported_id) = imported_preferences.theme_id(mode) {
+            let Some(target_id) = theme_ids.get(&imported_id) else {
+                return Ok(());
+            };
+            let theme = themes
+                .iter()
+                .find(|theme| theme.id() == *target_id)
+                .ok_or(ApplicationError::NotFound("theme"))?;
+            preferences.select_theme(theme)?;
             return Ok(());
-        };
-        let Some(target_id) = theme_ids.get(&imported_id) else {
-            return Ok(());
-        };
-        let theme = themes
-            .iter()
-            .find(|theme| theme.id() == *target_id)
-            .ok_or(ApplicationError::NotFound("theme"))?;
-        preferences.select_theme(theme)?;
+        }
+
+        let name = imported_theme_names.and_then(|names| match mode {
+            ThemeMode::Light => names.light.as_deref(),
+            ThemeMode::Dark => names.dark.as_deref(),
+        });
+        let Some(name) = name else { return Ok(()) };
+        if let Some(theme) = themes.iter().find(|theme| {
+            theme.name() == name
+                && theme.mode() == mode
+                && matches!(theme.identity(), ThemeIdentity::Global(_))
+        }) {
+            preferences.select_theme(theme)?;
+        }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        theme::domain::{Color, GlobalThemeId, ThemePalette},
+        transfer::application::models::ImportedThemeNames,
+    };
+
+    fn global_dark_theme() -> Theme {
+        Theme::global()
+            .id(GlobalThemeId::new("destination-ocean").unwrap())
+            .name("Ocean")
+            .mode(ThemeMode::Dark)
+            .palette(ThemePalette::new(
+                Color::parse("#111111").unwrap(),
+                Color::parse("#222222").unwrap(),
+                Color::parse("#333333").unwrap(),
+            ))
+            .call()
+            .unwrap()
+    }
+
+    #[test]
+    fn import_reselects_a_matching_global_theme_by_name_and_mode() {
+        let owner = UserId::new("user-1").unwrap();
+        let theme = global_dark_theme();
+        let mut target = UserDataSnapshot {
+            themes: vec![theme.clone()],
+            ..UserDataSnapshot::default()
+        };
+        let imported = UserDataSnapshot {
+            preferences: Some(UserPreferences::for_user(owner.clone())),
+            imported_theme_names: Some(ImportedThemeNames {
+                light: None,
+                dark: Some("Ocean".to_owned()),
+            }),
+            ..UserDataSnapshot::default()
+        };
+
+        MergeUserDataService
+            .merge(&mut target, &imported, &owner, false)
+            .unwrap();
+
+        assert_eq!(
+            target.preferences.unwrap().theme_id(ThemeMode::Dark),
+            Some(theme.id())
+        );
+    }
+
+    #[test]
+    fn import_uses_the_default_when_a_global_theme_is_unavailable() {
+        let owner = UserId::new("user-1").unwrap();
+        let mut target = UserDataSnapshot::default();
+        let imported = UserDataSnapshot {
+            preferences: Some(UserPreferences::for_user(owner.clone())),
+            imported_theme_names: Some(ImportedThemeNames {
+                light: None,
+                dark: Some("Ocean".to_owned()),
+            }),
+            ..UserDataSnapshot::default()
+        };
+
+        MergeUserDataService
+            .merge(&mut target, &imported, &owner, false)
+            .unwrap();
+
+        assert_eq!(target.preferences.unwrap().theme_id(ThemeMode::Dark), None);
     }
 }

@@ -43,6 +43,7 @@ async fn create_category_persists_it_in_the_owners_dashboard() {
             owner: owner.clone(),
             name: "  Homelab  ".into(),
             shelved: true,
+            bookmarks_sort_order: None,
         })
         .await
         .unwrap();
@@ -64,6 +65,7 @@ async fn create_category_keeps_domain_error_context_in_application_error() {
             owner: UserId::new("user-1").unwrap(),
             name: "   ".into(),
             shelved: false,
+            bookmarks_sort_order: None,
         })
         .await;
 

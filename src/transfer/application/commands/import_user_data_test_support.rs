@@ -64,23 +64,28 @@ pub(super) fn export() -> UserDataModel {
             secondary: "#222222".into(),
             tertiary: "#333333".into(),
         }],
+        categories_sort_order: "user_defined".into(),
         categories: vec![CategoryModel {
             hash: "ignored-category-hash".into(),
             name: "Work".into(),
             shelved: false,
+            bookmarks_sort_order: "user_defined".into(),
             bookmarks: vec![BookmarkModel {
                 hash: "ignored-bookmark-hash".into(),
                 name: "Docs".into(),
                 icon: "mdi:book".into(),
                 address: "https://docs.example".into(),
+                last_accessed_at: None,
             }],
         }],
+        application_sort_order: Some("user_defined".into()),
         applications: vec![ApplicationModel {
             hash: "ignored-app-hash".into(),
             name: "Portal".into(),
             icon: "mdi:portal".into(),
             address: "https://portal.example".into(),
             visible_to_groups: vec!["staff".into()],
+            health_check: None,
         }],
         signature: None,
     };

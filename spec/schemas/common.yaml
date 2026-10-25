@@ -2,6 +2,7 @@
 schemas:
   problem:
     type: object
+    additionalProperties: false
     description: >-
       Dash returns this information when it can't complete a request. The app
       can use `code` to respond appropriately and show `message` to you.
@@ -41,6 +42,7 @@ schemas:
 
   user:
     type: object
+    additionalProperties: false
     required: [id, username, groups]
     examples:
       - id: oidc|123456

@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+
 use crate::icon::domain::IconReference;
 
 use super::{BookmarkError, BookmarkId, DashboardError, WebAddress};
@@ -8,6 +10,7 @@ pub struct Bookmark {
     name: String,
     icon: IconReference,
     address: WebAddress,
+    last_accessed_at: Option<DateTime<Utc>>,
 }
 
 impl Bookmark {
@@ -26,6 +29,7 @@ impl Bookmark {
             name: trimmed.to_owned(),
             icon,
             address,
+            last_accessed_at: None,
         })
     }
 
@@ -43,6 +47,14 @@ impl Bookmark {
 
     pub fn icon(&self) -> &IconReference {
         &self.icon
+    }
+
+    pub fn last_accessed_at(&self) -> Option<DateTime<Utc>> {
+        self.last_accessed_at
+    }
+
+    pub fn record_access(&mut self, accessed_at: DateTime<Utc>) {
+        self.last_accessed_at = Some(accessed_at);
     }
 
     pub fn rename(&mut self, name: impl Into<String>) -> Result<(), DashboardError> {

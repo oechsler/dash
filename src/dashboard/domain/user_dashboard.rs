@@ -1,4 +1,11 @@
-use crate::user::domain::UserId;
+use std::{
+    cmp::Reverse,
+    collections::{HashMap, HashSet},
+};
+
+use chrono::{DateTime, Utc};
+
+use crate::{shared::domain::CollectionSortOrder, user::domain::UserId};
 
 use super::{Bookmark, BookmarkId, CategoryId, DashboardCategory, DashboardError};
 
@@ -7,6 +14,7 @@ use super::{Bookmark, BookmarkId, CategoryId, DashboardCategory, DashboardError}
 pub struct UserDashboard {
     owner: UserId,
     categories: Vec<DashboardCategory>,
+    categories_sort_order: CollectionSortOrder,
 }
 
 impl UserDashboard {
@@ -14,6 +22,7 @@ impl UserDashboard {
         Self {
             owner,
             categories: Vec::new(),
+            categories_sort_order: CollectionSortOrder::Alphabetical,
         }
     }
 
@@ -23,6 +32,61 @@ impl UserDashboard {
 
     pub fn categories(&self) -> &[DashboardCategory] {
         &self.categories
+    }
+
+    pub fn categories_sort_order(&self) -> CollectionSortOrder {
+        self.categories_sort_order
+    }
+
+    pub fn set_categories_sort_order(&mut self, sort_order: CollectionSortOrder) {
+        self.categories_sort_order = sort_order;
+    }
+
+    pub fn reorder_categories(&mut self, ordered_ids: &[CategoryId]) -> Result<(), DashboardError> {
+        let existing_ids: HashSet<_> = self.categories.iter().map(DashboardCategory::id).collect();
+        let requested_ids: HashSet<_> = ordered_ids.iter().copied().collect();
+        if requested_ids.len() != ordered_ids.len() || requested_ids != existing_ids {
+            return Err(DashboardError::InvalidCategoryOrder);
+        }
+
+        let positions: HashMap<_, _> = ordered_ids
+            .iter()
+            .enumerate()
+            .map(|(position, id)| (*id, position))
+            .collect();
+        self.categories
+            .sort_by_key(|category| positions[&category.id()]);
+        Ok(())
+    }
+
+    pub fn sort_bookmarks_for_display(&mut self) {
+        for category in &mut self.categories {
+            category.sort_bookmarks_for_display();
+        }
+    }
+
+    pub fn sort_categories_for_display(&mut self) {
+        match self.categories_sort_order {
+            CollectionSortOrder::Alphabetical => self
+                .categories
+                .sort_by_key(|category| category.name().to_lowercase()),
+            CollectionSortOrder::RecentlyAccessed => self
+                .categories
+                .sort_by_key(|category| Reverse(category.last_accessed_at())),
+            CollectionSortOrder::UserDefined => {}
+        }
+    }
+
+    pub fn record_bookmark_access(
+        &mut self,
+        category_id: CategoryId,
+        bookmark_id: BookmarkId,
+        accessed_at: DateTime<Utc>,
+    ) -> Result<(), DashboardError> {
+        let category = self
+            .category_mut(category_id)
+            .ok_or(DashboardError::CategoryNotFound { category_id })?;
+        category.record_bookmark_access(bookmark_id, accessed_at)
     }
 
     pub fn add_category(&mut self, category: impl Into<DashboardCategory>) {

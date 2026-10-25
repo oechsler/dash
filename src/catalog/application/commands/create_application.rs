@@ -1,5 +1,5 @@
 use crate::{
-    catalog::domain::{Application, ApplicationId, ApplicationVisibility},
+    catalog::domain::{Application, ApplicationHealthCheck, ApplicationId, ApplicationVisibility},
     dashboard::domain::WebAddress,
     icon::domain::IconReference,
     shared::application::ApplicationError,
@@ -13,6 +13,7 @@ pub struct CreateApplicationInput {
     pub icon: String,
     pub address: String,
     pub visible_to_groups: Vec<String>,
+    pub health_check: Option<ApplicationHealthCheck>,
 }
 
 pub struct CreateApplication<R> {
@@ -29,12 +30,13 @@ impl<R: ApplicationReader + ApplicationWriter> CreateApplication<R> {
         input: CreateApplicationInput,
     ) -> Result<ApplicationId, ApplicationError> {
         let groups = parse_groups(input.visible_to_groups)?;
-        let application = Application::create(
+        let mut application = Application::create(
             input.name,
             IconReference::parse(input.icon)?,
             WebAddress::parse(input.address)?,
             ApplicationVisibility::groups(groups),
         )?;
+        application.set_health_check(input.health_check);
         let id = application.id();
         self.repository.save(&application).await?;
         Ok(id)

@@ -1,3 +1,5 @@
+use chrono::{TimeZone, Utc};
+
 use crate::{
     dashboard::domain::{
         Bookmark, Category, CategoryId, DashboardError, UserDashboard, WebAddress,
@@ -99,4 +101,42 @@ fn changing_category_state_preserves_its_identity_and_contents() {
     dashboard.unshelve_category(category_id).unwrap();
     assert!(dashboard.categories()[0].as_active().is_some());
     assert_eq!(dashboard.categories()[0].id(), category_id);
+}
+
+#[test]
+fn categories_can_be_reordered_by_a_complete_user_defined_order() {
+    let mut dashboard = UserDashboard::new(UserId::new("user-1").unwrap());
+    let first = Category::new("First").unwrap();
+    let first_id = first.id();
+    let second = Category::new("Second").unwrap();
+    let second_id = second.id();
+    dashboard.add_category(first);
+    dashboard.add_category(second);
+
+    dashboard
+        .reorder_categories(&[second_id, first_id])
+        .unwrap();
+
+    assert_eq!(dashboard.categories()[0].id(), second_id);
+    assert_eq!(dashboard.categories()[1].id(), first_id);
+    assert_eq!(
+        dashboard.reorder_categories(&[first_id, first_id]),
+        Err(DashboardError::InvalidCategoryOrder)
+    );
+}
+
+#[test]
+fn category_recency_uses_the_most_recent_bookmark_opened() {
+    let mut category = Category::new("Recently used").unwrap();
+    let mut bookmark = Bookmark::new(
+        "Service",
+        IconReference::parse("mdi:server").unwrap(),
+        WebAddress::parse("https://service.example").unwrap(),
+    )
+    .unwrap();
+    let opened_at = Utc.with_ymd_and_hms(2026, 5, 2, 9, 30, 0).unwrap();
+    bookmark.record_access(opened_at);
+    category.add_bookmark(bookmark);
+
+    assert_eq!(category.last_accessed_at(), Some(opened_at));
 }

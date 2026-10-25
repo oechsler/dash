@@ -18,4 +18,10 @@ pub enum DashboardError {
 
     #[error("bookmark {bookmark_id:?} does not belong to this dashboard")]
     BookmarkNotFound { bookmark_id: BookmarkId },
+
+    #[error("category order must contain every dashboard category exactly once")]
+    InvalidCategoryOrder,
+
+    #[error("bookmark order must contain every bookmark in the category exactly once")]
+    InvalidBookmarkOrder,
 }

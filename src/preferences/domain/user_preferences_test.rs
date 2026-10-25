@@ -23,6 +23,23 @@ fn preferences_default_to_no_theme_and_automatic_language_and_timezone() {
 }
 
 #[test]
+fn recently_accessed_applications_move_to_the_front_without_duplicates() {
+    let user_id = UserId::new("user-1").unwrap();
+    let mut preferences = UserPreferences::for_user(user_id);
+    let first = crate::catalog::domain::ApplicationId::new();
+    let second = crate::catalog::domain::ApplicationId::new();
+
+    preferences.record_application_access(first);
+    preferences.record_application_access(second);
+    preferences.record_application_access(first);
+
+    assert_eq!(
+        preferences.recently_accessed_application_ids(),
+        &[first, second]
+    );
+}
+
+#[test]
 fn preferences_can_select_only_their_owners_custom_theme() {
     let owner = UserId::new("user-1").unwrap();
     let other = UserId::new("user-2").unwrap();

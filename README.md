@@ -41,7 +41,7 @@ Once you have Pocket ID running and have created an OIDC client, set the followi
 OIDC_ISSUER=https://id.yourdomain.com
 OIDC_CLIENT_ID=<client-id-from-pocket-id>
 OIDC_CLIENT_SECRET=<client-secret-from-pocket-id>
-OIDC_REDIRECT_URL=https://dash.yourdomain.com/session/login/callback
+OIDC_REDIRECT_URL=https://dash.yourdomain.com/api/v1/sessions/login/callback
 OIDC_ADMIN_GROUP=admin
 ```
 

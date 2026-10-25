@@ -9,5 +9,6 @@ mod transfer_model;
 
 pub use transfer_format::V2Format;
 pub use transfer_model::{
-    ApplicationModel, BookmarkModel, CategoryModel, SettingsModel, ThemeModel, UserDataModel,
+    ApplicationModel, BookmarkModel, CategoryModel, HealthCheckModel, SettingsModel, ThemeModel,
+    UserDataModel,
 };

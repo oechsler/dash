@@ -2,40 +2,61 @@
 schemas:
   dashboard:
     type: object
-    required: [categories, applications]
+    additionalProperties: false
+    required:
+      - applications
+      - categories_sort_order
+      - shelved_categories
+      - categories
     examples:
-      - categories:
+      - applications:
+          - id: 34f5b56c-bf9a-4f05-8739-bc1d327f76a4
+            name: Status page
+            icon: mdi:chart-line
+            address: https://status.example.test
+            health: up
+        categories_sort_order: alphabetical
+        shelved_categories:
+          - id: 54461f02-8766-45a9-9e30-4d50feafd14e
+            name: Old services
+            bookmarks_sort_order: recently_accessed
+            bookmarks: []
+        categories:
           - id: 1eec8b0f-4821-42d2-9323-5974cef94b4e
             name: Home lab
-            shelved: false
+            bookmarks_sort_order: user_defined
             bookmarks:
               - id: 25fe3a58-90d3-45a0-942d-216e8375d882
                 name: Router
                 icon: mdi:router-network
                 address: http://192.168.1.1
-        applications:
-          - id: 34f5b56c-bf9a-4f05-8739-bc1d327f76a4
-            name: Status page
-            icon: mdi:chart-line
-            address: https://status.example.test
     properties:
-      categories:
-        type: array
-        items:
-          $ref: '#/schemas/category'
       applications:
         type: array
         items:
           $ref: '#/schemas/dashboard_application'
+      categories_sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
+        description: How your active and shelved categories are sorted.
+      shelved_categories:
+        type: array
+        items:
+          $ref: '#/schemas/category'
+      categories:
+        type: array
+        items:
+          $ref: '#/schemas/category'
 
   dashboard_application:
     type: object
+    additionalProperties: false
     required: [id, name, icon, address]
     examples:
       - id: 34f5b56c-bf9a-4f05-8739-bc1d327f76a4
         name: Status page
         icon: mdi:chart-line
         address: https://status.example.test
+        health: up
     properties:
       id:
         type: string
@@ -47,14 +68,20 @@ schemas:
       address:
         type: string
         format: uri
+      health:
+        type: string
+        enum: [up, down]
+        description: Omitted when no health check is configured.
+        examples: [up, down]
 
   category:
     type: object
-    required: [id, name, shelved, bookmarks]
+    additionalProperties: false
+    required: [id, name, bookmarks_sort_order, bookmarks]
     examples:
       - id: 1eec8b0f-4821-42d2-9323-5974cef94b4e
         name: Home lab
-        shelved: false
+        bookmarks_sort_order: user_defined
         bookmarks:
           - id: 25fe3a58-90d3-45a0-942d-216e8375d882
             name: Router
@@ -67,8 +94,9 @@ schemas:
       name:
         type: string
         minLength: 1
-      shelved:
-        type: boolean
+      bookmarks_sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
+        default: alphabetical
       bookmarks:
         type: array
         items:
@@ -81,6 +109,7 @@ schemas:
     examples:
       - name: Home lab
         shelved: false
+        bookmarks_sort_order: user_defined
     properties:
       name:
         type: string
@@ -89,23 +118,38 @@ schemas:
       shelved:
         type: boolean
         default: false
+      bookmarks_sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
+        default: alphabetical
+
+  update_categories_sort_order_request:
+    type: object
+    required: [categories_sort_order]
+    additionalProperties: false
+    properties:
+      categories_sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
 
   update_category_request:
     type: object
-    required: [name, shelved]
+    required: [name, shelved, bookmarks_sort_order]
     additionalProperties: false
     examples:
       - name: Home lab
         shelved: true
+        bookmarks_sort_order: recently_accessed
     properties:
       name:
         type: string
         minLength: 1
       shelved:
         type: boolean
+      bookmarks_sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
 
   bookmark:
     type: object
+    additionalProperties: false
     required: [id, name, icon, address]
     examples:
       - id: 25fe3a58-90d3-45a0-942d-216e8375d882

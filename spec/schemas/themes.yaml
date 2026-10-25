@@ -2,6 +2,7 @@
 schemas:
   theme:
     type: object
+    additionalProperties: false
     required: [id, name, mode, palette, scope]
     examples:
       - id: 197fbdc4-92fd-4b18-b805-b2ad6d08aa92

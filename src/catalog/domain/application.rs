@@ -5,7 +5,10 @@ use getset::Getters;
 
 use crate::{dashboard::domain::WebAddress, icon::domain::IconReference, user::domain::GroupId};
 
-use super::{ApplicationError, ApplicationId, ApplicationVisibility, CatalogError};
+use super::{
+    ApplicationError, ApplicationHealth, ApplicationHealthCheck, ApplicationId,
+    ApplicationVisibility, CatalogError,
+};
 
 /// An administrator-maintained application in the shared catalog.
 #[derive(Debug, Clone, PartialEq, Eq, Getters)]
@@ -14,6 +17,8 @@ pub struct Application {
     name: String,
     icon: IconReference,
     address: WebAddress,
+    health_check: Option<ApplicationHealthCheck>,
+    health: Option<ApplicationHealth>,
     #[getset(get = "pub")]
     visibility: ApplicationVisibility,
 }
@@ -52,6 +57,8 @@ impl Application {
             name: trimmed.to_owned(),
             icon,
             address,
+            health_check: None,
+            health: None,
             visibility,
         })
     }
@@ -66,6 +73,36 @@ impl Application {
 
     pub fn address(&self) -> &WebAddress {
         &self.address
+    }
+
+    pub fn health_check(&self) -> Option<&ApplicationHealthCheck> {
+        self.health_check.as_ref()
+    }
+
+    pub fn health_check_target(&self) -> Option<&str> {
+        self.health_check.as_ref().map(|health_check| {
+            health_check
+                .url()
+                .map_or(self.address.as_str(), |url| url.as_str())
+        })
+    }
+
+    pub fn health(&self) -> Option<ApplicationHealth> {
+        self.health
+    }
+
+    pub fn set_health_check(&mut self, health_check: Option<ApplicationHealthCheck>) {
+        self.health = None;
+        self.health_check = health_check;
+    }
+
+    pub fn record_health_check(&mut self, status: Option<u16>) {
+        if let Some(health_check) = &self.health_check {
+            self.health = Some(ApplicationHealth::from_response(
+                status,
+                health_check.expected_status_class(),
+            ));
+        }
     }
 
     pub fn icon(&self) -> &IconReference {

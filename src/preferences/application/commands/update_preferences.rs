@@ -13,10 +13,10 @@ use crate::{
 
 pub struct UpdatePreferencesInput {
     pub owner: UserId,
-    pub mode: ThemeMode,
-    pub theme_id: Option<ThemeId>,
-    pub language: Option<Language>,
-    pub time_zone: Option<String>,
+    pub language: Language,
+    pub time_zone: String,
+    pub light_theme_id: Option<ThemeId>,
+    pub dark_theme_id: Option<ThemeId>,
 }
 
 pub struct UpdatePreferences<P, T> {
@@ -38,23 +38,43 @@ impl<P: PreferencesReader + PreferencesWriter, T: ThemeReader> UpdatePreferences
             .load(&input.owner)
             .await?
             .unwrap_or_else(|| UserPreferences::for_user(input.owner.clone()));
-        match input.theme_id {
+        preferences.set_language(input.language);
+        preferences.set_time_zone(TimeZone::parse(input.time_zone)?);
+        self.set_theme(
+            &mut preferences,
+            &input.owner,
+            ThemeMode::Light,
+            input.light_theme_id,
+        )
+        .await?;
+        self.set_theme(
+            &mut preferences,
+            &input.owner,
+            ThemeMode::Dark,
+            input.dark_theme_id,
+        )
+        .await?;
+        self.preferences.save(&preferences).await
+    }
+
+    async fn set_theme(
+        &self,
+        preferences: &mut UserPreferences,
+        owner: &UserId,
+        mode: ThemeMode,
+        theme_id: Option<ThemeId>,
+    ) -> Result<(), ApplicationError> {
+        match theme_id {
             Some(id) => {
                 let theme = self
                     .themes
-                    .get_for(&input.owner, id)
+                    .get_for(owner, id)
                     .await?
                     .ok_or(ApplicationError::NotFound("theme"))?;
                 preferences.select_theme(&theme)?;
             }
-            None => preferences.clear_theme_selection(input.mode),
+            None => preferences.clear_theme_selection(mode),
         }
-        if let Some(language) = input.language {
-            preferences.set_language(language);
-        }
-        if let Some(time_zone) = input.time_zone {
-            preferences.set_time_zone(TimeZone::parse(time_zone)?);
-        }
-        self.preferences.save(&preferences).await
+        Ok(())
     }
 }

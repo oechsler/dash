@@ -25,6 +25,353 @@ tags:
   - name: Sessions
   - name: Transfer
 paths:
+  /api/v1/me:
+    get:
+      tags: [User]
+      operationId: get_current_user
+      summary: View your account profile
+      description: >-
+        See the profile details Dash received from your account provider.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_user_read]
+      responses:
+        '200':
+          description: >-
+            Your profile and the groups that give you access to shared apps.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/common.yaml#/schemas/user'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    delete:
+      tags: [User]
+      operationId: delete_current_user
+      summary: Delete your account
+      description: >-
+        Permanently remove your Dash profile, categories, bookmarks, themes,
+        preferences, and saved sessions. You can sign in again later, but this
+        data cannot be restored.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_user_delete]
+      responses:
+        '204':
+          description: Your data has been deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/themes:
+    get:
+      tags: [Themes]
+      operationId: list_themes
+      summary: Browse available themes
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_themes_read]
+      responses:
+        '200':
+          description: Built-in themes and themes you've created.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/themes.yaml#/schemas/theme'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Themes]
+      operationId: create_theme
+      summary: Create your own theme
+      description: Pick a name, appearance, and three colors for your new theme.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_themes_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/themes.yaml#/schemas/create_theme_request'
+            examples:
+              ocean:
+                summary: Create an ocean-colored dark theme
+                value:
+                  name: Ocean
+                  mode: dark
+                  palette:
+                    primary: '#145da0'
+                    secondary: '#0c2d48'
+                    tertiary: '#b1d4e0'
+      responses:
+        '201':
+          description: Your new theme is ready to use.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/themes.yaml#/schemas/theme'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/sessions:
+    get:
+      tags: [Sessions]
+      operationId: list_sessions
+      summary: See where you're signed in
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_sessions_read]
+      responses:
+        '200':
+          description: Your signed-in devices, including this one.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './schemas/sessions.yaml#/schemas/session'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/dashboard:
+    get:
+      tags: [Dashboard]
+      operationId: get_dashboard
+      summary: View your dashboard
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_dashboard_read]
+      responses:
+        '200':
+          description: >-
+            Your apps, active categories, and shelved categories, sorted by
+            your selected category sorting rule.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/dashboard.yaml#/schemas/dashboard'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/categories:
+    post:
+      tags: [Dashboard]
+      operationId: create_category
+      summary: Create a category for your links
+      description: Add a category to keep your links organized.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_dashboard_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/dashboard.yaml#/schemas/create_category_request'
+            examples:
+              home_lab:
+                summary: A category for home-lab links
+                value:
+                  name: Home lab
+                  shelved: false
+                  bookmarks_sort_order: user_defined
+      responses:
+        '201':
+          description: Your new category is ready to use.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/dashboard.yaml#/schemas/category'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    put:
+      tags: [Dashboard]
+      operationId: update_categories_sort_order
+      summary: Update the category sorting rule
+      description: >-
+        Choose how your active and shelved categories are sorted. If you choose
+        `user_defined`, set their order through `PUT /api/v1/categories/order`.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_dashboard_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/dashboard.yaml#/schemas/update_categories_sort_order_request'  # yamllint disable-line rule:line-length
+            examples:
+              recently_accessed:
+                value:
+                  categories_sort_order: recently_accessed
+      responses:
+        '204':
+          description: Your category sorting rule has been saved.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/preferences:
+    get:
+      tags: [Preferences]
+      operationId: get_preferences
+      summary: View your preferences
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_preferences_read]
+      responses:
+        '200':
+          description: Your language, time zone, and selected themes.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/preferences.yaml#/schemas/preferences'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [Preferences]
+      operationId: update_preferences
+      summary: Update your preferences
+      description: >-
+        Set your language, time zone, and selected themes for light and dark
+        mode. Set a theme selection to `null` to use the default theme for that
+        mode.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_preferences_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/preferences.yaml#/schemas/preferences'
+            examples:
+              update_preferences:
+                summary: Set your language, time zone, and theme selections
+                value:
+                  language: en
+                  time_zone: Europe/Berlin
+                  selected_themes:
+                    light: null
+                    dark: 197fbdc4-92fd-4b18-b805-b2ad6d08aa92
+      responses:
+        '200':
+          description: Your preferences have been saved.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/preferences.yaml#/schemas/preferences'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/applications:
+    get:
+      tags: [Applications]
+      operationId: list_applications
+      summary: Browse the shared app catalog
+      description: >-
+        Shows every shared app and its visibility groups. This management view
+        is for dashboard administrators; regular users see only their apps on
+        the dashboard.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_applications_read]
+      responses:
+        '200':
+          description: >-
+            All apps in the shared catalog, sorted by the selected rule and
+            including their visibility settings.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/applications.yaml#/schemas/application_catalog'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Applications]
+      operationId: create_application
+      summary: Add an app to the shared catalog
+      description: >-
+        Add a link that people in selected groups can see. Only dashboard admins
+        can change the shared app catalog.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_applications_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/applications.yaml#/schemas/application_write_request'  # yamllint disable-line rule:line-length
+            examples:
+              family_status_page:
+                summary: Share a status page with the family group
+                value:
+                  name: Status page
+                  icon: mdi:chart-line
+                  address: https://status.example.test
+                  visible_to_groups: [family]
+      responses:
+        '201':
+          description: The shared app has been added.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/applications.yaml#/schemas/application'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    put:
+      tags: [Applications]
+      operationId: update_application_catalog_sort_order
+      summary: Update the app catalog sorting rule
+      description: >-
+        Administrators can sort apps alphabetically, by recent use, or in a
+        custom order. Recent-use sorting is personalized for each user. Set a
+        custom order through `PUT /api/v1/applications/order`.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_applications_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/applications.yaml#/schemas/update_application_sort_order_request'  # yamllint disable-line rule:line-length
+      responses:
+        '204':
+          description: The app catalog sorting rule has been saved.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /api/v1/sessions/login:
     get:
       tags: [Sessions]
@@ -44,6 +391,320 @@ paths:
                 format: uri
         '500':
           $ref: '#/components/responses/InternalError'
+  /api/v1/sessions/logout:
+    post:
+      tags: [Sessions]
+      operationId: logout
+      summary: Sign out
+      security:
+        - session_cookie: []
+      description: >-
+        Submit this endpoint through a browser form. Dash ends its session,
+        redirects through your account provider's sign-out page, then returns
+        you to the app.
+      responses:
+        '303':
+          description: Redirect to the account provider to complete sign-out.
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+            Set-Cookie:
+              description: Clears the Dash session cookie before redirecting.
+              schema:
+                type: string
+                example: >-
+                  dash_session=; Path=/; Max-Age=0; HttpOnly;
+                  Secure; SameSite=Lax
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/transfer/export:
+    get:
+      tags: [Transfer]
+      operationId: export_transfer
+      summary: Download a backup of your dashboard
+      description: >-
+        Administrators' backups also include the shared app catalog and its
+        sorting rule.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_transfer_read]
+      responses:
+        '200':
+          description: Your JSON backup is ready to download.
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: attachment; filename="dash-export.json"
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/transfer.yaml#/schemas/transfer_document_v2'  # yamllint disable-line rule:line-length
+              examples:
+                dashboard_backup:
+                  summary: Example JSON backup; signature shown is illustrative
+                  value:
+                    version: 2
+                    exported_at: '2026-05-02T09:30:00Z'
+                    username: alex
+                    settings:
+                      language: en
+                      time_zone: Europe/Berlin
+                      light_theme: null
+                      dark_theme: Ocean
+                    themes:
+                      - hash: 2fd4e1c6
+                        name: Ocean
+                        mode: dark
+                        primary: '#145da0'
+                        secondary: '#0c2d48'
+                        tertiary: '#b1d4e0'
+                    categories_sort_order: recently_accessed
+                    categories:
+                      - hash: b08f6f2a
+                        name: Home lab
+                        shelved: false
+                        bookmarks_sort_order: recently_accessed
+                        bookmarks:
+                          - hash: 936c3b53
+                            name: Router
+                            icon: mdi:router-network
+                            address: http://192.168.1.1
+                            last_accessed_at: '2026-05-02T09:15:00Z'
+                    application_sort_order: user_defined
+                    applications:
+                      - hash: 199acbc2
+                        name: Status page
+                        icon: mdi:chart-line
+                        address: https://status.example.test
+                        visible_to_groups: [family]
+                        health_check:
+                          url: https://status.example.test/health
+                          expected_status_class: 2xx
+                          ignore_tls_errors: false
+                    signature: <generated-signature>
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/transfer/import:
+    post:
+      tags: [Transfer]
+      operationId: import_transfer
+      summary: Restore your dashboard from a backup
+      description: >-
+        Restore a JSON backup. Shared apps are imported only for administrators.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_transfer_write]
+      requestBody:
+        required: true
+        description: Choose a JSON backup file to restore your dashboard.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: application/json
+            examples:
+              home_lab_backup:
+                summary: >-
+                  Example legacy JSON backup; the signature is illustrative.
+                value:
+                  file: |
+                    {
+                      "version": 1,
+                      "exported_at": "2026-05-02T09:30:00Z",
+                      "username": "alex",
+                      "settings": {
+                        "language": "en",
+                        "timezone": "Europe/Berlin",
+                        "theme_name": "Ocean"
+                      },
+                      "themes": [
+                        {
+                          "hash": "2fd4e1c6",
+                          "name": "Ocean",
+                          "primary": "#145da0",
+                          "secondary": "#0c2d48",
+                          "tertiary": "#b1d4e0"
+                        }
+                      ],
+                      "categories": [
+                        {
+                          "hash": "b08f6f2a",
+                          "display_name": "Home lab",
+                          "is_shelved": false,
+                          "bookmarks": [
+                            {
+                              "hash": "936c3b53",
+                              "icon": "mdi:router-network",
+                              "display_name": "Router",
+                              "url": "http://192.168.1.1"
+                            }
+                          ]
+                        }
+                      ],
+                      "applications": [],
+                      "signature": "<generated-signature>"
+                    }
+      responses:
+        '204':
+          description: Your dashboard has been restored from the backup.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/categories/order:
+    put:
+      tags: [Dashboard]
+      operationId: reorder_categories
+      summary: Change the order of your categories
+      description: >-
+        Send every category ID from first to last, including shelved categories.
+        This order is used when `categories_sort_order` is `user_defined`; use
+        it with drag-and-drop or up/down controls.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_dashboard_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category_ids]
+              additionalProperties: false
+              properties:
+                category_ids:
+                  type: array
+                  uniqueItems: true
+                  description: >-
+                    List every category ID in the order you want. Include
+                    shelved categories.
+                  items:
+                    type: string
+                    format: uuid
+            examples:
+              user_defined_order:
+                summary: Move the Home lab category above Favorites
+                value:
+                  category_ids:
+                    - 1eec8b0f-4821-42d2-9323-5974cef94b4e
+                    - 54461f02-8766-45a9-9e30-4d50feafd14e
+      responses:
+        '204':
+          description: Your category order has been saved.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/themes/{theme_id}:
+    parameters:
+      - $ref: '#/components/parameters/theme_id'
+    get:
+      tags: [Themes]
+      operationId: get_theme
+      summary: View a theme
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_themes_read]
+      responses:
+        '200':
+          description: The theme's name, appearance, and colors.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/themes.yaml#/schemas/theme'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Themes]
+      operationId: delete_theme
+      summary: Delete one of your themes
+      description: >-
+        Remove a theme you created. First choose another theme anywhere that
+        currently uses it.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_themes_write]
+      responses:
+        '204':
+          description: Your theme has been deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: You can't delete a built-in theme or one you're using.
+          content:
+            application/problem+json:
+              schema:
+                $ref: './schemas/common.yaml#/schemas/problem'
+  /api/v1/applications/order:
+    put:
+      tags: [Applications]
+      operationId: update_application_catalog_order
+      summary: Change the order of the apps
+      description: >-
+        Send every app ID from first to last. This order is used when the app
+        catalog's sorting rule is `user_defined`.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_applications_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/applications.yaml#/schemas/update_application_order_request'  # yamllint disable-line rule:line-length
+      responses:
+        '204':
+          description: Your custom app order has been saved.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/sessions/{session_id}:
+    parameters:
+      - $ref: '#/components/parameters/session_id'
+    delete:
+      tags: [Sessions]
+      operationId: invalidate_session
+      summary: Sign out a device
+      description: >-
+        End a sign-in you no longer use. Your current sign-in stays active.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_sessions_write]
+      responses:
+        '204':
+          description: That device has been signed out.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/v1/sessions/login/callback:
     get:
       tags: [Sessions]
@@ -111,135 +772,16 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-  /api/v1/sessions/logout:
-    post:
-      tags: [Sessions]
-      operationId: logout
-      summary: Sign out
-      security:
-        - session_cookie: []
-      description: >-
-        Submit this endpoint through a browser form. Dash ends its session,
-        redirects through your account provider's sign-out page, then returns
-        you to the app.
-      responses:
-        '303':
-          description: Redirect to the account provider to complete sign-out.
-          headers:
-            Location:
-              schema:
-                type: string
-                format: uri
-            Set-Cookie:
-              description: Clears the Dash session cookie before redirecting.
-              schema:
-                type: string
-                example: >-
-                  dash_session=; Path=/; Max-Age=0; HttpOnly;
-                  Secure; SameSite=Lax
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /api/v1/me:
-    get:
-      tags: [User]
-      operationId: get_current_user
-      summary: View your account profile
-      description: >-
-        See the profile details Dash received from your account provider.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_user_read]
-      responses:
-        '200':
-          description: >-
-            Your profile and the groups that give you access to shared apps.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/common.yaml#/schemas/user'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-    delete:
-      tags: [User]
-      operationId: delete_current_user
-      summary: Delete your account
-      description: >-
-        Permanently remove your Dash profile, categories, bookmarks, themes,
-        preferences, and saved sign-ins. You can sign in again later, but this
-        data cannot be restored.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_user_delete]
-      responses:
-        '204':
-          description: Your data has been deleted.
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /api/v1/dashboard:
-    get:
-      tags: [Dashboard]
-      operationId: get_dashboard
-      summary: View your dashboard
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_dashboard_read]
-      responses:
-        '200':
-          description: >-
-            Your categories and bookmarks, plus shared apps available to you.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/dashboard.yaml#/schemas/dashboard'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /api/v1/categories:
-    post:
-      tags: [Dashboard]
-      operationId: create_category
-      summary: Create a category for your links
-      description: Add a new group to keep your bookmarks organized.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_dashboard_write]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: './schemas/dashboard.yaml#/schemas/create_category_request'
-            examples:
-              home_lab:
-                summary: A category for home-lab links
-                value:
-                  name: Home lab
-                  shelved: false
-      responses:
-        '201':
-          description: Your new category is ready to use.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/dashboard.yaml#/schemas/category'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/ValidationError'
   /api/v1/categories/{category_id}:
     parameters:
       - $ref: '#/components/parameters/category_id'
     put:
       tags: [Dashboard]
       operationId: update_category
-      summary: Rename or archive a category
+      summary: Update a category
       description: >-
-        Update the category name or move it in or out of your archive.
+        Change the category name, shelve or unshelve it, or choose how its
+        bookmarks are sorted.
       security:
         - session_cookie: []
         - oidc_bearer: []
@@ -251,11 +793,12 @@ paths:
             schema:
               $ref: './schemas/dashboard.yaml#/schemas/update_category_request'
             examples:
-              archive_category:
-                summary: Archive a category without renaming it
+              shelve_category:
+                summary: Shelve a category without renaming it
                 value:
                   name: Home lab
                   shelved: true
+                  bookmarks_sort_order: user_defined
       responses:
         '200':
           description: Your category has been updated.
@@ -275,7 +818,7 @@ paths:
       tags: [Dashboard]
       operationId: delete_category
       summary: Delete a category and all its links
-      description: Deleting a category also removes the bookmarks inside it.
+      description: Deleting a category also deletes all the links in it.
       security:
         - session_cookie: []
         - oidc_bearer: []
@@ -287,167 +830,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-  /api/v1/categories/{category_id}/bookmarks:
-    parameters:
-      - $ref: '#/components/parameters/category_id'
-    post:
-      tags: [Dashboard]
-      operationId: create_bookmark
-      summary: Add a link to a category
-      description: Save a website in one of your categories.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_dashboard_write]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: './schemas/dashboard.yaml#/schemas/create_bookmark_request'
-            examples:
-              router:
-                summary: Save a link to a home router
-                value:
-                  name: Router
-                  icon: mdi:router-network
-                  address: http://192.168.1.1
-      responses:
-        '201':
-          description: Your link has been saved.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/dashboard.yaml#/schemas/bookmark'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/v1/categories/{category_id}/bookmarks/{bookmark_id}:
-    parameters:
-      - $ref: '#/components/parameters/category_id'
-      - $ref: '#/components/parameters/bookmark_id'
-    put:
-      tags: [Dashboard]
-      operationId: update_bookmark
-      summary: Edit or move a saved link
-      description: Change its name, icon, address, or destination category.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_dashboard_write]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: './schemas/dashboard.yaml#/schemas/update_bookmark_request'
-            examples:
-              router:
-                summary: Rename a saved router link
-                value:
-                  name: Router admin
-                  icon: mdi:router-network
-                  address: http://192.168.1.1
-      responses:
-        '200':
-          description: Your link has been updated.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/dashboard.yaml#/schemas/bookmark'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-    delete:
-      tags: [Dashboard]
-      operationId: delete_bookmark
-      summary: Remove a saved link
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_dashboard_write]
-      responses:
-        '204':
-          description: Your link has been removed.
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /api/v1/applications:
-    get:
-      tags: [Applications]
-      operationId: list_applications
-      summary: Browse the shared app catalog
-      description: >-
-        Shows every shared app and its visibility groups. This management view
-        is for dashboard administrators; regular users see only their apps on
-        the dashboard.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_applications_read]
-      responses:
-        '200':
-          description: >-
-            All apps in the shared catalog, including visibility settings.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: './schemas/applications.yaml#/schemas/application'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-    post:
-      tags: [Applications]
-      operationId: create_application
-      summary: Add an app to the shared catalog
-      description: >-
-        Add a link that people in selected groups can see. Only dashboard admins
-        can change the shared app catalog.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_applications_write]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: './schemas/applications.yaml#/schemas/application_write'
-            examples:
-              family_status_page:
-                summary: Share a status page with the family group
-                value:
-                  name: Status page
-                  icon: mdi:chart-line
-                  address: https://status.example.test
-                  visible_to_groups: [family]
-      responses:
-        '201':
-          description: The shared app has been added.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/applications.yaml#/schemas/application'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '422':
-          $ref: '#/components/responses/ValidationError'
   /api/v1/applications/{application_id}:
     parameters:
       - $ref: '#/components/parameters/application_id'
@@ -455,7 +837,8 @@ paths:
       tags: [Applications]
       operationId: get_application
       summary: View a shared app's settings
-      description: Includes which groups can see this app.
+      description: >-
+        View the app details, health-check settings, and who can see it.
       security:
         - session_cookie: []
         - oidc_bearer: []
@@ -474,8 +857,9 @@ paths:
     put:
       tags: [Applications]
       operationId: update_application
-      summary: Edit a shared app
-      description: Only dashboard admins can change the shared app catalog.
+      summary: Update a shared app
+      description: >-
+        Change the app details, health-check settings, or who can see it.
       security:
         - session_cookie: []
         - oidc_bearer: []
@@ -485,7 +869,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: './schemas/applications.yaml#/schemas/application_write'
+              $ref: './schemas/applications.yaml#/schemas/application_write_request'  # yamllint disable-line rule:line-length
             examples:
               family_status_page:
                 summary: Keep the status page available to family
@@ -512,217 +896,19 @@ paths:
     delete:
       tags: [Applications]
       operationId: delete_application
-      summary: Remove a shared app
-      description: Only dashboard admins can change the shared app catalog.
+      summary: Delete a shared app
+      description: Remove this app from the shared catalog.
       security:
         - session_cookie: []
         - oidc_bearer: []
       x-required-scopes: [dash_applications_write]
       responses:
         '204':
-          description: The shared app has been removed.
+          description: The app has been removed from the shared catalog.
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /api/v1/themes:
-    get:
-      tags: [Themes]
-      operationId: list_themes
-      summary: Browse available themes
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_themes_read]
-      responses:
-        '200':
-          description: Built-in themes and themes you've created.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: './schemas/themes.yaml#/schemas/theme'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-    post:
-      tags: [Themes]
-      operationId: create_theme
-      summary: Create your own theme
-      description: Pick a name, appearance, and three colors for your new theme.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_themes_write]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: './schemas/themes.yaml#/schemas/create_theme_request'
-            examples:
-              ocean:
-                summary: Create an ocean-colored dark theme
-                value:
-                  name: Ocean
-                  mode: dark
-                  palette:
-                    primary: '#145da0'
-                    secondary: '#0c2d48'
-                    tertiary: '#b1d4e0'
-      responses:
-        '201':
-          description: Your new theme is ready to use.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/themes.yaml#/schemas/theme'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/v1/themes/{theme_id}:
-    parameters:
-      - $ref: '#/components/parameters/theme_id'
-    get:
-      tags: [Themes]
-      operationId: get_theme
-      summary: View a theme
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_themes_read]
-      responses:
-        '200':
-          description: The theme's name, appearance, and colors.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/themes.yaml#/schemas/theme'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    delete:
-      tags: [Themes]
-      operationId: delete_theme
-      summary: Delete one of your themes
-      description: >-
-        Remove a theme you created. First choose another theme anywhere that
-        currently uses it.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_themes_write]
-      responses:
-        '204':
-          description: Your theme has been deleted.
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: This is a built-in theme or it's currently selected.
-          content:
-            application/problem+json:
-              schema:
-                $ref: './schemas/common.yaml#/schemas/problem'
-  /api/v1/preferences:
-    get:
-      tags: [Preferences]
-      operationId: get_preferences
-      summary: View your preferences
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_preferences_read]
-      responses:
-        '200':
-          description: Your language, time zone, and selected themes.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/preferences.yaml#/schemas/preferences'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-    patch:
-      tags: [Preferences]
-      operationId: update_preferences
-      summary: Change your language, time zone, or selected theme
-      description: >-
-        Choose a light or dark theme, or send `theme_id: null` to use the
-        default for that mode. You can also change your language and time zone.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_preferences_write]
-      requestBody:
-        required: true
-        content:
-          application/merge-patch+json:
-            schema:
-              $ref: './schemas/preferences.yaml#/schemas/update_preferences'
-            examples:
-              select_dark_theme:
-                summary: Use the Ocean theme in dark mode
-                value:
-                  mode: dark
-                  theme_id: 197fbdc4-92fd-4b18-b805-b2ad6d08aa92
-                  language: en
-                  time_zone: Europe/Berlin
-      responses:
-        '200':
-          description: Your preferences have been saved.
-          content:
-            application/json:
-              schema:
-                $ref: './schemas/preferences.yaml#/schemas/preferences'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /api/v1/sessions:
-    get:
-      tags: [Sessions]
-      operationId: list_sessions
-      summary: See where you're signed in
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_sessions_read]
-      responses:
-        '200':
-          description: Your signed-in devices, including this one.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: './schemas/sessions.yaml#/schemas/session'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /api/v1/sessions/{session_id}:
-    parameters:
-      - $ref: '#/components/parameters/session_id'
-    delete:
-      tags: [Sessions]
-      operationId: invalidate_session
-      summary: Sign out a device
-      description: >-
-        End a sign-in you no longer use. Your current sign-in stays active.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_sessions_write]
-      responses:
-        '204':
-          description: That device has been signed out.
-        '401':
-          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
   /api/v1/sessions/{session_id}/upgrade:
@@ -814,127 +1000,192 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-  /api/v1/transfer/export:
-    get:
-      tags: [Transfer]
-      operationId: export_transfer
-      summary: Download a backup of your dashboard
-      description: >-
-        Administrators' backups include the shared application catalog.
-      security:
-        - session_cookie: []
-        - oidc_bearer: []
-      x-required-scopes: [dash_transfer_read]
-      responses:
-        '200':
-          description: Download this file to keep a copy of your dashboard.
-          headers:
-            Content-Disposition:
-              schema:
-                type: string
-                example: attachment; filename="dash-export.yaml"
-          content:
-            application/yaml:
-              schema:
-                type: string
-                format: binary
-                description: YAML backup file.
-              examples:
-                dashboard_backup:
-                  summary: Downloadable dashboard backup
-                  value: |
-                    version: 2
-                    exported_at: '2026-05-02T09:30:00Z'
-                    username: alex
-                    settings:
-                      language: en
-                      time_zone: Europe/Berlin
-                      light_theme: null
-                      dark_theme: Ocean
-                    themes:
-                      - hash: 2fd4e1c6
-                        name: Ocean
-                        mode: dark
-                        primary: '#145da0'
-                        secondary: '#0c2d48'
-                        tertiary: '#b1d4e0'
-                    categories:
-                      - hash: b08f6f2a
-                        name: Home lab
-                        shelved: false
-                        bookmarks:
-                          - hash: 936c3b53
-                            name: Router
-                            icon: mdi:router-network
-                            address: http://192.168.1.1
-                    applications: []
-                    signature: "fe8b7f13bdc7ee0f9d885520fd2c2c0a\
-                      54b97462493d9ea8d1df570af891cb57"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /api/v1/transfer/import:
+  /api/v1/categories/{category_id}/bookmarks:
+    parameters:
+      - $ref: '#/components/parameters/category_id'
     post:
-      tags: [Transfer]
-      operationId: import_transfer
-      summary: Restore your dashboard from a backup
-      description: >-
-        Shared applications in the backup are imported only for administrators.
+      tags: [Dashboard]
+      operationId: create_bookmark
+      summary: Add a link to a category
+      description: Save a website in one of your categories.
       security:
         - session_cookie: []
         - oidc_bearer: []
-      x-required-scopes: [dash_transfer_write]
+      x-required-scopes: [dash_dashboard_write]
       requestBody:
         required: true
-        description: Choose a YAML backup file to restore your dashboard.
         content:
-          multipart/form-data:
+          application/json:
             schema:
-              type: object
-              required: [file]
-              properties:
-                file:
-                  type: string
-                  format: binary
-            encoding:
-              file:
-                contentType: application/yaml
+              $ref: './schemas/dashboard.yaml#/schemas/create_bookmark_request'
             examples:
-              home_lab_backup:
-                summary: Restore a backup with a category and router link
+              router:
+                summary: Save a link to a home router
                 value:
-                  file: |
-                    version: 1
-                    exported_at: '2026-05-02T09:30:00Z'
-                    username: alex
-                    settings:
-                      language: en
-                      timezone: Europe/Berlin
-                      theme_name: Ocean
-                    themes:
-                      - hash: 2fd4e1c6
-                        name: Ocean
-                        primary: '#145da0'
-                        secondary: '#0c2d48'
-                        tertiary: '#b1d4e0'
-                    categories:
-                      - hash: b08f6f2a
-                        display_name: Home lab
-                        is_shelved: false
-                        bookmarks:
-                          - hash: 936c3b53
-                            icon: mdi:router-network
-                            display_name: Router
-                            url: http://192.168.1.1
-                    applications: []
-                    signature: "c4ed15727d6c3309688ac1d2e808b920\
-                      84b59b9c303b6c6c3ef0622eeacb4e4d"
+                  name: Router
+                  icon: mdi:router-network
+                  address: http://192.168.1.1
       responses:
-        '204':
-          description: Your dashboard has been restored from the backup.
+        '201':
+          description: Your link has been saved.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/dashboard.yaml#/schemas/bookmark'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/applications/{application_id}/access:
+    parameters:
+      - $ref: '#/components/parameters/application_id'
+    post:
+      tags: [Applications]
+      operationId: record_application_access
+      summary: Mark an app as opened
+      description: >-
+        Mark an app as opened so it appears first when the app catalog is sorted
+        by recent use. Apps you cannot see are treated as not found.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_dashboard_read]
+      responses:
+        '204':
+          description: The app has been added to your recent-use list.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/categories/{category_id}/bookmarks/order:
+    parameters:
+      - $ref: '#/components/parameters/category_id'
+    put:
+      tags: [Dashboard]
+      operationId: reorder_bookmarks
+      summary: Change the order of links in a category
+      description: >-
+        Send each bookmark ID once in the order you want. Saving a manual order
+        switches that category to user-defined sorting.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_dashboard_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bookmark_ids]
+              additionalProperties: false
+              properties:
+                bookmark_ids:
+                  type: array
+                  uniqueItems: true
+                  items:
+                    type: string
+                    format: uuid
+            examples:
+              manual_order:
+                summary: Put the Router link first
+                value:
+                  bookmark_ids:
+                    - 25fe3a58-90d3-45a0-942d-216e8375d882
+                    - a67ae701-5fb2-4fc9-9154-702f202b6701
+      responses:
+        '204':
+          description: The link order has been saved.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/v1/categories/{category_id}/bookmarks/{bookmark_id}:
+    parameters:
+      - $ref: '#/components/parameters/category_id'
+      - $ref: '#/components/parameters/bookmark_id'
+    put:
+      tags: [Dashboard]
+      operationId: update_bookmark
+      summary: Update or move a saved link
+      description: Change its name, icon, address, or destination category.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_dashboard_write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './schemas/dashboard.yaml#/schemas/update_bookmark_request'
+            examples:
+              router:
+                summary: Rename a saved router link
+                value:
+                  name: Router admin
+                  icon: mdi:router-network
+                  address: http://192.168.1.1
+      responses:
+        '200':
+          description: Your link has been updated.
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/dashboard.yaml#/schemas/bookmark'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Dashboard]
+      operationId: delete_bookmark
+      summary: Remove a saved link
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_dashboard_write]
+      responses:
+        '204':
+          description: Your link has been removed.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/categories/{category_id}/bookmarks/{bookmark_id}/access:
+    parameters:
+      - $ref: '#/components/parameters/category_id'
+      - $ref: '#/components/parameters/bookmark_id'
+    post:
+      tags: [Dashboard]
+      operationId: record_bookmark_access
+      summary: Mark a bookmark as opened
+      description: >-
+        Call this when you open a bookmark. Dash moves it up within its
+        category when that category uses `recently_accessed`. The category also
+        moves up in the dashboard when `categories_sort_order` is
+        `recently_accessed`.
+      security:
+        - session_cookie: []
+        - oidc_bearer: []
+      x-required-scopes: [dash_dashboard_write]
+      responses:
+        '204':
+          description: Your bookmark has been marked as opened.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationError'
 components:

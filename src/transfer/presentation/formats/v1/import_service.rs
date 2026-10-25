@@ -8,6 +8,7 @@ use crate::{
     icon::domain::IconReference,
     preferences::domain::{Language, TimeZone, UserPreferences},
     shared::application::ApplicationError,
+    shared::domain::CollectionSortOrder,
     theme::domain::{Color, Theme, ThemeId, ThemeMode, ThemePalette},
     transfer::{
         application::{TransferError, models::UserDataSnapshot},
@@ -65,6 +66,8 @@ impl ImportService {
             preferences: Some(preferences),
             themes,
             applications,
+            application_catalog_settings: None,
+            imported_theme_names: None,
         })
     }
 
@@ -96,13 +99,31 @@ impl ImportService {
     ) -> Result<UserDashboard, ApplicationError> {
         let mut dashboard = UserDashboard::new(owner.clone());
         for record in records {
+            let sort_order = Self::parse_bookmarks_sort_order(
+                record
+                    .bookmarks_sort_order
+                    .as_deref()
+                    .unwrap_or("alphabetical"),
+            )?;
             let mut category = Category::new(record.display_name)?;
+            category.set_bookmarks_sort_order(sort_order);
             for bookmark in record.bookmarks {
-                category.add_bookmark(Bookmark::new(
+                let mut domain_bookmark = Bookmark::new(
                     bookmark.display_name,
                     IconReference::parse(bookmark.icon)?,
                     WebAddress::parse(bookmark.url)?,
-                )?);
+                )?;
+                if let Some(last_accessed_at) = bookmark.last_accessed_at {
+                    let last_accessed_at = chrono::DateTime::parse_from_rfc3339(&last_accessed_at)
+                        .map_err(|error| {
+                            TransferError::InvalidDocument(format!(
+                                "invalid bookmark last_accessed_at: {error}"
+                            ))
+                        })?
+                        .with_timezone(&chrono::Utc);
+                    domain_bookmark.record_access(last_accessed_at);
+                }
+                category.add_bookmark(domain_bookmark);
             }
             if record.is_shelved {
                 dashboard.add_category(ShelvedCategory::from(category));
@@ -111,6 +132,18 @@ impl ImportService {
             }
         }
         Ok(dashboard)
+    }
+
+    fn parse_bookmarks_sort_order(value: &str) -> Result<CollectionSortOrder, ApplicationError> {
+        match value {
+            "alphabetical" => Ok(CollectionSortOrder::Alphabetical),
+            "recently_accessed" => Ok(CollectionSortOrder::RecentlyAccessed),
+            "user_defined" => Ok(CollectionSortOrder::UserDefined),
+            other => Err(TransferError::InvalidDocument(format!(
+                "unknown bookmark sort order `{other}`"
+            ))
+            .into()),
+        }
     }
 
     fn build_preferences(

@@ -72,8 +72,7 @@ schemas:
                 display_name: Router
                 url: http://192.168.1.1
         applications: []
-        signature: "c4ed15727d6c3309688ac1d2e808b920\
-          84b59b9c303b6c6c3ef0622eeacb4e4d"
+        signature: <generated-signature>
 
   theme_transfer_v1:
     type: object
@@ -111,6 +110,9 @@ schemas:
         type: string
       is_shelved:
         type: boolean
+      bookmarks_sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
+        default: alphabetical
       bookmarks:
         type: array
         items:
@@ -134,6 +136,9 @@ schemas:
       url:
         type: string
         format: uri
+      last_accessed_at:
+        type: [string, 'null']
+        format: date-time
 
   application_transfer_v1:
     type: object
@@ -168,6 +173,7 @@ schemas:
       - username
       - settings
       - themes
+      - categories_sort_order
       - categories
       - applications
       - signature
@@ -189,12 +195,27 @@ schemas:
         type: array
         items:
           $ref: '#/schemas/theme_transfer_v2'
+      categories_sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
       categories:
         type: array
+        description: >-
+          When categories_sort_order is user_defined, this array's order is the
+          saved category order. Recently accessed order is derived from
+          bookmark last_accessed_at values.
         items:
           $ref: '#/schemas/category_transfer_v2'
+      application_sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
+        description: >-
+          Included in administrator exports. Controls sorting of the shared app
+          catalog.
       applications:
         type: array
+        description: >-
+          For user_defined sorting, apps are listed in their custom order.
+          Alphabetical sorting is derived from app names. Recently accessed
+          sorting is per-user, so this array's order is not used for it.
         items:
           $ref: '#/schemas/application_transfer_v2'
       signature:
@@ -216,18 +237,30 @@ schemas:
             primary: '#145da0'
             secondary: '#0c2d48'
             tertiary: '#b1d4e0'
+        categories_sort_order: recently_accessed
         categories:
           - hash: b08f6f2a
             name: Home lab
             shelved: false
+            bookmarks_sort_order: recently_accessed
             bookmarks:
               - hash: 936c3b53
                 name: Router
                 icon: mdi:router-network
                 address: http://192.168.1.1
-        applications: []
-        signature: "fe8b7f13bdc7ee0f9d885520fd2c2c0a\
-          54b97462493d9ea8d1df570af891cb57"
+                last_accessed_at: '2026-05-02T09:15:00Z'
+        application_sort_order: user_defined
+        applications:
+          - hash: 199acbc2
+            name: Status page
+            icon: mdi:chart-line
+            address: https://status.example.test
+            visible_to_groups: [family]
+            health_check:
+              url: https://status.example.test/health
+              expected_status_class: 2xx
+              ignore_tls_errors: false
+        signature: <generated-signature>
 
   settings_transfer_v2:
     type: object
@@ -279,6 +312,7 @@ schemas:
       - hash: b08f6f2a
         name: Home lab
         shelved: false
+        bookmarks_sort_order: recently_accessed
         bookmarks: []
     properties:
       hash:
@@ -287,8 +321,15 @@ schemas:
         type: string
       shelved:
         type: boolean
+      bookmarks_sort_order:
+        $ref: './sort_order.yaml#/schemas/collection_sort_order'
+        default: alphabetical
       bookmarks:
         type: array
+        description: >-
+          When bookmarks_sort_order is user_defined, this array's order is the
+          saved bookmark order. Recently accessed order is derived from each
+          bookmark's last_accessed_at value.
         items:
           $ref: '#/schemas/bookmark_transfer_v2'
 
@@ -310,6 +351,9 @@ schemas:
       address:
         type: string
         format: uri
+      last_accessed_at:
+        type: [string, 'null']
+        format: date-time
 
   application_transfer_v2:
     type: object
@@ -320,6 +364,10 @@ schemas:
         icon: mdi:chart-line
         address: https://status.example.test
         visible_to_groups: [family]
+        health_check:
+          url: https://status.example.test/health
+          expected_status_class: 2xx
+          ignore_tls_errors: false
     properties:
       hash:
         type: string
@@ -334,3 +382,5 @@ schemas:
         type: array
         items:
           type: string
+      health_check:
+        $ref: './applications.yaml#/schemas/health_check_settings'

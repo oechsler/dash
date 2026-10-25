@@ -1,10 +1,16 @@
 use sha2::{Digest, Sha256};
 
 use crate::{
-    catalog::domain::Application,
+    catalog::domain::{Application, ApplicationCatalogSettings},
     dashboard::domain::{Bookmark, DashboardCategory},
     theme::domain::{Theme, ThemeMode},
 };
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ImportedThemeNames {
+    pub light: Option<String>,
+    pub dark: Option<String>,
+}
 
 #[derive(Debug, Clone, Default)]
 pub struct UserDataSnapshot {
@@ -12,6 +18,8 @@ pub struct UserDataSnapshot {
     pub preferences: Option<crate::preferences::domain::UserPreferences>,
     pub themes: Vec<crate::theme::domain::Theme>,
     pub applications: Vec<crate::catalog::domain::Application>,
+    pub application_catalog_settings: Option<ApplicationCatalogSettings>,
+    pub imported_theme_names: Option<ImportedThemeNames>,
 }
 
 impl UserDataSnapshot {
@@ -19,11 +27,26 @@ impl UserDataSnapshot {
         let mut groups = Self::application_groups(application);
         groups.sort();
         let joined = groups.join(",");
+        let health_check = application.health_check().map(|check| {
+            [
+                check
+                    .url()
+                    .map_or(application.address().as_str(), |url| url.as_str()),
+                check.expected_status_class().as_str(),
+                if check.ignore_tls_errors() {
+                    "true"
+                } else {
+                    "false"
+                },
+            ]
+            .join("|")
+        });
         content_hash(&[
             application.icon().as_str(),
             application.name(),
             application.address().as_str(),
             &joined,
+            health_check.as_deref().unwrap_or("disabled"),
         ])
     }
 

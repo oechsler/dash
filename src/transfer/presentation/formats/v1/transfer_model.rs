@@ -36,6 +36,8 @@ pub(super) struct GoCategoryV1 {
     pub hash: String,
     pub display_name: String,
     pub is_shelved: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bookmarks_sort_order: Option<String>,
     pub bookmarks: Vec<GoBookmarkV1>,
 }
 
@@ -45,6 +47,8 @@ pub(super) struct GoBookmarkV1 {
     pub icon: String,
     pub display_name: String,
     pub url: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub last_accessed_at: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

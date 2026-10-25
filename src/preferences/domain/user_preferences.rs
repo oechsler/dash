@@ -1,4 +1,5 @@
 use crate::{
+    catalog::domain::ApplicationId,
     theme::domain::{Theme, ThemeId, ThemeMode},
     user::domain::UserId,
 };
@@ -13,6 +14,7 @@ pub struct UserPreferences {
     user_id: UserId,
     selected_themes: SelectedThemes,
     language: Language,
+    recent_application_ids: Vec<ApplicationId>,
     #[getset(get = "pub")]
     time_zone: TimeZone,
 }
@@ -23,6 +25,7 @@ impl UserPreferences {
             user_id,
             selected_themes: SelectedThemes::default(),
             language: Language::Auto,
+            recent_application_ids: Vec::new(),
             time_zone: TimeZone::Auto,
         }
     }
@@ -33,6 +36,17 @@ impl UserPreferences {
 
     pub fn language(&self) -> Language {
         self.language
+    }
+
+    pub fn recently_accessed_application_ids(&self) -> &[ApplicationId] {
+        &self.recent_application_ids
+    }
+
+    pub fn record_application_access(&mut self, id: ApplicationId) {
+        self.recent_application_ids
+            .retain(|existing| *existing != id);
+        self.recent_application_ids.insert(0, id);
+        self.recent_application_ids.truncate(100);
     }
 
     pub fn select_theme(&mut self, theme: &Theme) -> Result<(), PreferencesError> {

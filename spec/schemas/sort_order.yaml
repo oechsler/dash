@@ -1,0 +1,7 @@
+---
+schemas:
+  collection_sort_order:
+    type: string
+    enum: [alphabetical, recently_accessed, user_defined]
+    default: alphabetical
+    examples: [user_defined, alphabetical, recently_accessed]

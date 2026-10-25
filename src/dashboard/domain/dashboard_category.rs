@@ -1,3 +1,7 @@
+use chrono::{DateTime, Utc};
+
+use crate::shared::domain::CollectionSortOrder;
+
 use super::{Category, CategoryId, ShelvedCategory};
 
 /// A dashboard category in exactly one of its lifecycle states.
@@ -29,6 +33,44 @@ impl DashboardCategory {
         }
     }
 
+    pub fn last_accessed_at(&self) -> Option<DateTime<Utc>> {
+        match self {
+            Self::Active(category) => category.last_accessed_at(),
+            Self::Shelved(category) => category.last_accessed_at(),
+        }
+    }
+
+    pub fn bookmarks_sort_order(&self) -> CollectionSortOrder {
+        match self {
+            Self::Active(category) => category.bookmarks_sort_order(),
+            Self::Shelved(category) => category.bookmarks_sort_order(),
+        }
+    }
+
+    pub(super) fn sort_bookmarks_for_display(&mut self) {
+        match self {
+            Self::Active(category) => category.sort_bookmarks_for_display(),
+            Self::Shelved(category) => category.sort_bookmarks_for_display(),
+        }
+    }
+
+    pub fn set_bookmarks_sort_order(&mut self, sort_order: CollectionSortOrder) {
+        match self {
+            Self::Active(category) => category.set_bookmarks_sort_order(sort_order),
+            Self::Shelved(category) => category.set_bookmarks_sort_order(sort_order),
+        }
+    }
+
+    pub fn reorder_bookmarks(
+        &mut self,
+        ordered_ids: &[super::BookmarkId],
+    ) -> Result<(), super::DashboardError> {
+        match self {
+            Self::Active(category) => category.reorder_bookmarks(ordered_ids),
+            Self::Shelved(category) => category.reorder_bookmarks(ordered_ids),
+        }
+    }
+
     pub fn as_active(&self) -> Option<&Category> {
         match self {
             Self::Active(category) => Some(category),
@@ -54,6 +96,17 @@ impl DashboardCategory {
         match self {
             Self::Active(category) => category.add_bookmark(bookmark),
             Self::Shelved(category) => category.add_bookmark(bookmark),
+        }
+    }
+
+    pub(super) fn record_bookmark_access(
+        &mut self,
+        id: super::BookmarkId,
+        accessed_at: DateTime<Utc>,
+    ) -> Result<(), super::DashboardError> {
+        match self {
+            Self::Active(category) => category.record_bookmark_access(id, accessed_at),
+            Self::Shelved(category) => category.record_bookmark_access(id, accessed_at),
         }
     }
 

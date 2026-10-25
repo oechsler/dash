@@ -1,6 +1,7 @@
 use crate::{
     dashboard::domain::{Category, CategoryId, DashboardCategory, ShelvedCategory, UserDashboard},
     shared::application::ApplicationError,
+    shared::domain::CollectionSortOrder,
     user::domain::UserId,
 };
 
@@ -10,6 +11,7 @@ pub struct CreateCategoryInput {
     pub owner: UserId,
     pub name: String,
     pub shelved: bool,
+    pub bookmarks_sort_order: Option<CollectionSortOrder>,
 }
 
 pub struct CreateCategory<R> {
@@ -30,7 +32,10 @@ impl<R: DashboardReader + DashboardWriter> CreateCategory<R> {
             .load(&input.owner)
             .await?
             .unwrap_or_else(|| UserDashboard::new(input.owner));
-        let category = Category::new(input.name)?;
+        let mut category = Category::new(input.name)?;
+        if let Some(sort_order) = input.bookmarks_sort_order {
+            category.set_bookmarks_sort_order(sort_order);
+        }
         let category: DashboardCategory = if input.shelved {
             ShelvedCategory::from(category).into()
         } else {
