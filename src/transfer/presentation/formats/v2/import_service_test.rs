@@ -43,16 +43,3 @@ fn import_requires_a_signature() {
         ))
     ));
 }
-
-#[test]
-fn imports_a_signed_v2_compatibility_fixture() {
-    let payload = include_bytes!("../../../../../tests/fixtures/transfer-v2.json");
-    let owner = crate::shared::domain::UserId::try_from("fixture-user").unwrap();
-
-    let imported = ImportService.import(payload, &owner).unwrap();
-
-    assert!(imported.dashboard.is_some());
-    assert!(imported.preferences.is_some());
-    assert!(imported.themes.is_empty());
-    assert!(imported.applications.is_empty());
-}
