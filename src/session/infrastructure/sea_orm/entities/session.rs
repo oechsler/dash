@@ -6,7 +6,10 @@ use std::{net::IpAddr, str::FromStr};
 use crate::{
     session::domain::{LongLived, Session, SessionId, SessionMetadata, ShortLived, UserSession},
     shared::domain::UserId,
-    shared::{application::ApplicationPortError, infrastructure::DatabaseError},
+    shared::{
+        application::{ApplicationPortError, PortResult},
+        infrastructure::DatabaseError,
+    },
 };
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -41,7 +44,7 @@ impl ActiveModelBehavior for ActiveModel {}
 impl TryFrom<Model> for UserSession {
     type Error = ApplicationPortError;
 
-    fn try_from(model: Model) -> Result<Self, Self::Error> {
+    fn try_from(model: Model) -> PortResult<Self> {
         let owner = UserId::try_from(model.owner_id).map_err(ApplicationPortError::from)?;
         let ip = model
             .ip_address

@@ -1,6 +1,6 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     dashboard::{application::ports::DashboardReader, domain::ShelvedCategory},
-    shared::application::ApplicationError,
     shared::domain::UserId,
 };
 
@@ -13,7 +13,7 @@ impl<R: DashboardReader> GetUserShelvedCategories<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, owner: &UserId) -> Result<Vec<ShelvedCategory>, ApplicationError> {
+    pub async fn execute(&self, owner: &UserId) -> ApplicationResult<Vec<ShelvedCategory>> {
         let Some(dashboard) = self.repository.load(owner).await? else {
             return Ok(Vec::new());
         };

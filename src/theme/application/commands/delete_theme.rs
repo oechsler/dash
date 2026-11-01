@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     preferences::{application::ports::PreferencesReader, domain::UserPreferences},
     shared::application::ApplicationError,
@@ -21,7 +22,7 @@ impl<P: PreferencesReader, T: ThemeReader + ThemeWriter> DeleteTheme<P, T> {
         }
     }
 
-    pub async fn execute(&self, owner: &UserId, id: ThemeId) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, owner: &UserId, id: ThemeId) -> ApplicationResult<()> {
         let theme = self
             .themes
             .get_for(owner, id.clone())

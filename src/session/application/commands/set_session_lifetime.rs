@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use chrono::{DateTime, Utc};
 
 use crate::{session::domain::SessionId, shared::domain::UserId};
@@ -29,7 +30,7 @@ impl<R: SessionReader + SessionWriter> SetSessionLifetime<R> {
         lifetime: SessionLifetime,
         now: DateTime<Utc>,
         expires_at: DateTime<Utc>,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let session = self
             .repository
             .load(owner, id)

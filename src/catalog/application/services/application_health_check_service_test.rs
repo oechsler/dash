@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -12,7 +13,7 @@ use crate::{
         },
     },
     icon::domain::IconReference,
-    shared::{application::ApplicationPortError, domain::WebAddress},
+    shared::domain::WebAddress,
 };
 
 use crate::catalog::application::ports::{ApplicationReader, ApplicationWriter};
@@ -22,11 +23,11 @@ struct MemoryApplications(Arc<Mutex<Vec<Application>>>);
 
 #[async_trait]
 impl ApplicationReader for MemoryApplications {
-    async fn list(&self) -> Result<Vec<Application>, ApplicationPortError> {
+    async fn list(&self) -> PortResult<Vec<Application>> {
         Ok(self.0.lock().unwrap().clone())
     }
 
-    async fn get(&self, id: ApplicationId) -> Result<Option<Application>, ApplicationPortError> {
+    async fn get(&self, id: ApplicationId) -> PortResult<Option<Application>> {
         Ok(self
             .0
             .lock()
@@ -39,7 +40,7 @@ impl ApplicationReader for MemoryApplications {
 
 #[async_trait]
 impl ApplicationWriter for MemoryApplications {
-    async fn save(&self, application: &Application) -> Result<(), ApplicationPortError> {
+    async fn save(&self, application: &Application) -> PortResult<()> {
         let mut applications = self.0.lock().unwrap();
         if let Some(existing) = applications
             .iter_mut()
@@ -52,7 +53,7 @@ impl ApplicationWriter for MemoryApplications {
         Ok(())
     }
 
-    async fn delete(&self, id: ApplicationId) -> Result<(), ApplicationPortError> {
+    async fn delete(&self, id: ApplicationId) -> PortResult<()> {
         self.0
             .lock()
             .unwrap()

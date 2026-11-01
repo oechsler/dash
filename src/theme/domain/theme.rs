@@ -1,3 +1,4 @@
+use super::DomainResult;
 use crate::shared::domain::UserId;
 use bon::bon;
 
@@ -20,7 +21,7 @@ impl Theme {
         name: String,
         mode: ThemeMode,
         palette: ThemePalette,
-    ) -> Result<Self, ThemeError> {
+    ) -> DomainResult<Self> {
         let trimmed = name.trim();
         if trimmed.is_empty() {
             return Err(ThemeError::EmptyName { value: name });
@@ -38,7 +39,7 @@ impl Theme {
         name: impl Into<String>,
         mode: ThemeMode,
         palette: ThemePalette,
-    ) -> Result<Self, ThemeError> {
+    ) -> DomainResult<Self> {
         Self::create(ThemeIdentity::Global(id), name, mode, palette)
     }
 
@@ -48,7 +49,7 @@ impl Theme {
         name: impl Into<String>,
         mode: ThemeMode,
         palette: ThemePalette,
-    ) -> Result<Self, ThemeError> {
+    ) -> DomainResult<Self> {
         Self::create(ThemeIdentity::user_defined(owner), name, mode, palette)
     }
 
@@ -57,7 +58,7 @@ impl Theme {
         name: impl Into<String>,
         mode: ThemeMode,
         palette: ThemePalette,
-    ) -> Result<Self, ThemeError> {
+    ) -> DomainResult<Self> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
@@ -95,7 +96,7 @@ impl Theme {
         self.identity.is_user_defined()
     }
 
-    pub fn ensure_deletable(&self) -> Result<(), ThemeError> {
+    pub fn ensure_deletable(&self) -> DomainResult<()> {
         if self.is_deletable() {
             return Ok(());
         }

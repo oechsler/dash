@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     catalog::domain::{Application, ApplicationId},
     shared::application::ApplicationError,
@@ -14,7 +15,7 @@ impl<R: ApplicationReader> GetApplication<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, id: ApplicationId) -> Result<Application, ApplicationError> {
+    pub async fn execute(&self, id: ApplicationId) -> ApplicationResult<Application> {
         self.repository
             .get(id)
             .await?

@@ -1,5 +1,5 @@
-mod reader;
-mod writer;
+mod theme_reader;
+mod theme_writer;
 
-pub use reader::ThemeReader;
-pub use writer::ThemeWriter;
+pub use theme_reader::ThemeReader;
+pub use theme_writer::ThemeWriter;

@@ -1,8 +1,29 @@
 use crate::shared::domain::UserId;
 
 use super::{
-    Color, GlobalThemeId, Theme, ThemeAppearance, ThemeId, ThemeIdentity, ThemeMode, ThemePalette,
+    Color, GlobalThemeId, GlobalThemeIdError, Theme, ThemeAppearance, ThemeId, ThemeIdError,
+    ThemeIdentity, ThemeMode, ThemePalette,
 };
+
+#[test]
+fn theme_identifier_parsers_return_specific_errors() {
+    assert_eq!(
+        GlobalThemeId::try_from("  "),
+        Err(GlobalThemeIdError::Empty)
+    );
+    assert_eq!(
+        ThemeId::try_from("user:not-a-uuid"),
+        Err(ThemeIdError::InvalidUserDefined {
+            value: "not-a-uuid".to_owned()
+        })
+    );
+    assert_eq!(
+        ThemeId::try_from("unexpected"),
+        Err(ThemeIdError::MissingNamespace {
+            value: "unexpected".to_owned()
+        })
+    );
+}
 
 #[test]
 fn global_theme_is_global_and_not_user_deletable() {

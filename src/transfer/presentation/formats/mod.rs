@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 mod import_format_registry;
 #[cfg(test)]
 mod import_format_registry_test;
@@ -19,9 +20,8 @@ macro_rules! impl_transfer_format {
                 &self,
                 payload: &[u8],
                 owner: &crate::shared::domain::UserId,
-            ) -> Result<
+            ) -> $crate::shared::application::ApplicationResult<
                 crate::transfer::application::models::UserDataSnapshot,
-                crate::shared::application::ApplicationError,
             > {
                 super::import_service::ImportService.import(payload, owner)
             }
@@ -32,7 +32,7 @@ macro_rules! impl_transfer_format {
                 owner: &crate::shared::domain::UserId,
                 username: String,
                 include_applications: bool,
-            ) -> Result<Vec<u8>, crate::shared::application::ApplicationError> {
+            ) -> $crate::shared::application::ApplicationResult<Vec<u8>> {
                 super::export_service::ExportService.export(
                     snapshot,
                     owner,
@@ -47,25 +47,24 @@ pub(crate) use impl_transfer_format;
 
 use crate::{
     dashboard::domain::Bookmark, preferences::domain::Language,
-    shared::application::ApplicationError, transfer::application::TransferError,
+    transfer::application::TransferError,
 };
 
 fn import_document<Document>(
     payload: &[u8],
     owner: &crate::shared::domain::UserId,
-    parse: impl FnOnce(&[u8]) -> Result<Document, ApplicationError>,
+    parse: impl FnOnce(&[u8]) -> ApplicationResult<Document>,
     into_snapshot: impl FnOnce(
         &crate::shared::domain::UserId,
         Document,
-    ) -> Result<
+    ) -> ApplicationResult<
         crate::transfer::application::models::UserDataSnapshot,
-        ApplicationError,
     >,
-) -> Result<crate::transfer::application::models::UserDataSnapshot, ApplicationError> {
+) -> ApplicationResult<crate::transfer::application::models::UserDataSnapshot> {
     into_snapshot(owner, parse(payload)?)
 }
 
-pub(super) fn parse_language(value: &str) -> Result<Language, ApplicationError> {
+pub(super) fn parse_language(value: &str) -> ApplicationResult<Language> {
     if value.is_empty() {
         return Ok(Language::Auto);
     }
@@ -76,7 +75,7 @@ pub(super) fn parse_language(value: &str) -> Result<Language, ApplicationError> 
 pub(super) fn record_bookmark_access(
     bookmark: &mut Bookmark,
     timestamp: Option<String>,
-) -> Result<(), ApplicationError> {
+) -> ApplicationResult<()> {
     let Some(timestamp) = timestamp else {
         return Ok(());
     };

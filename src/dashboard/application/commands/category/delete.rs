@@ -1,6 +1,6 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     dashboard::domain::{CategoryId, UserDashboard},
-    shared::application::ApplicationError,
     shared::domain::UserId,
 };
 
@@ -15,11 +15,7 @@ impl<R: DashboardReader + DashboardWriter> DeleteCategory<R> {
         Self { repository }
     }
 
-    pub async fn execute(
-        &self,
-        owner: &UserId,
-        category_id: CategoryId,
-    ) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, owner: &UserId, category_id: CategoryId) -> ApplicationResult<()> {
         let mut dashboard = self
             .repository
             .load(owner)

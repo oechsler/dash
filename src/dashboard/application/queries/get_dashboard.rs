@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use std::collections::HashSet;
 
 use crate::{
@@ -10,7 +11,6 @@ use crate::{
         domain::{Category, ShelvedCategory, UserDashboard},
     },
     preferences::{application::ports::PreferencesReader, domain::UserPreferences},
-    shared::application::ApplicationError,
     shared::domain::CollectionSortOrder,
     shared::domain::{GroupId, UserId},
 };
@@ -51,7 +51,7 @@ where
         &self,
         user_id: &UserId,
         groups: &HashSet<GroupId>,
-    ) -> Result<DashboardView, ApplicationError> {
+    ) -> ApplicationResult<DashboardView> {
         let mut dashboard = self
             .dashboards
             .load(user_id)

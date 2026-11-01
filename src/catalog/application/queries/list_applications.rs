@@ -1,11 +1,12 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     catalog::{
         application::ports::{ApplicationCatalogSettingsReader, ApplicationReader},
         domain::{Application, ApplicationCatalogSettings},
     },
     preferences::application::ports::PreferencesReader,
+    shared::domain::CollectionSortOrder,
     shared::domain::UserId,
-    shared::{application::ApplicationError, domain::CollectionSortOrder},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,10 +35,7 @@ where
         }
     }
 
-    pub async fn execute(
-        &self,
-        user_id: &UserId,
-    ) -> Result<ApplicationCatalogView, ApplicationError> {
+    pub async fn execute(&self, user_id: &UserId) -> ApplicationResult<ApplicationCatalogView> {
         let settings = self
             .settings
             .load()

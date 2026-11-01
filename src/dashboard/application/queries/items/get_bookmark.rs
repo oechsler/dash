@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     dashboard::{
         application::ports::DashboardReader,
@@ -16,11 +17,7 @@ impl<R: DashboardReader> GetUserBookmark<R> {
         Self { repository }
     }
 
-    pub async fn execute(
-        &self,
-        owner: &UserId,
-        id: BookmarkId,
-    ) -> Result<Bookmark, ApplicationError> {
+    pub async fn execute(&self, owner: &UserId, id: BookmarkId) -> ApplicationResult<Bookmark> {
         self.repository
             .load(owner)
             .await?

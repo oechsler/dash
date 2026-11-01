@@ -1,9 +1,9 @@
+use crate::shared::application::PortResult;
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 
 use crate::{
-    shared::application::ApplicationPortError,
     shared::domain::UserId,
     transfer::{
         application::commands::{ImportUserData, ImportUserDataInput},
@@ -27,18 +27,14 @@ pub(super) struct MemoryUserData {
 
 #[async_trait]
 impl UserDataSnapshotReader for MemoryUserData {
-    async fn load(&self, _owner: &UserId) -> Result<UserDataSnapshot, ApplicationPortError> {
+    async fn load(&self, _owner: &UserId) -> PortResult<UserDataSnapshot> {
         Ok(self.snapshot.lock().unwrap().clone())
     }
 }
 
 #[async_trait]
 impl UserDataSnapshotWriter for MemoryUserData {
-    async fn save(
-        &self,
-        _owner: &UserId,
-        snapshot: &UserDataSnapshot,
-    ) -> Result<(), ApplicationPortError> {
+    async fn save(&self, _owner: &UserId, snapshot: &UserDataSnapshot) -> PortResult<()> {
         *self.snapshot.lock().unwrap() = snapshot.clone();
         *self.saves.lock().unwrap() += 1;
         Ok(())

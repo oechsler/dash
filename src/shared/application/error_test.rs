@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::{
     dashboard::domain::{BookmarkError, DashboardError},
-    shared::{domain::DomainError, infrastructure::DatabaseError},
+    shared::{application::ApplicationDomainError, infrastructure::DatabaseError},
 };
 
 use super::error::ApplicationError;
@@ -12,7 +12,7 @@ fn domain_failures_keep_the_full_chain_to_application_error() {
     let bookmark_error = BookmarkError::EmptyName {
         value: "   ".to_owned(),
     };
-    let domain_error = DomainError::from(DashboardError::from(bookmark_error));
+    let domain_error = ApplicationDomainError::from(DashboardError::from(bookmark_error));
     let application_error = ApplicationError::from(domain_error);
 
     assert!(

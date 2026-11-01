@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 
@@ -26,7 +27,7 @@ pub enum Relation {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub fn group_id(self) -> Result<GroupId, ApplicationPortError> {
+    pub fn group_id(self) -> PortResult<GroupId> {
         GroupId::try_from(self.group_id).map_err(ApplicationPortError::from)
     }
 }

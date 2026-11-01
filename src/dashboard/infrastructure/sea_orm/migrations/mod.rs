@@ -1,3 +1,3 @@
-mod v1;
+mod m0002_dashboard_schema_v1;
 
-pub use v1::DashboardSchemaV1;
+pub use m0002_dashboard_schema_v1::DashboardSchemaV1;

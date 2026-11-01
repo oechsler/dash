@@ -3,6 +3,9 @@ use sha2::{Digest, Sha256};
 
 use crate::transfer::presentation::formats::sha256_hex;
 
+/// Result for serializing transfer documents for signing or verification.
+pub type TransferModelResult<T> = Result<T, serde_json::Error>;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UserDataModel {
     pub version: u32,
@@ -53,14 +56,6 @@ pub struct CategoryModel {
     pub bookmarks: Vec<BookmarkModel>,
 }
 
-fn default_bookmarks_sort_order() -> String {
-    "alphabetical".to_owned()
-}
-
-fn is_alphabetical_sort_order(value: &String) -> bool {
-    value == "alphabetical"
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BookmarkModel {
     pub hash: String,
@@ -92,12 +87,8 @@ pub struct HealthCheckModel {
     pub ignore_tls_errors: bool,
 }
 
-fn default_expected_status_class() -> String {
-    "2xx".to_owned()
-}
-
 impl UserDataModel {
-    pub fn sign(&mut self) -> Result<(), serde_json::Error> {
+    pub fn sign(&mut self) -> TransferModelResult<()> {
         self.signature = None;
         let content = serde_json::to_vec(self)?;
         let digest: [u8; 32] = Sha256::digest(content).into();
@@ -105,7 +96,7 @@ impl UserDataModel {
         Ok(())
     }
 
-    pub fn verify(&self) -> Result<bool, serde_json::Error> {
+    pub fn verify(&self) -> TransferModelResult<bool> {
         let Some(signature) = &self.signature else {
             return Ok(false);
         };
@@ -114,4 +105,16 @@ impl UserDataModel {
         let digest: [u8; 32] = Sha256::digest(serde_json::to_vec(&unsigned)?).into();
         Ok(sha256_hex(&digest) == *signature)
     }
+}
+
+fn default_bookmarks_sort_order() -> String {
+    "alphabetical".to_owned()
+}
+
+fn is_alphabetical_sort_order(value: &String) -> bool {
+    value == "alphabetical"
+}
+
+fn default_expected_status_class() -> String {
+    "2xx".to_owned()
 }

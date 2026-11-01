@@ -1,3 +1,3 @@
-mod v1;
+mod m0003_catalog_schema_v1;
 
-pub use v1::CatalogSchemaV1;
+pub use m0003_catalog_schema_v1::CatalogSchemaV1;

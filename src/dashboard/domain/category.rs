@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use thiserror::Error;
 
 use std::{
     cmp::Reverse,
@@ -7,7 +8,7 @@ use std::{
 
 use crate::shared::domain::CollectionSortOrder;
 
-use super::{Bookmark, CategoryError, CategoryId, DashboardError};
+use super::{Bookmark, BookmarkId, CategoryId};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Category {
@@ -17,13 +18,28 @@ pub struct Category {
     bookmarks_sort_order: CollectionSortOrder,
 }
 
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum CategoryError {
+    #[error("category name must not be empty (received {value:?})")]
+    EmptyName { value: String },
+
+    #[error("bookmark order must contain every bookmark in the category exactly once")]
+    InvalidBookmarkOrder,
+
+    #[error("bookmark {bookmark_id:?} does not belong to this category")]
+    BookmarkNotFound { bookmark_id: BookmarkId },
+}
+
+/// Result for category operations that enforce category-local invariants.
+pub type CategoryResult<T> = Result<T, CategoryError>;
+
 impl Category {
     pub(crate) fn restore(
         id: CategoryId,
         name: String,
         bookmarks: Vec<Bookmark>,
         bookmarks_sort_order: CollectionSortOrder,
-    ) -> Result<Self, DashboardError> {
+    ) -> CategoryResult<Self> {
         let mut category = Self::new(name)?;
         category.id = id;
         category.bookmarks = bookmarks;
@@ -31,11 +47,11 @@ impl Category {
         Ok(category)
     }
 
-    pub fn new(name: impl Into<String>) -> Result<Self, DashboardError> {
+    pub fn new(name: impl Into<String>) -> CategoryResult<Self> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(CategoryError::EmptyName { value: name }.into());
+            return Err(CategoryError::EmptyName { value: name });
         }
         Ok(Self {
             id: CategoryId::new(),
@@ -77,14 +93,11 @@ impl Category {
         }
     }
 
-    pub fn reorder_bookmarks(
-        &mut self,
-        ordered_ids: &[super::BookmarkId],
-    ) -> Result<(), DashboardError> {
+    pub fn reorder_bookmarks(&mut self, ordered_ids: &[BookmarkId]) -> CategoryResult<()> {
         let existing_ids: HashSet<_> = self.bookmarks.iter().map(Bookmark::id).collect();
         let requested_ids: HashSet<_> = ordered_ids.iter().copied().collect();
         if requested_ids.len() != ordered_ids.len() || requested_ids != existing_ids {
-            return Err(DashboardError::InvalidBookmarkOrder);
+            return Err(CategoryError::InvalidBookmarkOrder);
         }
         let positions: HashMap<_, _> = ordered_ids
             .iter()
@@ -125,11 +138,11 @@ impl Category {
             .map(|index| self.bookmarks.remove(index))
     }
 
-    pub fn rename(&mut self, name: impl Into<String>) -> Result<(), DashboardError> {
+    pub fn rename(&mut self, name: impl Into<String>) -> CategoryResult<()> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(CategoryError::EmptyName { value: name }.into());
+            return Err(CategoryError::EmptyName { value: name });
         }
         self.name = trimmed.to_owned();
         Ok(())
@@ -139,9 +152,9 @@ impl Category {
         &mut self,
         bookmark_id: super::BookmarkId,
         accessed_at: DateTime<Utc>,
-    ) -> Result<(), DashboardError> {
+    ) -> CategoryResult<()> {
         self.bookmark_mut(bookmark_id)
-            .ok_or(DashboardError::BookmarkNotFound { bookmark_id })?
+            .ok_or(CategoryError::BookmarkNotFound { bookmark_id })?
             .record_access(accessed_at);
         Ok(())
     }

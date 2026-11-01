@@ -1,8 +1,9 @@
+use super::DomainResult;
 use chrono::{DateTime, Utc};
 
 use crate::shared::domain::UserId;
 
-use super::{LongLived, Session, SessionError, SessionId, SessionMetadata, ShortLived};
+use super::{LongLived, Session, SessionId, SessionMetadata, ShortLived};
 
 /// Runtime representation for sessions loaded from storage or listed for a user.
 #[derive(Debug, PartialEq, Eq)]
@@ -76,7 +77,7 @@ impl UserSession {
         &mut self,
         metadata: SessionMetadata,
         accessed_at: DateTime<Utc>,
-    ) -> Result<(), SessionError> {
+    ) -> DomainResult<()> {
         match self {
             Self::ShortLived(session) => session.record_access(metadata, accessed_at),
             Self::LongLived(session) => session.record_access(metadata, accessed_at),
@@ -87,7 +88,7 @@ impl UserSession {
         &mut self,
         expires_at: DateTime<Utc>,
         refreshed_at: DateTime<Utc>,
-    ) -> Result<(), SessionError> {
+    ) -> DomainResult<()> {
         match self {
             Self::ShortLived(session) => session.refresh_expiry(expires_at, refreshed_at),
             Self::LongLived(session) => session.refresh_expiry(expires_at, refreshed_at),
@@ -101,22 +102,14 @@ impl UserSession {
         }
     }
 
-    pub fn upgrade(
-        self,
-        now: DateTime<Utc>,
-        expires_at: DateTime<Utc>,
-    ) -> Result<Self, SessionError> {
+    pub fn upgrade(self, now: DateTime<Utc>, expires_at: DateTime<Utc>) -> DomainResult<Self> {
         match self {
             Self::ShortLived(session) => session.upgrade(now, expires_at).map(Self::LongLived),
             long_lived @ Self::LongLived(_) => Ok(long_lived),
         }
     }
 
-    pub fn downgrade(
-        self,
-        now: DateTime<Utc>,
-        expires_at: DateTime<Utc>,
-    ) -> Result<Self, SessionError> {
+    pub fn downgrade(self, now: DateTime<Utc>, expires_at: DateTime<Utc>) -> DomainResult<Self> {
         match self {
             Self::ShortLived(short_lived) => Ok(Self::ShortLived(short_lived)),
             Self::LongLived(session) => session.downgrade(now, expires_at).map(Self::ShortLived),

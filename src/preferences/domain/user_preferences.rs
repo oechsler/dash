@@ -1,3 +1,4 @@
+use super::DomainResult;
 use crate::{
     catalog::domain::ApplicationId,
     shared::domain::UserId,
@@ -78,7 +79,7 @@ impl UserPreferences {
     }
 
     /// Validates deletion against ownership, global scope, and both mode selections.
-    pub fn ensure_theme_is_not_selected(&self, theme_id: ThemeId) -> Result<(), PreferencesError> {
+    pub fn ensure_theme_is_not_selected(&self, theme_id: ThemeId) -> DomainResult<()> {
         if self.uses_theme(theme_id.clone()) {
             return Err(PreferencesError::ThemeCurrentlySelected {
                 theme_id,

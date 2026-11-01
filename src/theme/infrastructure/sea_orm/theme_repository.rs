@@ -1,5 +1,6 @@
 use super::super::error::InfrastructureError;
 use super::entities::{ActiveModel, Column, Entity};
+use crate::shared::application::PortResult;
 use crate::{
     shared::application::ApplicationPortError,
     shared::domain::UserId,
@@ -20,6 +21,7 @@ use std::sync::Arc;
 pub struct ThemeRepository {
     connection: Arc<DatabaseConnection>,
 }
+
 impl ThemeRepository {
     pub fn new(connection: impl Into<Arc<DatabaseConnection>>) -> Self {
         Self {
@@ -27,11 +29,7 @@ impl ThemeRepository {
         }
     }
 
-    pub(crate) async fn save_in(
-        &self,
-        tx: &DatabaseTransaction,
-        theme: &Theme,
-    ) -> Result<(), ApplicationPortError> {
+    pub(crate) async fn save_in(&self, tx: &DatabaseTransaction, theme: &Theme) -> PortResult<()> {
         let model = ActiveModel::try_from(theme)?;
         Entity::insert(model)
             .on_conflict(
@@ -55,7 +53,7 @@ impl ThemeRepository {
 
 #[async_trait]
 impl ThemeReader for ThemeRepository {
-    async fn list_for(&self, owner: &UserId) -> Result<Vec<Theme>, ApplicationPortError> {
+    async fn list_for(&self, owner: &UserId) -> PortResult<Vec<Theme>> {
         let rows = Entity::find()
             .filter(Column::OwnerId.eq(owner.as_str()))
             .order_by_asc(Column::Name)
@@ -64,11 +62,8 @@ impl ThemeReader for ThemeRepository {
             .map_err(|e| InfrastructureError::database("list themes", e))?;
         rows.into_iter().map(|row| row.into_domain(owner)).collect()
     }
-    async fn get_for(
-        &self,
-        owner: &UserId,
-        id: ThemeId,
-    ) -> Result<Option<Theme>, ApplicationPortError> {
+
+    async fn get_for(&self, owner: &UserId, id: ThemeId) -> PortResult<Option<Theme>> {
         let ThemeId::UserDefined(id) = id else {
             return Ok(None);
         };
@@ -83,7 +78,7 @@ impl ThemeReader for ThemeRepository {
 
 #[async_trait]
 impl ThemeWriter for ThemeRepository {
-    async fn save(&self, theme: &Theme) -> Result<(), ApplicationPortError> {
+    async fn save(&self, theme: &Theme) -> PortResult<()> {
         let ThemeId::UserDefined(_) = theme.id() else {
             return Err(ApplicationPortError::NotFound("user-defined theme"));
         };
@@ -97,7 +92,8 @@ impl ThemeWriter for ThemeRepository {
             .await
             .map_err(|e| InfrastructureError::database("commit theme save", e))
     }
-    async fn delete(&self, owner: &UserId, id: ThemeId) -> Result<(), ApplicationPortError> {
+
+    async fn delete(&self, owner: &UserId, id: ThemeId) -> PortResult<()> {
         let ThemeId::UserDefined(id) = id else {
             return Err(ApplicationPortError::NotFound("user-defined theme"));
         };

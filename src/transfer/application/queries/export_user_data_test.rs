@@ -1,7 +1,7 @@
+use crate::shared::application::PortResult;
 use async_trait::async_trait;
 
 use crate::{
-    shared::application::ApplicationPortError,
     shared::domain::UserId,
     transfer::{
         application::queries::{ExportUserData, ExportUserDataInput},
@@ -13,7 +13,7 @@ struct EmptyUserData;
 
 #[async_trait]
 impl UserDataSnapshotReader for EmptyUserData {
-    async fn load(&self, _owner: &UserId) -> Result<UserDataSnapshot, ApplicationPortError> {
+    async fn load(&self, _owner: &UserId) -> PortResult<UserDataSnapshot> {
         Ok(UserDataSnapshot::default())
     }
 }

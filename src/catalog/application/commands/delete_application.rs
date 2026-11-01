@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{catalog::domain::ApplicationId, shared::application::ApplicationError};
 
 use crate::catalog::application::ports::{ApplicationReader, ApplicationWriter};
@@ -11,7 +12,7 @@ impl<R: ApplicationReader + ApplicationWriter> DeleteApplication<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, id: ApplicationId) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, id: ApplicationId) -> ApplicationResult<()> {
         self.repository
             .get(id)
             .await?

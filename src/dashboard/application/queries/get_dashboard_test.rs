@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use async_trait::async_trait;
 use chrono::{TimeZone, Utc};
 
@@ -12,7 +13,6 @@ use crate::{
     },
     icon::domain::IconReference,
     preferences::{application::ports::PreferencesReader, domain::UserPreferences},
-    shared::application::ApplicationPortError,
     shared::domain::CollectionSortOrder,
     shared::domain::{GroupId, UserId},
 };
@@ -23,7 +23,7 @@ struct Dashboards {
 
 #[async_trait]
 impl DashboardReader for Dashboards {
-    async fn load(&self, _user_id: &UserId) -> Result<Option<UserDashboard>, ApplicationPortError> {
+    async fn load(&self, _user_id: &UserId) -> PortResult<Option<UserDashboard>> {
         Ok(self.result.clone())
     }
 }
@@ -34,7 +34,7 @@ struct CatalogSettings(Option<ApplicationCatalogSettings>);
 
 #[async_trait]
 impl ApplicationCatalogSettingsReader for CatalogSettings {
-    async fn load(&self) -> Result<Option<ApplicationCatalogSettings>, ApplicationPortError> {
+    async fn load(&self) -> PortResult<Option<ApplicationCatalogSettings>> {
         Ok(self.0.clone())
     }
 }
@@ -43,21 +43,21 @@ struct Preferences(Option<UserPreferences>);
 
 #[async_trait]
 impl PreferencesReader for Preferences {
-    async fn load(&self, _owner: &UserId) -> Result<Option<UserPreferences>, ApplicationPortError> {
+    async fn load(&self, _owner: &UserId) -> PortResult<Option<UserPreferences>> {
         Ok(self.0.clone())
     }
 }
 
 #[async_trait]
 impl ApplicationReader for Applications {
-    async fn list(&self) -> Result<Vec<Application>, ApplicationPortError> {
+    async fn list(&self) -> PortResult<Vec<Application>> {
         Ok(self.0.clone())
     }
 
     async fn get(
         &self,
         id: crate::catalog::domain::ApplicationId,
-    ) -> Result<Option<Application>, ApplicationPortError> {
+    ) -> PortResult<Option<Application>> {
         Ok(self
             .0
             .iter()

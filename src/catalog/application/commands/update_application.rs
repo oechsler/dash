@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     catalog::domain::{ApplicationHealthCheck, ApplicationId},
     icon::domain::IconReference,
@@ -26,7 +27,7 @@ impl<R: ApplicationReader + ApplicationWriter> UpdateApplication<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, input: UpdateApplicationInput) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, input: UpdateApplicationInput) -> ApplicationResult<()> {
         let mut application = self
             .repository
             .get(input.id)

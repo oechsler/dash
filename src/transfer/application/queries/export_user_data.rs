@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     shared::application::ApplicationError,
     shared::domain::UserId,
@@ -17,10 +18,7 @@ impl<R: UserDataSnapshotReader> ExportUserData<R> {
         Self { repository }
     }
 
-    pub async fn execute(
-        &self,
-        input: ExportUserDataInput,
-    ) -> Result<UserDataSnapshot, ApplicationError> {
+    pub async fn execute(&self, input: ExportUserDataInput) -> ApplicationResult<UserDataSnapshot> {
         self.repository
             .load(&input.owner)
             .await

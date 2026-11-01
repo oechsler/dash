@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use std::collections::HashMap;
 
 use crate::{
@@ -31,11 +32,11 @@ impl ImportService {
         &self,
         payload: &[u8],
         owner: &UserId,
-    ) -> Result<UserDataSnapshot, ApplicationError> {
+    ) -> ApplicationResult<UserDataSnapshot> {
         super::super::import_document(payload, owner, Self::parse, Self::into_snapshot)
     }
 
-    fn parse(payload: &[u8]) -> Result<UserDataModel, ApplicationError> {
+    fn parse(payload: &[u8]) -> ApplicationResult<UserDataModel> {
         let document: UserDataModel = serde_json::from_slice(payload)?;
         if document.signature.is_none() {
             return Err(TransferError::MissingSignature.into());
@@ -49,7 +50,7 @@ impl ImportService {
     fn into_snapshot(
         owner: &UserId,
         document: UserDataModel,
-    ) -> Result<UserDataSnapshot, ApplicationError> {
+    ) -> ApplicationResult<UserDataSnapshot> {
         let (themes, theme_ids) = Self::build_themes(owner, document.themes)?;
         let imported_theme_names = ImportedThemeNames {
             light: document.settings.light_theme.clone(),
@@ -77,7 +78,7 @@ impl ImportService {
     fn build_application_catalog_settings(
         sort_order: &str,
         applications: &[Application],
-    ) -> Result<ApplicationCatalogSettings, ApplicationError> {
+    ) -> ApplicationResult<ApplicationCatalogSettings> {
         let mut settings = ApplicationCatalogSettings::default();
         let sort_order = Self::parse_sort_order(sort_order)?;
         settings.set_sort_order(sort_order);
@@ -88,9 +89,7 @@ impl ImportService {
         Ok(settings)
     }
 
-    fn build_applications(
-        records: Vec<ApplicationModel>,
-    ) -> Result<Vec<Application>, ApplicationError> {
+    fn build_applications(records: Vec<ApplicationModel>) -> ApplicationResult<Vec<Application>> {
         records
             .into_iter()
             .map(|record| {
@@ -114,7 +113,7 @@ impl ImportService {
 
     fn parse_health_check(
         model: Option<HealthCheckModel>,
-    ) -> Result<Option<ApplicationHealthCheck>, ApplicationError> {
+    ) -> ApplicationResult<Option<ApplicationHealthCheck>> {
         model
             .map(|model| {
                 let url = model
@@ -146,7 +145,7 @@ impl ImportService {
         owner: &UserId,
         records: Vec<CategoryModel>,
         categories_sort_order: &str,
-    ) -> Result<UserDashboard, ApplicationError> {
+    ) -> ApplicationResult<UserDashboard> {
         let mut dashboard = UserDashboard::new(owner.clone());
         dashboard.set_categories_sort_order(Self::parse_sort_order(categories_sort_order)?);
         for record in records {
@@ -171,7 +170,7 @@ impl ImportService {
         Ok(dashboard)
     }
 
-    fn parse_sort_order(value: &str) -> Result<CollectionSortOrder, ApplicationError> {
+    fn parse_sort_order(value: &str) -> ApplicationResult<CollectionSortOrder> {
         CollectionSortOrder::try_from(value).map_err(|_| {
             TransferError::InvalidDocument(format!("unknown sort order `{value}`")).into()
         })
@@ -182,7 +181,7 @@ impl ImportService {
         settings: SettingsModel,
         themes: &[Theme],
         theme_ids: &ThemeIdByNameAndMode,
-    ) -> Result<UserPreferences, ApplicationError> {
+    ) -> ApplicationResult<UserPreferences> {
         let mut preferences = UserPreferences::for_user(owner.clone());
         preferences.set_language(parse_language(&settings.language)?);
         preferences.set_time_zone(TimeZone::try_from(settings.time_zone)?);
@@ -209,7 +208,7 @@ impl ImportService {
         name: Option<&str>,
         themes: &[Theme],
         theme_ids: &ThemeIdByNameAndMode,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let Some(name) = name else { return Ok(()) };
         let Some(id) = theme_ids.get(&(name.to_owned(), mode)) else {
             return Ok(());
@@ -225,7 +224,7 @@ impl ImportService {
     fn build_themes(
         owner: &UserId,
         records: Vec<ThemeModel>,
-    ) -> Result<(Vec<Theme>, ThemeIdByNameAndMode), ApplicationError> {
+    ) -> ApplicationResult<(Vec<Theme>, ThemeIdByNameAndMode)> {
         let themes = records
             .into_iter()
             .map(|record| {
@@ -241,7 +240,7 @@ impl ImportService {
                     ))
                     .call()?)
             })
-            .collect::<Result<Vec<_>, ApplicationError>>()?;
+            .collect::<ApplicationResult<Vec<_>>>()?;
         let theme_ids = themes
             .iter()
             .map(|theme| ((theme.name().to_owned(), theme.mode()), theme.id()))
@@ -249,7 +248,7 @@ impl ImportService {
         Ok((themes, theme_ids))
     }
 
-    fn parse_mode(value: &str) -> Result<ThemeMode, ApplicationError> {
+    fn parse_mode(value: &str) -> ApplicationResult<ThemeMode> {
         match value {
             "light" => Ok(ThemeMode::Light),
             "dark" => Ok(ThemeMode::Dark),

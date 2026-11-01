@@ -1,9 +1,9 @@
+use crate::shared::application::PortResult;
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 
 use crate::{
-    shared::application::ApplicationPortError,
     shared::domain::UserId,
     user::application::ports::{IdentityWriter, ResolvedUser},
 };
@@ -17,11 +17,7 @@ struct Provisioner {
 
 #[async_trait]
 impl IdentityWriter for Provisioner {
-    async fn resolve_or_create(
-        &self,
-        issuer: &str,
-        subject: &str,
-    ) -> Result<ResolvedUser, ApplicationPortError> {
+    async fn resolve_or_create(&self, issuer: &str, subject: &str) -> PortResult<ResolvedUser> {
         *self.received.lock().unwrap() = Some((issuer.to_owned(), subject.to_owned()));
         Ok(self.result.clone())
     }

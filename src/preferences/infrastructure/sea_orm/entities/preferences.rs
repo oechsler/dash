@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 
@@ -37,8 +38,8 @@ impl Model {
         self,
         owner: &UserId,
         recent_application_ids: Vec<crate::catalog::domain::ApplicationId>,
-    ) -> Result<UserPreferences, ApplicationPortError> {
-        let parse_theme = |value: Option<String>| -> Result<Option<ThemeId>, ApplicationPortError> {
+    ) -> PortResult<UserPreferences> {
+        let parse_theme = |value: Option<String>| -> PortResult<Option<ThemeId>> {
             value
                 .map(|value| ThemeId::try_from(value.as_str()).map_err(ApplicationPortError::from))
                 .transpose()

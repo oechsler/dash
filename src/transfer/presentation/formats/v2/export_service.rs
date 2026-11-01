@@ -1,8 +1,8 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     catalog::domain::Application,
     dashboard::domain::{Bookmark, DashboardCategory},
     preferences::domain::UserPreferences,
-    shared::application::ApplicationError,
     shared::domain::UserId,
     theme::domain::{Theme, ThemeIdentity, ThemeMode},
     transfer::{
@@ -23,7 +23,7 @@ impl ExportService {
         owner: &UserId,
         username: String,
         include_applications: bool,
-    ) -> Result<Vec<u8>, ApplicationError> {
+    ) -> ApplicationResult<Vec<u8>> {
         let document = Self::build_document(snapshot, owner, username, include_applications)?;
         Ok(serde_json::to_vec_pretty(&document)?)
     }
@@ -33,7 +33,7 @@ impl ExportService {
         owner: &UserId,
         username: String,
         include_applications: bool,
-    ) -> Result<UserDataModel, ApplicationError> {
+    ) -> ApplicationResult<UserDataModel> {
         let preferences = snapshot
             .preferences
             .unwrap_or_else(|| UserPreferences::for_user(owner.clone()));

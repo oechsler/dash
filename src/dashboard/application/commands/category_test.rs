@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
@@ -10,11 +11,8 @@ use crate::{
         },
         domain::{CategoryError, DashboardError, UserDashboard},
     },
+    shared::application::{ApplicationDomainError, ApplicationError},
     shared::domain::UserId,
-    shared::{
-        application::{ApplicationError, ApplicationPortError},
-        domain::DomainError,
-    },
 };
 
 #[derive(Clone, Default)]
@@ -22,14 +20,14 @@ struct InMemoryDashboards(Arc<Mutex<Option<UserDashboard>>>);
 
 #[async_trait]
 impl DashboardReader for InMemoryDashboards {
-    async fn load(&self, _user_id: &UserId) -> Result<Option<UserDashboard>, ApplicationPortError> {
+    async fn load(&self, _user_id: &UserId) -> PortResult<Option<UserDashboard>> {
         Ok(self.0.lock().unwrap().clone())
     }
 }
 
 #[async_trait]
 impl DashboardWriter for InMemoryDashboards {
-    async fn save(&self, dashboard: &UserDashboard) -> Result<(), ApplicationPortError> {
+    async fn save(&self, dashboard: &UserDashboard) -> PortResult<()> {
         *self.0.lock().unwrap() = Some(dashboard.clone());
         Ok(())
     }
@@ -74,7 +72,7 @@ async fn create_category_keeps_domain_error_context_in_application_error() {
 
     assert!(matches!(
         result,
-        Err(ApplicationError::Domain(DomainError::Dashboard(
+        Err(ApplicationError::Domain(ApplicationDomainError::Dashboard(
             DashboardError::Category(CategoryError::EmptyName { .. })
         )))
     ));

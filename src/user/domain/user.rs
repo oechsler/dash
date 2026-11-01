@@ -18,6 +18,21 @@ pub struct User {
     groups: HashSet<GroupId>,
 }
 
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum UserError {
+    #[error("user identifier is invalid: {0}")]
+    Identity(#[from] IdentityError),
+
+    #[error("user profile picture is invalid: {0}")]
+    ProfilePicture(#[from] ProfilePictureUrlError),
+
+    #[error("username must not be empty (received {value:?})")]
+    EmptyUsername { value: String },
+}
+
+/// Result for operations that validate or update a user.
+pub type DomainResult<T> = Result<T, UserError>;
+
 #[bon]
 impl User {
     #[builder]
@@ -28,7 +43,7 @@ impl User {
         last_name: Option<String>,
         profile_picture: Option<ProfilePictureUrl>,
         groups: impl IntoIterator<Item = GroupId>,
-    ) -> Result<Self, UserError> {
+    ) -> DomainResult<Self> {
         let username = username.into();
         let trimmed_username = username.trim();
         if trimmed_username.is_empty() {
@@ -79,16 +94,4 @@ fn normalize_optional_name(name: Option<String>) -> Option<String> {
         let trimmed = name.trim();
         (!trimmed.is_empty()).then(|| trimmed.to_owned())
     })
-}
-
-#[derive(Debug, Error, PartialEq, Eq)]
-pub enum UserError {
-    #[error("user identifier is invalid: {0}")]
-    Identity(#[from] IdentityError),
-
-    #[error("user profile picture is invalid: {0}")]
-    ProfilePicture(#[from] ProfilePictureUrlError),
-
-    #[error("username must not be empty (received {value:?})")]
-    EmptyUsername { value: String },
 }

@@ -1,5 +1,5 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
-    shared::application::ApplicationError,
     shared::domain::UserId,
     theme::{
         application::ports::ThemeWriter,
@@ -25,7 +25,7 @@ impl<R: ThemeWriter> CreateTheme<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, input: CreateThemeInput) -> Result<ThemeId, ApplicationError> {
+    pub async fn execute(&self, input: CreateThemeInput) -> ApplicationResult<ThemeId> {
         let palette = ThemePalette::new(
             Color::try_from(input.primary)?,
             Color::try_from(input.secondary)?,

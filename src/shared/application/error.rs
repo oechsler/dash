@@ -3,20 +3,22 @@ use thiserror::Error;
 
 use crate::{
     catalog::domain::CatalogError,
-    dashboard::domain::DashboardError,
-    icon::domain::IconError,
-    preferences::domain::PreferencesError,
+    dashboard::domain::{BookmarkError, CategoryError, DashboardError},
+    icon::domain::IconReferenceError,
+    preferences::domain::{PreferencesError, TimeZoneError},
     session::domain::SessionError,
-    shared::domain::{DomainError, IdentityError, WebAddressError},
-    theme::domain::ThemeError,
+    shared::domain::{IdentityError, WebAddressError},
+    theme::domain::{ColorError, GlobalThemeIdError, ThemeError, ThemeIdError},
     transfer::application::TransferError,
-    user::domain::UserError,
+    user::domain::{ProfilePictureUrlError, UserError},
 };
+
+use super::ApplicationDomainError;
 
 #[derive(Debug, Error)]
 pub enum ApplicationError {
     #[error(transparent)]
-    Domain(#[from] DomainError),
+    Domain(#[from] ApplicationDomainError),
 
     #[error("infrastructure operation `{operation}` failed: {source}")]
     Infrastructure {
@@ -31,6 +33,9 @@ pub enum ApplicationError {
     #[error("{0} was not found")]
     NotFound(&'static str),
 }
+
+/// Result returned by application use cases and format adapters.
+pub type ApplicationResult<T> = Result<T, ApplicationError>;
 
 impl From<serde_json::Error> for ApplicationError {
     fn from(error: serde_json::Error) -> Self {
@@ -64,54 +69,96 @@ impl From<super::ApplicationPortError> for ApplicationError {
 
 impl From<DashboardError> for ApplicationError {
     fn from(error: DashboardError) -> Self {
-        Self::Domain(DomainError::Dashboard(error))
+        Self::Domain(ApplicationDomainError::Dashboard(error))
     }
 }
 
 impl From<WebAddressError> for ApplicationError {
     fn from(error: WebAddressError) -> Self {
-        Self::Domain(DomainError::WebAddress(error))
+        Self::Domain(ApplicationDomainError::WebAddress(error))
     }
 }
 
 impl From<IdentityError> for ApplicationError {
     fn from(error: IdentityError) -> Self {
-        Self::Domain(DomainError::Identity(error))
-    }
-}
-
-impl From<IconError> for ApplicationError {
-    fn from(error: IconError) -> Self {
-        Self::Domain(DomainError::Icon(error))
+        Self::Domain(ApplicationDomainError::Identity(error))
     }
 }
 
 impl From<CatalogError> for ApplicationError {
     fn from(error: CatalogError) -> Self {
-        Self::Domain(DomainError::Catalog(error))
+        Self::Domain(ApplicationDomainError::Catalog(error))
     }
 }
 
 impl From<UserError> for ApplicationError {
     fn from(error: UserError) -> Self {
-        Self::Domain(DomainError::User(error))
+        Self::Domain(ApplicationDomainError::User(error))
     }
 }
 
 impl From<ThemeError> for ApplicationError {
     fn from(error: ThemeError) -> Self {
-        Self::Domain(DomainError::Theme(error))
+        Self::Domain(ApplicationDomainError::Theme(error))
     }
 }
 
 impl From<PreferencesError> for ApplicationError {
     fn from(error: PreferencesError) -> Self {
-        Self::Domain(DomainError::Preferences(error))
+        Self::Domain(ApplicationDomainError::Preferences(error))
     }
 }
 
 impl From<SessionError> for ApplicationError {
     fn from(error: SessionError) -> Self {
-        Self::Domain(DomainError::Session(error))
+        Self::Domain(ApplicationDomainError::Session(error))
+    }
+}
+
+impl From<BookmarkError> for ApplicationError {
+    fn from(error: BookmarkError) -> Self {
+        Self::Domain(error.into())
+    }
+}
+
+impl From<CategoryError> for ApplicationError {
+    fn from(error: CategoryError) -> Self {
+        Self::Domain(error.into())
+    }
+}
+
+impl From<IconReferenceError> for ApplicationError {
+    fn from(error: IconReferenceError) -> Self {
+        Self::Domain(error.into())
+    }
+}
+
+impl From<GlobalThemeIdError> for ApplicationError {
+    fn from(error: GlobalThemeIdError) -> Self {
+        Self::Domain(error.into())
+    }
+}
+
+impl From<ThemeIdError> for ApplicationError {
+    fn from(error: ThemeIdError) -> Self {
+        Self::Domain(error.into())
+    }
+}
+
+impl From<TimeZoneError> for ApplicationError {
+    fn from(error: TimeZoneError) -> Self {
+        Self::Domain(error.into())
+    }
+}
+
+impl From<ColorError> for ApplicationError {
+    fn from(error: ColorError) -> Self {
+        Self::Domain(error.into())
+    }
+}
+
+impl From<ProfilePictureUrlError> for ApplicationError {
+    fn from(error: ProfilePictureUrlError) -> Self {
+        Self::Domain(error.into())
     }
 }

@@ -1,3 +1,4 @@
+use super::DomainResult;
 use std::collections::HashSet;
 
 use bon::bon;
@@ -6,8 +7,8 @@ use getset::Getters;
 use crate::{icon::domain::IconReference, shared::domain::GroupId, shared::domain::WebAddress};
 
 use super::{
-    ApplicationError, ApplicationHealth, ApplicationHealthCheck, ApplicationId,
-    ApplicationVisibility, CatalogError,
+    ApplicationHealth, ApplicationHealthCheck, ApplicationId, ApplicationVisibility,
+    CatalogApplicationError,
 };
 
 /// An administrator-maintained application in the shared catalog.
@@ -33,7 +34,7 @@ impl Application {
         visibility: ApplicationVisibility,
         health_check: Option<ApplicationHealthCheck>,
         health: Option<ApplicationHealth>,
-    ) -> Result<Self, CatalogError> {
+    ) -> DomainResult<Self> {
         let mut application = Self::__orig_new(name, icon, address, visibility)?;
         application.id = id;
         application.health_check = health_check;
@@ -46,7 +47,7 @@ impl Application {
         icon: IconReference,
         address: WebAddress,
         visibility: ApplicationVisibility,
-    ) -> Result<Self, CatalogError> {
+    ) -> DomainResult<Self> {
         Self::builder()
             .name(name)
             .icon(icon)
@@ -61,11 +62,11 @@ impl Application {
         icon: IconReference,
         address: WebAddress,
         visibility: ApplicationVisibility,
-    ) -> Result<Self, CatalogError> {
+    ) -> DomainResult<Self> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(ApplicationError::EmptyName { value: name }.into());
+            return Err(CatalogApplicationError::EmptyName { value: name }.into());
         }
 
         Ok(Self {
@@ -125,11 +126,11 @@ impl Application {
         &self.icon
     }
 
-    pub fn rename(&mut self, name: impl Into<String>) -> Result<(), CatalogError> {
+    pub fn rename(&mut self, name: impl Into<String>) -> DomainResult<()> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(ApplicationError::EmptyName { value: name }.into());
+            return Err(CatalogApplicationError::EmptyName { value: name }.into());
         }
         self.name = trimmed.to_owned();
         Ok(())

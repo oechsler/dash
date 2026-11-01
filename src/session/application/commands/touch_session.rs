@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use chrono::{DateTime, Utc};
 
 use crate::{
@@ -24,7 +25,7 @@ impl<R: SessionReader + SessionWriter> TouchSession<R> {
         id: SessionId,
         metadata: SessionMetadata,
         now: DateTime<Utc>,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let mut session = self
             .repository
             .load(owner, id)

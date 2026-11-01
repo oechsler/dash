@@ -1,6 +1,7 @@
+use thiserror::Error;
 use uuid::Uuid;
 
-use super::{GlobalThemeId, ThemeError};
+use super::{GlobalThemeId, GlobalThemeIdError};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ThemeId {
@@ -8,20 +9,38 @@ pub enum ThemeId {
     UserDefined(Uuid),
 }
 
-impl TryFrom<&str> for ThemeId {
-    type Error = ThemeError;
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum ThemeIdError {
+    #[error("global theme ID is invalid: {0}")]
+    Global(#[from] GlobalThemeIdError),
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    #[error("user-defined theme ID is invalid: {value:?}")]
+    InvalidUserDefined { value: String },
+
+    #[error("theme ID must start with `global:` or `user:` (received {value:?})")]
+    MissingNamespace { value: String },
+}
+
+/// Result for parsing namespaced theme identifiers.
+pub type ThemeIdResult<T> = Result<T, ThemeIdError>;
+
+impl TryFrom<&str> for ThemeId {
+    type Error = ThemeIdError;
+
+    fn try_from(value: &str) -> ThemeIdResult<Self> {
         if let Some(id) = value.strip_prefix("global:") {
             return Ok(Self::Global(GlobalThemeId::try_from(id)?));
         }
         if let Some(id) = value.strip_prefix("user:") {
-            return id
-                .parse()
-                .map(Self::UserDefined)
-                .map_err(|_| ThemeError::EmptyGlobalId);
+            return id.parse().map(Self::UserDefined).map_err(|_| {
+                ThemeIdError::InvalidUserDefined {
+                    value: id.to_owned(),
+                }
+            });
         }
-        Err(ThemeError::EmptyGlobalId)
+        Err(ThemeIdError::MissingNamespace {
+            value: value.to_owned(),
+        })
     }
 }
 

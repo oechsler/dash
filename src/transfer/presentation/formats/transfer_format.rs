@@ -1,12 +1,10 @@
-use crate::{
-    shared::application::ApplicationError, shared::domain::UserId,
-    transfer::application::models::UserDataSnapshot,
-};
+use crate::shared::application::ApplicationResult;
+use crate::{shared::domain::UserId, transfer::application::models::UserDataSnapshot};
 
 pub trait TransferFormat: Send + Sync {
     fn version(&self) -> u32;
 
-    fn import(&self, payload: &[u8], owner: &UserId) -> Result<UserDataSnapshot, ApplicationError>;
+    fn import(&self, payload: &[u8], owner: &UserId) -> ApplicationResult<UserDataSnapshot>;
 
     fn export(
         &self,
@@ -14,5 +12,5 @@ pub trait TransferFormat: Send + Sync {
         owner: &UserId,
         username: String,
         include_applications: bool,
-    ) -> Result<Vec<u8>, ApplicationError>;
+    ) -> ApplicationResult<Vec<u8>>;
 }

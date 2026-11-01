@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 
@@ -31,10 +32,7 @@ pub enum Relation {}
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub fn into_domain(
-        self,
-        visible_to: Vec<GroupId>,
-    ) -> Result<Application, ApplicationPortError> {
+    pub fn into_domain(self, visible_to: Vec<GroupId>) -> PortResult<Application> {
         let check = match self.health_check_status_class.as_deref() {
             None => None,
             Some(class) => {

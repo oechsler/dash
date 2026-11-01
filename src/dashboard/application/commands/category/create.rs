@@ -1,6 +1,6 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     dashboard::domain::{Category, CategoryId, DashboardCategory, ShelvedCategory, UserDashboard},
-    shared::application::ApplicationError,
     shared::domain::CollectionSortOrder,
     shared::domain::UserId,
 };
@@ -23,10 +23,7 @@ impl<R: DashboardReader + DashboardWriter> CreateCategory<R> {
         Self { repository }
     }
 
-    pub async fn execute(
-        &self,
-        input: CreateCategoryInput,
-    ) -> Result<CategoryId, ApplicationError> {
+    pub async fn execute(&self, input: CreateCategoryInput) -> ApplicationResult<CategoryId> {
         let mut dashboard = self
             .repository
             .load(&input.owner)

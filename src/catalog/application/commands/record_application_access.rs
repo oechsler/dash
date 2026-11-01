@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use std::collections::HashSet;
 
 use crate::{
@@ -29,7 +30,7 @@ where
         user_id: &UserId,
         groups: &HashSet<GroupId>,
         application_id: ApplicationId,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let is_visible = self
             .applications
             .get(application_id)

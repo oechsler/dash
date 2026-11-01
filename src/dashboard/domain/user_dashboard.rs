@@ -1,3 +1,4 @@
+use super::DomainResult;
 use std::{
     cmp::Reverse,
     collections::{HashMap, HashSet},
@@ -54,7 +55,7 @@ impl UserDashboard {
         self.categories_sort_order = sort_order;
     }
 
-    pub fn reorder_categories(&mut self, ordered_ids: &[CategoryId]) -> Result<(), DashboardError> {
+    pub fn reorder_categories(&mut self, ordered_ids: &[CategoryId]) -> DomainResult<()> {
         let existing_ids: HashSet<_> = self.categories.iter().map(DashboardCategory::id).collect();
         let requested_ids: HashSet<_> = ordered_ids.iter().copied().collect();
         if requested_ids.len() != ordered_ids.len() || requested_ids != existing_ids {
@@ -94,11 +95,12 @@ impl UserDashboard {
         category_id: CategoryId,
         bookmark_id: BookmarkId,
         accessed_at: DateTime<Utc>,
-    ) -> Result<(), DashboardError> {
+    ) -> DomainResult<()> {
         let category = self
             .category_mut(category_id)
             .ok_or(DashboardError::CategoryNotFound { category_id })?;
-        category.record_bookmark_access(bookmark_id, accessed_at)
+        category.record_bookmark_access(bookmark_id, accessed_at)?;
+        Ok(())
     }
 
     pub fn add_category(&mut self, category: impl Into<DashboardCategory>) {
@@ -111,11 +113,7 @@ impl UserDashboard {
             .find(|category| category.id() == id)
     }
 
-    pub fn rename_category(
-        &mut self,
-        id: CategoryId,
-        name: impl Into<String>,
-    ) -> Result<(), DashboardError> {
+    pub fn rename_category(&mut self, id: CategoryId, name: impl Into<String>) -> DomainResult<()> {
         self.category_mut(id)
             .ok_or(DashboardError::CategoryNotFound { category_id: id })?
             .rename(name)?;
@@ -123,7 +121,7 @@ impl UserDashboard {
     }
 
     /// Removes a category and returns it with its bookmarks for cascading persistence.
-    pub fn remove_category(&mut self, id: CategoryId) -> Result<DashboardCategory, DashboardError> {
+    pub fn remove_category(&mut self, id: CategoryId) -> DomainResult<DashboardCategory> {
         let index = self
             .categories
             .iter()
@@ -132,11 +130,11 @@ impl UserDashboard {
         Ok(self.categories.remove(index))
     }
 
-    pub fn shelve_category(&mut self, id: CategoryId) -> Result<(), DashboardError> {
+    pub fn shelve_category(&mut self, id: CategoryId) -> DomainResult<()> {
         self.transition_category(id, DashboardCategory::shelve)
     }
 
-    pub fn unshelve_category(&mut self, id: CategoryId) -> Result<(), DashboardError> {
+    pub fn unshelve_category(&mut self, id: CategoryId) -> DomainResult<()> {
         self.transition_category(id, DashboardCategory::unshelve)
     }
 
@@ -144,7 +142,7 @@ impl UserDashboard {
         &mut self,
         id: CategoryId,
         transition: fn(DashboardCategory) -> DashboardCategory,
-    ) -> Result<(), DashboardError> {
+    ) -> DomainResult<()> {
         let index = self
             .categories
             .iter()
@@ -159,7 +157,7 @@ impl UserDashboard {
         &mut self,
         category_id: CategoryId,
         bookmark: Bookmark,
-    ) -> Result<(), DashboardError> {
+    ) -> DomainResult<()> {
         let category = self
             .category_mut(category_id)
             .ok_or(DashboardError::CategoryNotFound { category_id })?;
@@ -167,23 +165,19 @@ impl UserDashboard {
         Ok(())
     }
 
-    pub fn bookmark_mut(&mut self, id: BookmarkId) -> Result<&mut Bookmark, DashboardError> {
+    pub fn bookmark_mut(&mut self, id: BookmarkId) -> DomainResult<&mut Bookmark> {
         self.categories
             .iter_mut()
             .find_map(|category| category.bookmark_mut(id))
             .ok_or(DashboardError::BookmarkNotFound { bookmark_id: id })
     }
 
-    pub fn rename_bookmark(
-        &mut self,
-        id: BookmarkId,
-        name: impl Into<String>,
-    ) -> Result<(), DashboardError> {
+    pub fn rename_bookmark(&mut self, id: BookmarkId, name: impl Into<String>) -> DomainResult<()> {
         self.bookmark_mut(id)?.rename(name)?;
         Ok(())
     }
 
-    pub fn remove_bookmark(&mut self, id: BookmarkId) -> Result<Bookmark, DashboardError> {
+    pub fn remove_bookmark(&mut self, id: BookmarkId) -> DomainResult<Bookmark> {
         self.categories
             .iter_mut()
             .find_map(|category| category.take_bookmark(id))
@@ -194,7 +188,7 @@ impl UserDashboard {
         &mut self,
         bookmark_id: BookmarkId,
         target_category_id: CategoryId,
-    ) -> Result<(), DashboardError> {
+    ) -> DomainResult<()> {
         let target_index = self
             .categories
             .iter()

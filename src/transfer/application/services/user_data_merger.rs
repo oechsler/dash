@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use std::collections::{HashMap, HashSet};
 
 use crate::{
@@ -21,7 +22,7 @@ impl UserDataMerger {
         imported: &UserDataSnapshot,
         owner: &UserId,
         is_admin: bool,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let theme_ids = self.merge_themes(target, imported);
         self.merge_dashboard(target, imported, owner)?;
         if is_admin {
@@ -69,7 +70,7 @@ impl UserDataMerger {
         target: &mut UserDataSnapshot,
         imported: &UserDataSnapshot,
         owner: &UserId,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let Some(imported_dashboard) = &imported.dashboard else {
             return Ok(());
         };
@@ -110,7 +111,7 @@ impl UserDataMerger {
         &self,
         target: &mut UserDataSnapshot,
         imported: &UserDataSnapshot,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let mut known: HashMap<_, _> = target
             .applications
             .iter()
@@ -180,7 +181,7 @@ impl UserDataMerger {
         imported: &UserDataSnapshot,
         owner: &UserId,
         theme_ids: &ThemeIdMap,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let Some(imported_preferences) = imported.preferences.as_ref() else {
             return Ok(());
         };
@@ -215,7 +216,7 @@ impl UserDataMerger {
         imported_theme_names: Option<&crate::transfer::application::models::ImportedThemeNames>,
         theme_ids: &ThemeIdMap,
         themes: &[Theme],
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         if let Some(imported_id) = imported_preferences.theme_id(mode) {
             let Some(target_id) = theme_ids.get(&imported_id) else {
                 return Ok(());

@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 
@@ -36,7 +37,7 @@ impl Model {
     pub fn into_domain(
         self,
         bookmarks: Vec<crate::dashboard::domain::Bookmark>,
-    ) -> Result<DashboardCategory, ApplicationPortError> {
+    ) -> PortResult<DashboardCategory> {
         let sort_order = CollectionSortOrder::try_from(self.sort_order.as_str()).map_err(|_| {
             ApplicationPortError::adapter(
                 "decode category sort order",

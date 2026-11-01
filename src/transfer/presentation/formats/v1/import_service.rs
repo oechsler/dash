@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use std::collections::HashMap;
 
 use sha2::{Digest, Sha256};
@@ -26,11 +27,11 @@ impl ImportService {
         &self,
         payload: &[u8],
         owner: &UserId,
-    ) -> Result<UserDataSnapshot, ApplicationError> {
+    ) -> ApplicationResult<UserDataSnapshot> {
         super::super::import_document(payload, owner, Self::parse, Self::into_snapshot)
     }
 
-    fn parse(payload: &[u8]) -> Result<GoExportV1, ApplicationError> {
+    fn parse(payload: &[u8]) -> ApplicationResult<GoExportV1> {
         let mut document: GoExportV1 = serde_json::from_slice(payload)?;
         let signature = document
             .signature
@@ -52,10 +53,7 @@ impl ImportService {
             .replace('\u{2029}', "\\u2029")
     }
 
-    fn into_snapshot(
-        owner: &UserId,
-        document: GoExportV1,
-    ) -> Result<UserDataSnapshot, ApplicationError> {
+    fn into_snapshot(owner: &UserId, document: GoExportV1) -> ApplicationResult<UserDataSnapshot> {
         let (themes, theme_ids) = Self::build_themes(owner, document.themes)?;
         let preferences = Self::build_preferences(owner, document.settings, &themes, &theme_ids)?;
         let dashboard = Self::build_dashboard(owner, document.categories)?;
@@ -72,7 +70,7 @@ impl ImportService {
 
     fn build_applications(
         records: Option<Vec<GoApplicationV1>>,
-    ) -> Result<Vec<Application>, ApplicationError> {
+    ) -> ApplicationResult<Vec<Application>> {
         records
             .unwrap_or_default()
             .into_iter()
@@ -95,7 +93,7 @@ impl ImportService {
     fn build_dashboard(
         owner: &UserId,
         records: Vec<GoCategoryV1>,
-    ) -> Result<UserDashboard, ApplicationError> {
+    ) -> ApplicationResult<UserDashboard> {
         let mut dashboard = UserDashboard::new(owner.clone());
         for record in records {
             let sort_order = Self::parse_bookmarks_sort_order(
@@ -124,7 +122,7 @@ impl ImportService {
         Ok(dashboard)
     }
 
-    fn parse_bookmarks_sort_order(value: &str) -> Result<CollectionSortOrder, ApplicationError> {
+    fn parse_bookmarks_sort_order(value: &str) -> ApplicationResult<CollectionSortOrder> {
         CollectionSortOrder::try_from(value).map_err(|_| {
             TransferError::InvalidDocument(format!("unknown bookmark sort order `{value}`")).into()
         })
@@ -135,7 +133,7 @@ impl ImportService {
         settings: GoSettingsV1,
         themes: &[Theme],
         theme_ids: &HashMap<String, ThemeId>,
-    ) -> Result<UserPreferences, ApplicationError> {
+    ) -> ApplicationResult<UserPreferences> {
         let mut preferences = UserPreferences::for_user(owner.clone());
         preferences.set_language(parse_language(&settings.language)?);
         preferences.set_time_zone(TimeZone::try_from(settings.timezone)?);
@@ -155,7 +153,7 @@ impl ImportService {
     fn build_themes(
         owner: &UserId,
         records: Vec<GoThemeV1>,
-    ) -> Result<(Vec<Theme>, HashMap<String, ThemeId>), ApplicationError> {
+    ) -> ApplicationResult<(Vec<Theme>, HashMap<String, ThemeId>)> {
         let themes = records
             .into_iter()
             .map(|record| {
@@ -170,7 +168,7 @@ impl ImportService {
                     ))
                     .call()?)
             })
-            .collect::<Result<Vec<_>, ApplicationError>>()?;
+            .collect::<ApplicationResult<Vec<_>>>()?;
         let theme_ids = themes
             .iter()
             .map(|theme| (theme.name().to_owned(), theme.id()))

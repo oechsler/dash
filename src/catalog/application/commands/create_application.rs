@@ -1,7 +1,7 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     catalog::domain::{Application, ApplicationHealthCheck, ApplicationId, ApplicationVisibility},
     icon::domain::IconReference,
-    shared::application::ApplicationError,
     shared::domain::GroupId,
     shared::domain::WebAddress,
 };
@@ -25,10 +25,7 @@ impl<R: ApplicationReader + ApplicationWriter> CreateApplication<R> {
         Self { repository }
     }
 
-    pub async fn execute(
-        &self,
-        input: CreateApplicationInput,
-    ) -> Result<ApplicationId, ApplicationError> {
+    pub async fn execute(&self, input: CreateApplicationInput) -> ApplicationResult<ApplicationId> {
         let groups = parse_groups(input.visible_to_groups)?;
         let mut application = Application::create(
             input.name,
@@ -43,7 +40,7 @@ impl<R: ApplicationReader + ApplicationWriter> CreateApplication<R> {
     }
 }
 
-fn parse_groups(groups: Vec<String>) -> Result<Vec<GroupId>, ApplicationError> {
+fn parse_groups(groups: Vec<String>) -> ApplicationResult<Vec<GroupId>> {
     groups
         .into_iter()
         .map(GroupId::try_from)

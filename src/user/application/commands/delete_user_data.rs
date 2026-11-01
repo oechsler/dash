@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::shared::domain::UserId;
 
 use crate::{shared::application::ApplicationError, user::application::ports::UserWriter};
@@ -11,7 +12,7 @@ impl<R: UserWriter> DeleteUserData<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, user_id: &UserId) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, user_id: &UserId) -> ApplicationResult<()> {
         self.repository
             .delete(user_id)
             .await

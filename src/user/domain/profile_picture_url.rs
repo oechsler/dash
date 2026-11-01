@@ -1,12 +1,21 @@
-use super::{ProfilePictureUrlError, UserError};
+use thiserror::Error;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ProfilePictureUrl(String);
 
-impl TryFrom<String> for ProfilePictureUrl {
-    type Error = UserError;
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum ProfilePictureUrlError {
+    #[error("invalid profile picture URL {value:?}: {reason}")]
+    InvalidUrl { value: String, reason: String },
+}
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
+/// Result for parsing profile-picture URLs.
+pub type ProfilePictureUrlResult<T> = Result<T, ProfilePictureUrlError>;
+
+impl TryFrom<String> for ProfilePictureUrl {
+    type Error = ProfilePictureUrlError;
+
+    fn try_from(value: String) -> ProfilePictureUrlResult<Self> {
         let parsed =
             url::Url::parse(&value).map_err(|source| ProfilePictureUrlError::InvalidUrl {
                 value: value.clone(),
@@ -17,8 +26,7 @@ impl TryFrom<String> for ProfilePictureUrl {
             return Err(ProfilePictureUrlError::InvalidUrl {
                 value,
                 reason: "expected an absolute HTTP(S) URL with a host".to_owned(),
-            }
-            .into());
+            });
         }
 
         Ok(Self(value))
@@ -26,9 +34,9 @@ impl TryFrom<String> for ProfilePictureUrl {
 }
 
 impl TryFrom<&str> for ProfilePictureUrl {
-    type Error = UserError;
+    type Error = ProfilePictureUrlError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn try_from(value: &str) -> ProfilePictureUrlResult<Self> {
         Self::try_from(value.to_owned())
     }
 }

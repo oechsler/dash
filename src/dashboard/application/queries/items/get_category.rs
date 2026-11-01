@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     dashboard::{
         application::ports::DashboardReader,
@@ -20,7 +21,7 @@ impl<R: DashboardReader> GetUserCategory<R> {
         &self,
         owner: &UserId,
         id: CategoryId,
-    ) -> Result<DashboardCategory, ApplicationError> {
+    ) -> ApplicationResult<DashboardCategory> {
         self.repository
             .load(owner)
             .await?

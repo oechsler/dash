@@ -1,15 +1,13 @@
 use super::super::error::InfrastructureError;
 use super::entities::{application as app, settings, visibility_group};
-use crate::{
-    catalog::{
-        application::ports::{
-            ApplicationCatalogSettingsReader, ApplicationCatalogSettingsWriter, ApplicationReader,
-            ApplicationWriter,
-        },
-        domain::{Application, ApplicationCatalogSettings, ApplicationId},
+use crate::catalog::{
+    application::ports::{
+        ApplicationCatalogSettingsReader, ApplicationCatalogSettingsWriter, ApplicationReader,
+        ApplicationWriter,
     },
-    shared::application::ApplicationPortError,
+    domain::{Application, ApplicationCatalogSettings, ApplicationId},
 };
+use crate::shared::application::PortResult;
 use async_trait::async_trait;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::{
@@ -24,6 +22,7 @@ use uuid::Uuid;
 pub struct CatalogRepository {
     connection: Arc<DatabaseConnection>,
 }
+
 impl CatalogRepository {
     pub fn new(connection: impl Into<Arc<DatabaseConnection>>) -> Self {
         Self {
@@ -35,7 +34,7 @@ impl CatalogRepository {
         &self,
         tx: &DatabaseTransaction,
         value: &Application,
-    ) -> Result<(), ApplicationPortError> {
+    ) -> PortResult<()> {
         visibility_group::Entity::delete_many()
             .filter(visibility_group::Column::ApplicationId.eq(value.id().as_uuid()))
             .exec(tx)
@@ -74,7 +73,7 @@ impl CatalogRepository {
         &self,
         tx: &DatabaseTransaction,
         value: &ApplicationCatalogSettings,
-    ) -> Result<(), ApplicationPortError> {
+    ) -> PortResult<()> {
         let model = settings::ActiveModel::from(value);
         settings::Entity::insert(model)
             .on_conflict(
@@ -94,7 +93,7 @@ impl CatalogRepository {
 
 #[async_trait]
 impl ApplicationReader for CatalogRepository {
-    async fn list(&self) -> Result<Vec<Application>, ApplicationPortError> {
+    async fn list(&self) -> PortResult<Vec<Application>> {
         let rows = app::Entity::find()
             .order_by_asc(app::Column::Name)
             .all(self.connection.as_ref())
@@ -122,7 +121,8 @@ impl ApplicationReader for CatalogRepository {
         }
         Ok(result)
     }
-    async fn get(&self, id: ApplicationId) -> Result<Option<Application>, ApplicationPortError> {
+
+    async fn get(&self, id: ApplicationId) -> PortResult<Option<Application>> {
         let row = app::Entity::find_by_id(id.as_uuid())
             .one(self.connection.as_ref())
             .await
@@ -146,7 +146,7 @@ impl ApplicationReader for CatalogRepository {
 
 #[async_trait]
 impl ApplicationWriter for CatalogRepository {
-    async fn save(&self, value: &Application) -> Result<(), ApplicationPortError> {
+    async fn save(&self, value: &Application) -> PortResult<()> {
         let tx = self
             .connection
             .begin()
@@ -157,7 +157,8 @@ impl ApplicationWriter for CatalogRepository {
             .await
             .map_err(|e| InfrastructureError::database("commit application save", e))
     }
-    async fn delete(&self, id: ApplicationId) -> Result<(), ApplicationPortError> {
+
+    async fn delete(&self, id: ApplicationId) -> PortResult<()> {
         let tx = self
             .connection
             .begin()
@@ -185,7 +186,7 @@ impl ApplicationWriter for CatalogRepository {
 
 #[async_trait]
 impl ApplicationCatalogSettingsReader for CatalogRepository {
-    async fn load(&self) -> Result<Option<ApplicationCatalogSettings>, ApplicationPortError> {
+    async fn load(&self) -> PortResult<Option<ApplicationCatalogSettings>> {
         let Some(row) = settings::Entity::find_by_id(true)
             .one(self.connection.as_ref())
             .await
@@ -199,7 +200,7 @@ impl ApplicationCatalogSettingsReader for CatalogRepository {
 
 #[async_trait]
 impl ApplicationCatalogSettingsWriter for CatalogRepository {
-    async fn save(&self, value: &ApplicationCatalogSettings) -> Result<(), ApplicationPortError> {
+    async fn save(&self, value: &ApplicationCatalogSettings) -> PortResult<()> {
         let tx = self
             .connection
             .begin()

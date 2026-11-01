@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     shared::application::ApplicationError,
     shared::domain::UserId,
@@ -29,7 +30,7 @@ impl<R: UserDataSnapshotReader, W: UserDataSnapshotWriter> ImportUserData<R, W> 
         }
     }
 
-    pub async fn execute(&self, input: ImportUserDataInput) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, input: ImportUserDataInput) -> ApplicationResult<()> {
         let mut snapshot = self.reader.load(&input.owner).await?;
         self.user_data_merger.merge(
             &mut snapshot,

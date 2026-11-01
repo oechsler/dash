@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 use uuid::Uuid;
@@ -35,7 +36,7 @@ pub enum Relation {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub fn into_domain(self, owner: &UserId) -> Result<Theme, ApplicationPortError> {
+    pub fn into_domain(self, owner: &UserId) -> PortResult<Theme> {
         let id = Uuid::parse_str(&self.id).map_err(|error| {
             ApplicationPortError::adapter(
                 "decode theme id",
@@ -69,7 +70,7 @@ impl Model {
 impl TryFrom<&Theme> for ActiveModel {
     type Error = ApplicationPortError;
 
-    fn try_from(theme: &Theme) -> Result<Self, Self::Error> {
+    fn try_from(theme: &Theme) -> PortResult<Self> {
         let ThemeId::UserDefined(id) = theme.id() else {
             return Err(ApplicationPortError::NotFound("user-defined theme"));
         };

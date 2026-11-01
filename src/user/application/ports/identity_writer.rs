@@ -1,6 +1,7 @@
+use crate::shared::application::PortResult;
 use async_trait::async_trait;
 
-use crate::{shared::application::ApplicationPortError, shared::domain::UserId};
+use crate::shared::domain::UserId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResolvedUser {
@@ -10,9 +11,5 @@ pub struct ResolvedUser {
 
 #[async_trait]
 pub trait IdentityWriter: Send + Sync {
-    async fn resolve_or_create(
-        &self,
-        issuer: &str,
-        subject: &str,
-    ) -> Result<ResolvedUser, ApplicationPortError>;
+    async fn resolve_or_create(&self, issuer: &str, subject: &str) -> PortResult<ResolvedUser>;
 }

@@ -1,9 +1,7 @@
+use crate::shared::application::ApplicationResult;
 use std::time::Duration;
 
-use crate::{
-    catalog::application::ports::{ApplicationReader, ApplicationWriter, HealthCheckProbe},
-    shared::application::ApplicationError,
-};
+use crate::catalog::application::ports::{ApplicationReader, ApplicationWriter, HealthCheckProbe};
 
 const HEALTH_CHECK_INTERVAL: Duration = Duration::from_secs(60);
 const HEALTH_CHECK_TIMEOUT: Duration = Duration::from_secs(5);
@@ -27,7 +25,7 @@ where
         }
     }
 
-    pub async fn check_all(&self) -> Result<(), ApplicationError> {
+    pub async fn check_all(&self) -> ApplicationResult<()> {
         let applications = self.applications.list().await?;
         for mut application in applications {
             let Some(target) = application.health_check_target() else {

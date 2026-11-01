@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     session::{application::ports::SessionReader, domain::UserSession},
     shared::application::ApplicationError,
@@ -13,7 +14,7 @@ impl<R: SessionReader> ListSessions<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, owner: &UserId) -> Result<Vec<UserSession>, ApplicationError> {
+    pub async fn execute(&self, owner: &UserId) -> ApplicationResult<Vec<UserSession>> {
         self.repository
             .list_for(owner)
             .await

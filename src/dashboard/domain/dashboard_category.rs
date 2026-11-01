@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::shared::domain::CollectionSortOrder;
 
-use super::{Category, CategoryId, ShelvedCategory};
+use super::{Category, CategoryId, CategoryResult, ShelvedCategory};
 
 /// A dashboard category in exactly one of its lifecycle states.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -61,10 +61,7 @@ impl DashboardCategory {
         }
     }
 
-    pub fn reorder_bookmarks(
-        &mut self,
-        ordered_ids: &[super::BookmarkId],
-    ) -> Result<(), super::DashboardError> {
+    pub fn reorder_bookmarks(&mut self, ordered_ids: &[super::BookmarkId]) -> CategoryResult<()> {
         match self {
             Self::Active(category) => category.reorder_bookmarks(ordered_ids),
             Self::Shelved(category) => category.reorder_bookmarks(ordered_ids),
@@ -85,7 +82,7 @@ impl DashboardCategory {
         }
     }
 
-    pub(super) fn rename(&mut self, name: impl Into<String>) -> Result<(), super::DashboardError> {
+    pub(super) fn rename(&mut self, name: impl Into<String>) -> CategoryResult<()> {
         match self {
             Self::Active(category) => category.rename(name),
             Self::Shelved(category) => category.rename(name),
@@ -103,7 +100,7 @@ impl DashboardCategory {
         &mut self,
         id: super::BookmarkId,
         accessed_at: DateTime<Utc>,
-    ) -> Result<(), super::DashboardError> {
+    ) -> CategoryResult<()> {
         match self {
             Self::Active(category) => category.record_bookmark_access(id, accessed_at),
             Self::Shelved(category) => category.record_bookmark_access(id, accessed_at),

@@ -21,3 +21,6 @@ pub enum SessionError {
         now: DateTime<Utc>,
     },
 }
+
+/// Result for operations that enforce session lifecycle invariants.
+pub type DomainResult<T> = Result<T, SessionError>;

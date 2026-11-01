@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     catalog::{
         application::ports::{ApplicationCatalogSettingsReader, ApplicationCatalogSettingsWriter},
@@ -25,7 +26,7 @@ where
     pub async fn execute(
         &self,
         input: UpdateApplicationCatalogSortOrderInput,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let mut settings = self
             .settings
             .load()

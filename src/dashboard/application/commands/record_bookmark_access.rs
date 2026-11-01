@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use chrono::Utc;
 
 use crate::{
@@ -24,7 +25,7 @@ impl<R: DashboardReader + DashboardWriter> RecordBookmarkAccess<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, input: RecordBookmarkAccessInput) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, input: RecordBookmarkAccessInput) -> ApplicationResult<()> {
         let mut dashboard = self
             .repository
             .load(&input.owner)

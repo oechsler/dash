@@ -1,8 +1,9 @@
 use chrono::{DateTime, Utc};
+use thiserror::Error;
 
 use crate::icon::domain::IconReference;
 
-use super::{BookmarkError, BookmarkId, DashboardError, WebAddress};
+use super::{BookmarkId, WebAddress};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Bookmark {
@@ -13,6 +14,15 @@ pub struct Bookmark {
     last_accessed_at: Option<DateTime<Utc>>,
 }
 
+#[derive(Debug, Error, PartialEq, Eq)]
+pub enum BookmarkError {
+    #[error("bookmark name must not be empty (received {value:?})")]
+    EmptyName { value: String },
+}
+
+/// Result for bookmark operations that enforce bookmark-local invariants.
+pub type BookmarkResult<T> = Result<T, BookmarkError>;
+
 impl Bookmark {
     pub(crate) fn restore(
         id: BookmarkId,
@@ -20,7 +30,7 @@ impl Bookmark {
         icon: IconReference,
         address: WebAddress,
         last_accessed_at: Option<DateTime<Utc>>,
-    ) -> Result<Self, DashboardError> {
+    ) -> BookmarkResult<Self> {
         let mut bookmark = Self::new(name, icon, address)?;
         bookmark.id = id;
         bookmark.last_accessed_at = last_accessed_at;
@@ -31,11 +41,11 @@ impl Bookmark {
         name: impl Into<String>,
         icon: IconReference,
         address: WebAddress,
-    ) -> Result<Self, DashboardError> {
+    ) -> BookmarkResult<Self> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(BookmarkError::EmptyName { value: name }.into());
+            return Err(BookmarkError::EmptyName { value: name });
         }
         Ok(Self {
             id: BookmarkId::new(),
@@ -70,11 +80,11 @@ impl Bookmark {
         self.last_accessed_at = Some(accessed_at);
     }
 
-    pub fn rename(&mut self, name: impl Into<String>) -> Result<(), DashboardError> {
+    pub fn rename(&mut self, name: impl Into<String>) -> BookmarkResult<()> {
         let name = name.into();
         let trimmed = name.trim();
         if trimmed.is_empty() {
-            return Err(BookmarkError::EmptyName { value: name }.into());
+            return Err(BookmarkError::EmptyName { value: name });
         }
         self.name = trimmed.to_owned();
         Ok(())

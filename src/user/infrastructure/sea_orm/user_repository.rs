@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use async_trait::async_trait;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::{
@@ -17,6 +18,7 @@ use crate::{
 pub struct UserRepository {
     connection: Arc<DatabaseConnection>,
 }
+
 impl UserRepository {
     pub fn new(connection: impl Into<Arc<DatabaseConnection>>) -> Self {
         Self {
@@ -27,11 +29,7 @@ impl UserRepository {
 
 #[async_trait]
 impl IdentityWriter for UserRepository {
-    async fn resolve_or_create(
-        &self,
-        issuer: &str,
-        subject: &str,
-    ) -> Result<ResolvedUser, ApplicationPortError> {
+    async fn resolve_or_create(&self, issuer: &str, subject: &str) -> PortResult<ResolvedUser> {
         if issuer.trim().is_empty() || subject.trim().is_empty() {
             return Err(InfrastructureError::persistence(
                 "resolve external identity",
@@ -119,7 +117,7 @@ impl IdentityWriter for UserRepository {
 
 #[async_trait]
 impl UserWriter for UserRepository {
-    async fn delete(&self, user_id: &UserId) -> Result<(), ApplicationPortError> {
+    async fn delete(&self, user_id: &UserId) -> PortResult<()> {
         user::Entity::delete_by_id(user_id.as_str().to_owned())
             .exec(self.connection.as_ref())
             .await

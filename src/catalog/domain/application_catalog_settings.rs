@@ -1,3 +1,4 @@
+use super::DomainResult;
 use std::collections::{HashMap, HashSet};
 
 use crate::shared::domain::CollectionSortOrder;
@@ -36,7 +37,7 @@ impl ApplicationCatalogSettings {
         &mut self,
         ordered_ids: Vec<ApplicationId>,
         available_ids: &[ApplicationId],
-    ) -> Result<(), CatalogError> {
+    ) -> DomainResult<()> {
         let requested: HashSet<_> = ordered_ids.iter().copied().collect();
         let available: HashSet<_> = available_ids.iter().copied().collect();
         if requested.len() != ordered_ids.len() || requested != available {

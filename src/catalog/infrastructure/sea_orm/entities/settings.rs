@@ -4,7 +4,10 @@ use uuid::Uuid;
 
 use crate::{
     catalog::domain::{ApplicationCatalogSettings, ApplicationId},
-    shared::{application::ApplicationPortError, domain::CollectionSortOrder},
+    shared::{
+        application::{ApplicationPortError, PortResult},
+        domain::CollectionSortOrder,
+    },
 };
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -24,7 +27,7 @@ impl ActiveModelBehavior for ActiveModel {}
 impl TryFrom<Model> for ApplicationCatalogSettings {
     type Error = ApplicationPortError;
 
-    fn try_from(model: Model) -> Result<Self, Self::Error> {
+    fn try_from(model: Model) -> PortResult<Self> {
         let mut settings = ApplicationCatalogSettings::default();
         let sort_order =
             CollectionSortOrder::try_from(model.sort_order.as_str()).map_err(|_| {

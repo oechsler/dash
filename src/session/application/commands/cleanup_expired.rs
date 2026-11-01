@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use chrono::{DateTime, Utc};
 
 use crate::{session::application::ports::SessionWriter, shared::application::ApplicationError};
@@ -11,7 +12,7 @@ impl<R: SessionWriter> CleanupExpiredSessions<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, now: DateTime<Utc>) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, now: DateTime<Utc>) -> ApplicationResult<()> {
         self.repository
             .delete_expired(now)
             .await

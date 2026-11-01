@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     shared::application::ApplicationError,
     shared::domain::UserId,
@@ -19,11 +20,7 @@ impl ImportFormatRegistry {
         }
     }
 
-    pub fn import(
-        &self,
-        payload: &[u8],
-        owner: &UserId,
-    ) -> Result<UserDataSnapshot, ApplicationError> {
+    pub fn import(&self, payload: &[u8], owner: &UserId) -> ApplicationResult<UserDataSnapshot> {
         let envelope: serde_json::Value = serde_json::from_slice(payload)?;
         let version = envelope
             .get("version")

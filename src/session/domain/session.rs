@@ -1,3 +1,4 @@
+use super::DomainResult;
 use std::marker::PhantomData;
 
 use chrono::{DateTime, Utc};
@@ -33,7 +34,7 @@ impl<Lifetime> Session<Lifetime> {
         last_accessed_at: DateTime<Utc>,
         expires_at: DateTime<Utc>,
         terminated_at: Option<DateTime<Utc>>,
-    ) -> Result<Self, SessionError> {
+    ) -> DomainResult<Self> {
         if expires_at <= issued_at {
             return Err(SessionError::ExpiryNotAfterIssue {
                 issued_at,
@@ -59,7 +60,7 @@ impl<Lifetime> Session<Lifetime> {
         metadata: SessionMetadata,
         issued_at: DateTime<Utc>,
         expires_at: DateTime<Utc>,
-    ) -> Result<Self, SessionError> {
+    ) -> DomainResult<Self> {
         if expires_at <= issued_at {
             return Err(SessionError::ExpiryNotAfterIssue {
                 issued_at,
@@ -117,7 +118,7 @@ impl<Lifetime> Session<Lifetime> {
         &mut self,
         metadata: SessionMetadata,
         accessed_at: DateTime<Utc>,
-    ) -> Result<(), SessionError> {
+    ) -> DomainResult<()> {
         if !self.is_active_at(accessed_at) {
             return Err(SessionError::InactiveSession { accessed_at });
         }
@@ -130,7 +131,7 @@ impl<Lifetime> Session<Lifetime> {
         &mut self,
         expires_at: DateTime<Utc>,
         refreshed_at: DateTime<Utc>,
-    ) -> Result<(), SessionError> {
+    ) -> DomainResult<()> {
         if !self.is_active_at(refreshed_at) {
             return Err(SessionError::CannotChangeInactiveSession);
         }
@@ -153,7 +154,7 @@ impl<Lifetime> Session<Lifetime> {
         self,
         now: DateTime<Utc>,
         expires_at: DateTime<Utc>,
-    ) -> Result<Session<Next>, SessionError> {
+    ) -> DomainResult<Session<Next>> {
         if !self.is_active_at(now) {
             return Err(SessionError::CannotChangeInactiveSession);
         }
@@ -177,7 +178,7 @@ impl Session<ShortLived> {
         metadata: SessionMetadata,
         issued_at: DateTime<Utc>,
         expires_at: DateTime<Utc>,
-    ) -> Result<Self, SessionError> {
+    ) -> DomainResult<Self> {
         Self::create(owner, metadata, issued_at, expires_at)
     }
 
@@ -186,7 +187,7 @@ impl Session<ShortLived> {
         self,
         now: DateTime<Utc>,
         expires_at: DateTime<Utc>,
-    ) -> Result<Session<LongLived>, SessionError> {
+    ) -> DomainResult<Session<LongLived>> {
         self.transition(now, expires_at)
     }
 }
@@ -197,7 +198,7 @@ impl Session<LongLived> {
         metadata: SessionMetadata,
         issued_at: DateTime<Utc>,
         expires_at: DateTime<Utc>,
-    ) -> Result<Self, SessionError> {
+    ) -> DomainResult<Self> {
         Self::create(owner, metadata, issued_at, expires_at)
     }
 
@@ -206,7 +207,7 @@ impl Session<LongLived> {
         self,
         now: DateTime<Utc>,
         expires_at: DateTime<Utc>,
-    ) -> Result<Session<ShortLived>, SessionError> {
+    ) -> DomainResult<Session<ShortLived>> {
         self.transition(now, expires_at)
     }
 }

@@ -20,6 +20,14 @@ pub enum DatabaseError {
     ExpectedRecordMissing { entity: &'static str },
 }
 
+/// Adds the application-port operation to a database error while preserving its source chain.
+#[derive(Debug, Error)]
+#[error("database adapter error: {source}")]
+pub struct DatabaseAdapterError {
+    #[source]
+    source: DatabaseError,
+}
+
 impl DatabaseError {
     pub fn source<E>(source: E) -> Self
     where
@@ -40,14 +48,6 @@ impl DatabaseError {
     pub fn expected_record_missing(entity: &'static str) -> Self {
         Self::ExpectedRecordMissing { entity }
     }
-}
-
-/// Adds the application-port operation to a database error while preserving its source chain.
-#[derive(Debug, Error)]
-#[error("database adapter error: {source}")]
-pub struct DatabaseAdapterError {
-    #[source]
-    source: DatabaseError,
 }
 
 impl DatabaseAdapterError {

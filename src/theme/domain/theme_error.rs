@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::{ColorError, ThemeId};
+use super::{ThemeId, ThemeIdError, color::ColorError, global_theme_id::GlobalThemeIdError};
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum ThemeError {
@@ -10,9 +10,15 @@ pub enum ThemeError {
     #[error("theme name must not be empty (received {value:?})")]
     EmptyName { value: String },
 
-    #[error("global theme ID must not be empty")]
-    EmptyGlobalId,
+    #[error("global theme ID is invalid: {0}")]
+    GlobalId(#[from] GlobalThemeIdError),
+
+    #[error("theme ID is invalid: {0}")]
+    ThemeId(#[from] ThemeIdError),
 
     #[error("theme {theme_id:?} cannot be deleted")]
     NotDeletable { theme_id: ThemeId },
 }
+
+/// Result for operations that coordinate themes and their identifiers.
+pub type DomainResult<T> = Result<T, ThemeError>;

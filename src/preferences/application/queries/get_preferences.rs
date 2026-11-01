@@ -1,7 +1,5 @@
-use crate::{
-    preferences::domain::UserPreferences, shared::application::ApplicationError,
-    shared::domain::UserId,
-};
+use crate::shared::application::ApplicationResult;
+use crate::{preferences::domain::UserPreferences, shared::domain::UserId};
 
 use crate::preferences::application::ports::PreferencesReader;
 
@@ -14,7 +12,7 @@ impl<R: PreferencesReader> GetPreferences<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, owner: &UserId) -> Result<UserPreferences, ApplicationError> {
+    pub async fn execute(&self, owner: &UserId) -> ApplicationResult<UserPreferences> {
         Ok(self
             .repository
             .load(owner)

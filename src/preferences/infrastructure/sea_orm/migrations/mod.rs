@@ -1,3 +1,3 @@
-mod v1;
+mod m0005_preferences_schema_v1;
 
-pub use v1::PreferencesSchemaV1;
+pub use m0005_preferences_schema_v1::PreferencesSchemaV1;

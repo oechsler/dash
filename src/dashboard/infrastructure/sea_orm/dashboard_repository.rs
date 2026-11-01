@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use async_trait::async_trait;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::{
@@ -14,7 +15,6 @@ use crate::{
         application::ports::{DashboardReader, DashboardWriter},
         domain::{Bookmark, UserDashboard},
     },
-    shared::application::ApplicationPortError,
     shared::domain::UserId,
 };
 
@@ -34,7 +34,7 @@ impl DashboardRepository {
         &self,
         tx: &DatabaseTransaction,
         value: &UserDashboard,
-    ) -> Result<(), ApplicationPortError> {
+    ) -> PortResult<()> {
         category::Entity::delete_many()
             .filter(category::Column::OwnerId.eq(value.owner().as_str()))
             .exec(tx)
@@ -72,7 +72,7 @@ impl DashboardRepository {
 
 #[async_trait]
 impl DashboardReader for DashboardRepository {
-    async fn load(&self, owner: &UserId) -> Result<Option<UserDashboard>, ApplicationPortError> {
+    async fn load(&self, owner: &UserId) -> PortResult<Option<UserDashboard>> {
         let Some(stored_dashboard) = dashboard::Entity::find_by_id(owner.as_str().to_owned())
             .one(self.connection.as_ref())
             .await
@@ -119,7 +119,7 @@ impl DashboardReader for DashboardRepository {
 
 #[async_trait]
 impl DashboardWriter for DashboardRepository {
-    async fn save(&self, value: &UserDashboard) -> Result<(), ApplicationPortError> {
+    async fn save(&self, value: &UserDashboard) -> PortResult<()> {
         let tx = self
             .connection
             .begin()

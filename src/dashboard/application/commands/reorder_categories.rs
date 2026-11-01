@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     dashboard::{
         application::ports::{DashboardReader, DashboardWriter},
@@ -21,7 +22,7 @@ impl<R: DashboardReader + DashboardWriter> ReorderCategories<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, input: ReorderCategoriesInput) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, input: ReorderCategoriesInput) -> ApplicationResult<()> {
         let mut dashboard = self
             .repository
             .load(&input.owner)

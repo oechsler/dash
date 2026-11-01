@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use chrono::{DateTime, Utc};
 
 use crate::{
@@ -5,7 +6,6 @@ use crate::{
         application::ports::SessionReader,
         domain::{SessionId, SessionMetadata, UserSession},
     },
-    shared::application::ApplicationError,
     shared::domain::UserId,
 };
 
@@ -40,10 +40,7 @@ impl<R: SessionReader> GetSessionsOverview<R> {
         Self { repository }
     }
 
-    pub async fn execute(
-        &self,
-        input: SessionOverviewInput,
-    ) -> Result<SessionOverview, ApplicationError> {
+    pub async fn execute(&self, input: SessionOverviewInput) -> ApplicationResult<SessionOverview> {
         let sessions = self.repository.list_for(&input.owner).await?;
         let mut items =
             Vec::with_capacity(sessions.len() + usize::from(input.current_session_id.is_some()));

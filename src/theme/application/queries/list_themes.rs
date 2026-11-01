@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     shared::application::ApplicationError,
     shared::domain::UserId,
@@ -13,7 +14,7 @@ impl<R: ThemeReader> ListThemes<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, owner: &UserId) -> Result<Vec<Theme>, ApplicationError> {
+    pub async fn execute(&self, owner: &UserId) -> ApplicationResult<Vec<Theme>> {
         self.repository
             .list_for(owner)
             .await

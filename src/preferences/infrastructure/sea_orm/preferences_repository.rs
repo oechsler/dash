@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use async_trait::async_trait;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::{
@@ -14,7 +15,6 @@ use crate::{
         application::ports::{PreferencesReader, PreferencesWriter},
         domain::UserPreferences,
     },
-    shared::application::ApplicationPortError,
     shared::domain::UserId,
 };
 
@@ -22,6 +22,7 @@ use crate::{
 pub struct PreferencesRepository {
     connection: Arc<DatabaseConnection>,
 }
+
 impl PreferencesRepository {
     pub fn new(connection: impl Into<Arc<DatabaseConnection>>) -> Self {
         Self {
@@ -33,7 +34,7 @@ impl PreferencesRepository {
         &self,
         tx: &DatabaseTransaction,
         value: &UserPreferences,
-    ) -> Result<(), ApplicationPortError> {
+    ) -> PortResult<()> {
         let model = pref::ActiveModel::from(value);
         pref::Entity::insert(model)
             .on_conflict(
@@ -66,7 +67,7 @@ impl PreferencesRepository {
 
 #[async_trait]
 impl PreferencesReader for PreferencesRepository {
-    async fn load(&self, owner: &UserId) -> Result<Option<UserPreferences>, ApplicationPortError> {
+    async fn load(&self, owner: &UserId) -> PortResult<Option<UserPreferences>> {
         let Some(row) = pref::Entity::find_by_id(owner.as_str().to_owned())
             .one(self.connection.as_ref())
             .await
@@ -90,7 +91,7 @@ impl PreferencesReader for PreferencesRepository {
 
 #[async_trait]
 impl PreferencesWriter for PreferencesRepository {
-    async fn save(&self, value: &UserPreferences) -> Result<(), ApplicationPortError> {
+    async fn save(&self, value: &UserPreferences) -> PortResult<()> {
         let tx = self
             .connection
             .begin()

@@ -1,17 +1,20 @@
-use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use sea_orm_migration::MigratorTrait;
 use std::sync::Arc;
 
 use super::migrations::Migrator;
 
-/// Owns the application's shared PostgreSQL connection pool.
+/// Result returned while connecting to PostgreSQL or applying migrations.
+pub type PostgresConnectorResult<T> = Result<T, sea_orm::DbErr>;
+
+/// Owns the shared PostgreSQL connection pool used by the application.
 #[derive(Clone, Debug)]
 pub struct PostgresConnector {
     connection: Arc<DatabaseConnection>,
 }
 
 impl PostgresConnector {
-    pub async fn connect(url: &str) -> Result<Self, DbErr> {
+    pub async fn connect(url: &str) -> PostgresConnectorResult<Self> {
         let mut options = ConnectOptions::new(url.to_owned());
         options.sqlx_logging(false);
         let connection = Database::connect(options).await?;
@@ -25,7 +28,7 @@ impl PostgresConnector {
     }
 
     /// Applies versioned schema migrations to the configured database.
-    pub async fn migrate(&self) -> Result<(), DbErr> {
+    pub async fn migrate(&self) -> PostgresConnectorResult<()> {
         Migrator::up(self.connection.as_ref(), None).await
     }
 }

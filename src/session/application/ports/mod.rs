@@ -1,5 +1,5 @@
-mod reader;
-mod writer;
+mod session_reader;
+mod session_writer;
 
-pub use reader::SessionReader;
-pub use writer::SessionWriter;
+pub use session_reader::SessionReader;
+pub use session_writer::SessionWriter;

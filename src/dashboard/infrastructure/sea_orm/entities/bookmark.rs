@@ -5,7 +5,7 @@ use sea_orm::entity::prelude::*;
 use crate::{
     dashboard::domain::{Bookmark, BookmarkId, WebAddress},
     icon::domain::IconReference,
-    shared::application::ApplicationPortError,
+    shared::application::{ApplicationPortError, PortResult},
 };
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -37,7 +37,7 @@ impl ActiveModelBehavior for ActiveModel {}
 impl TryFrom<Model> for Bookmark {
     type Error = ApplicationPortError;
 
-    fn try_from(model: Model) -> Result<Self, Self::Error> {
+    fn try_from(model: Model) -> PortResult<Self> {
         Bookmark::restore(
             BookmarkId::from(model.id),
             model.name,

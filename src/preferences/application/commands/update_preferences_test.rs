@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use std::sync::{
     Arc, Mutex,
     atomic::{AtomicBool, Ordering},
@@ -14,7 +15,7 @@ use crate::{
         },
         domain::{Language, UserPreferences},
     },
-    shared::application::{ApplicationError, ApplicationPortError},
+    shared::application::ApplicationError,
     shared::domain::UserId,
     theme::{
         application::ports::ThemeReader,
@@ -28,14 +29,14 @@ struct PreferencesRepository {
 
 #[async_trait]
 impl PreferencesReader for PreferencesRepository {
-    async fn load(&self, _: &UserId) -> Result<Option<UserPreferences>, ApplicationPortError> {
+    async fn load(&self, _: &UserId) -> PortResult<Option<UserPreferences>> {
         Ok(None)
     }
 }
 
 #[async_trait]
 impl PreferencesWriter for PreferencesRepository {
-    async fn save(&self, _: &UserPreferences) -> Result<(), ApplicationPortError> {
+    async fn save(&self, _: &UserPreferences) -> PortResult<()> {
         self.saved.store(true, Ordering::SeqCst);
         Ok(())
     }
@@ -47,15 +48,11 @@ struct MissingThemeReader {
 
 #[async_trait]
 impl ThemeReader for MissingThemeReader {
-    async fn list_for(&self, _: &UserId) -> Result<Vec<Theme>, ApplicationPortError> {
+    async fn list_for(&self, _: &UserId) -> PortResult<Vec<Theme>> {
         Ok(Vec::new())
     }
 
-    async fn get_for(
-        &self,
-        owner: &UserId,
-        _: ThemeId,
-    ) -> Result<Option<Theme>, ApplicationPortError> {
+    async fn get_for(&self, owner: &UserId, _: ThemeId) -> PortResult<Option<Theme>> {
         *self.requested_owner.lock().unwrap() = Some(owner.clone());
         Ok(None)
     }

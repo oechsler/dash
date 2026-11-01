@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use chrono::{DateTime, Utc};
 
 use crate::{
@@ -5,7 +6,6 @@ use crate::{
         application::ports::SessionWriter,
         domain::{Session, SessionId, SessionMetadata, ShortLived, UserSession},
     },
-    shared::application::ApplicationError,
     shared::domain::UserId,
 };
 
@@ -25,7 +25,7 @@ impl<R: SessionWriter> CreateSession<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, input: CreateSessionInput) -> Result<SessionId, ApplicationError> {
+    pub async fn execute(&self, input: CreateSessionInput) -> ApplicationResult<SessionId> {
         let session = Session::<ShortLived>::new(
             input.owner,
             input.metadata,

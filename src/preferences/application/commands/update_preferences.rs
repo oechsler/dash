@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     preferences::{
         application::ports::{PreferencesReader, PreferencesWriter},
@@ -32,7 +33,7 @@ impl<P: PreferencesReader + PreferencesWriter, T: ThemeReader> UpdatePreferences
         }
     }
 
-    pub async fn execute(&self, input: UpdatePreferencesInput) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, input: UpdatePreferencesInput) -> ApplicationResult<()> {
         let mut preferences = self
             .preferences
             .load(&input.owner)
@@ -66,7 +67,7 @@ impl<P: PreferencesReader + PreferencesWriter, T: ThemeReader> UpdatePreferences
         owner: &UserId,
         mode: ThemeMode,
         theme_id: Option<ThemeId>,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         match theme_id {
             Some(id) => {
                 let theme = self

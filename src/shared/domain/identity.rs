@@ -9,13 +9,19 @@ pub enum IdentityError {
     EmptyGroupId { value: String },
 }
 
+/// Result for parsing user and group identifiers.
+pub type IdentityResult<T> = Result<T, IdentityError>;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UserId(String);
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct GroupId(String);
 
 impl TryFrom<String> for UserId {
     type Error = IdentityError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
+    fn try_from(value: String) -> IdentityResult<Self> {
         if value.trim().is_empty() {
             return Err(IdentityError::EmptyUserId { value });
         }
@@ -26,7 +32,7 @@ impl TryFrom<String> for UserId {
 impl TryFrom<&str> for UserId {
     type Error = IdentityError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn try_from(value: &str) -> IdentityResult<Self> {
         Self::try_from(value.to_owned())
     }
 }
@@ -37,13 +43,10 @@ impl UserId {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct GroupId(String);
-
 impl TryFrom<String> for GroupId {
     type Error = IdentityError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
+    fn try_from(value: String) -> IdentityResult<Self> {
         if value.trim().is_empty() {
             return Err(IdentityError::EmptyGroupId { value });
         }
@@ -54,7 +57,7 @@ impl TryFrom<String> for GroupId {
 impl TryFrom<&str> for GroupId {
     type Error = IdentityError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn try_from(value: &str) -> IdentityResult<Self> {
         Self::try_from(value.to_owned())
     }
 }

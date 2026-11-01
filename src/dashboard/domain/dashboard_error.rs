@@ -18,7 +18,7 @@ pub enum DashboardError {
 
     #[error("category order must contain every dashboard category exactly once")]
     InvalidCategoryOrder,
-
-    #[error("bookmark order must contain every bookmark in the category exactly once")]
-    InvalidBookmarkOrder,
 }
+
+/// Result for operations that coordinate categories and bookmarks in a dashboard.
+pub type DomainResult<T> = Result<T, DashboardError>;

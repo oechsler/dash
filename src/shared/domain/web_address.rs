@@ -12,10 +12,13 @@ pub enum WebAddressError {
     MissingHost { value: String },
 }
 
+/// Result for parsing web addresses.
+pub type WebAddressResult<T> = Result<T, WebAddressError>;
+
 impl TryFrom<String> for WebAddress {
     type Error = WebAddressError;
 
-    fn try_from(value: String) -> Result<Self, Self::Error> {
+    fn try_from(value: String) -> WebAddressResult<Self> {
         let parsed = url::Url::parse(&value).map_err(|source| WebAddressError::Malformed {
             value: value.clone(),
             reason: source.to_string(),
@@ -30,7 +33,7 @@ impl TryFrom<String> for WebAddress {
 impl TryFrom<&str> for WebAddress {
     type Error = WebAddressError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn try_from(value: &str) -> WebAddressResult<Self> {
         Self::try_from(value.to_owned())
     }
 }

@@ -6,6 +6,9 @@ pub enum Language {
     German,
 }
 
+/// Result for parsing supported language codes.
+pub type LanguageResult<T> = Result<T, &'static str>;
+
 impl Language {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -19,7 +22,7 @@ impl Language {
 impl TryFrom<&str> for Language {
     type Error = &'static str;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn try_from(value: &str) -> LanguageResult<Self> {
         match value {
             "auto" => Ok(Self::Auto),
             "en" => Ok(Self::English),

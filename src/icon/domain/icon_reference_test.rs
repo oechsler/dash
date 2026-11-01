@@ -1,4 +1,4 @@
-use super::{IconError, IconReference, IconReferenceError};
+use super::{IconReference, IconReferenceError};
 
 #[test]
 fn icon_reference_accepts_arbitrary_namespaces_and_urls() {
@@ -20,8 +20,8 @@ fn icon_reference_accepts_arbitrary_namespaces_and_urls() {
 fn icon_reference_rejects_only_empty_values() {
     assert_eq!(
         IconReference::try_from("  "),
-        Err(IconError::InvalidReference(IconReferenceError::Empty {
+        Err(IconReferenceError::Empty {
             value: "  ".to_owned()
-        }))
+        })
     );
 }

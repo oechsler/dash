@@ -1,6 +1,7 @@
+use crate::shared::application::ApplicationResult;
 use crate::shared::domain::UserId;
 
-use crate::{shared::application::ApplicationError, user::application::ports::IdentityWriter};
+use crate::user::application::ports::IdentityWriter;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExternalIdentity {
@@ -18,10 +19,7 @@ impl<R: IdentityWriter> ResolveOrCreateUser<R> {
         Self { repository }
     }
 
-    pub async fn execute(
-        &self,
-        identity: &ExternalIdentity,
-    ) -> Result<(UserId, bool), ApplicationError> {
+    pub async fn execute(&self, identity: &ExternalIdentity) -> ApplicationResult<(UserId, bool)> {
         let resolved = self
             .repository
             .resolve_or_create(&identity.issuer, &identity.subject)

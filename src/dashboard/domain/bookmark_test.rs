@@ -1,6 +1,6 @@
 use crate::icon::domain::IconReference;
 
-use super::{Bookmark, BookmarkError, DashboardError, WebAddress};
+use super::{Bookmark, BookmarkError, WebAddress};
 
 #[test]
 fn bookmark_can_be_renamed_and_change_icon_and_address() {
@@ -31,7 +31,7 @@ fn bookmark_rejects_an_empty_name_without_mutating() {
 
     assert!(matches!(
         bookmark.rename("  "),
-        Err(DashboardError::Bookmark(BookmarkError::EmptyName { .. }))
+        Err(BookmarkError::EmptyName { .. })
     ));
     assert_eq!(bookmark.name(), "Docs");
 }

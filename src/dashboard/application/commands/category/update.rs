@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     dashboard::domain::{CategoryId, UserDashboard},
     shared::application::ApplicationError,
@@ -24,7 +25,7 @@ impl<R: DashboardReader + DashboardWriter> UpdateCategory<R> {
         Self { repository }
     }
 
-    pub async fn execute(&self, input: UpdateCategoryInput) -> Result<(), ApplicationError> {
+    pub async fn execute(&self, input: UpdateCategoryInput) -> ApplicationResult<()> {
         let mut dashboard = self
             .repository
             .load(&input.owner)

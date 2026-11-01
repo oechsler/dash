@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
     catalog::{
         application::ports::{
@@ -32,7 +33,7 @@ where
     pub async fn execute(
         &self,
         input: UpdateApplicationCatalogOrderInput,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let apps = self.applications.list().await?;
         let mut settings = self
             .settings

@@ -1,3 +1,4 @@
+use crate::shared::application::PortResult;
 use async_trait::async_trait;
 use sea_orm::{DatabaseConnection, TransactionTrait};
 use std::sync::Arc;
@@ -14,7 +15,6 @@ use crate::{
     preferences::{
         application::ports::PreferencesReader, infrastructure::sea_orm::PreferencesRepository,
     },
-    shared::application::ApplicationPortError,
     shared::domain::UserId,
     theme::{application::ports::ThemeReader, infrastructure::sea_orm::ThemeRepository},
     transfer::application::{
@@ -49,7 +49,7 @@ impl UserDataSnapshotRepository {
 
 #[async_trait]
 impl UserDataSnapshotReader for UserDataSnapshotRepository {
-    async fn load(&self, owner: &UserId) -> Result<UserDataSnapshot, ApplicationPortError> {
+    async fn load(&self, owner: &UserId) -> PortResult<UserDataSnapshot> {
         Ok(UserDataSnapshot {
             dashboard: self.dashboard.load(owner).await?,
             preferences: self.preferences.load(owner).await?,
@@ -63,11 +63,7 @@ impl UserDataSnapshotReader for UserDataSnapshotRepository {
 
 #[async_trait]
 impl UserDataSnapshotWriter for UserDataSnapshotRepository {
-    async fn save(
-        &self,
-        owner: &UserId,
-        snapshot: &UserDataSnapshot,
-    ) -> Result<(), ApplicationPortError> {
+    async fn save(&self, owner: &UserId, snapshot: &UserDataSnapshot) -> PortResult<()> {
         if let Some(dashboard) = &snapshot.dashboard
             && dashboard.owner() != owner
         {

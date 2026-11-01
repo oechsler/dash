@@ -1,5 +1,5 @@
+use crate::shared::application::ApplicationResult;
 use crate::{
-    shared::application::ApplicationError,
     shared::domain::UserId,
     transfer::application::{TransferError, models::UserDataSnapshot},
 };
@@ -13,7 +13,7 @@ impl ExportService {
         _owner: &UserId,
         _username: String,
         _include_applications: bool,
-    ) -> Result<Vec<u8>, ApplicationError> {
+    ) -> ApplicationResult<Vec<u8>> {
         Err(TransferError::UnsupportedOperation {
             version: 1,
             operation: crate::transfer::application::TransferOperation::Export,

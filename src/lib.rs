@@ -7,6 +7,7 @@
 //! ports rather than leaking persistence details into domain code.
 
 pub mod catalog;
+pub mod composition;
 pub mod dashboard;
 pub mod icon;
 pub mod preferences;

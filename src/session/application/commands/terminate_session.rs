@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use chrono::{DateTime, Utc};
 
 use crate::{session::domain::SessionId, shared::domain::UserId};
@@ -21,7 +22,7 @@ impl<R: SessionReader + SessionWriter> TerminateSession<R> {
         owner: &UserId,
         id: SessionId,
         now: DateTime<Utc>,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let mut session = self
             .repository
             .load(owner, id)

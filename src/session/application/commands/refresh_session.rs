@@ -1,3 +1,4 @@
+use crate::shared::application::ApplicationResult;
 use chrono::{DateTime, Utc};
 
 use crate::{session::domain::SessionId, shared::domain::UserId};
@@ -22,7 +23,7 @@ impl<R: SessionReader + SessionWriter> RefreshSession<R> {
         id: SessionId,
         expires_at: DateTime<Utc>,
         now: DateTime<Utc>,
-    ) -> Result<(), ApplicationError> {
+    ) -> ApplicationResult<()> {
         let mut session = self
             .repository
             .load(owner, id)

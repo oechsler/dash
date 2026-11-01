@@ -1,15 +1,25 @@
-use super::{Category, CategoryError, DashboardCategory, DashboardError, ShelvedCategory};
+use super::{BookmarkId, Category, CategoryError, DashboardCategory, ShelvedCategory};
 
 #[test]
 fn category_rejects_blank_names_without_mutating() {
     let mut category = Category::new("Work").unwrap();
     assert_eq!(
         category.rename("  "),
-        Err(DashboardError::Category(CategoryError::EmptyName {
+        Err(CategoryError::EmptyName {
             value: "  ".to_owned()
-        }))
+        })
     );
     assert_eq!(category.name(), "Work");
+}
+
+#[test]
+fn category_reports_its_own_invalid_bookmark_order_error() {
+    let mut category = Category::new("Work").unwrap();
+
+    assert_eq!(
+        category.reorder_bookmarks(&[BookmarkId::new()]),
+        Err(CategoryError::InvalidBookmarkOrder)
+    );
 }
 
 #[test]
