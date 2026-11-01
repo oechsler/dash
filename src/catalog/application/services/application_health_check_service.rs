@@ -46,6 +46,7 @@ where
 
     pub async fn run_periodically(&self) -> ! {
         let mut interval = tokio::time::interval(HEALTH_CHECK_INTERVAL);
+        interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
         loop {
             interval.tick().await;
             if let Err(error) = self.check_all().await {

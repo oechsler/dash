@@ -19,7 +19,7 @@ Sign in with your existing identity provider, get a personal dashboard with book
 
 ## Quick Start
 
-```bashgit
+```bash
 cp docker/compose/dash.env.example docker/compose/dash.env
 cp docker/compose/postgres.env.example docker/compose/postgres.env
 # fill in both files
@@ -58,6 +58,31 @@ Docker images are published to the registries of this repository:
 ## Contributing
 
 Contributions and pull requests are welcome!
+
+## Codebase map
+
+Dash is organized as one service with domain-oriented modules, not as a set of
+independently deployed services. Most business modules follow the same layout:
+
+- `domain/` contains domain types and invariants.
+- `application/` contains use cases and the ports they need.
+- `infrastructure/` implements those ports, including SeaORM persistence.
+- `composition/` wires service-wide infrastructure and collects migrations.
+
+Cross-domain coordination belongs in application use cases. Keep persistence
+models and adapter details out of domain code; add schema changes as new,
+versioned migrations next to the owning module. Transfer formats are versioned
+under `src/transfer/presentation/formats/` and map external documents into
+application models.
+
+Run the standard local checks with:
+
+```bash
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test
+cargo check --no-default-features
+```
 
 ## License
 
