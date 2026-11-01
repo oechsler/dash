@@ -15,3 +15,16 @@ impl CollectionSortOrder {
         }
     }
 }
+
+impl TryFrom<&str> for CollectionSortOrder {
+    type Error = &'static str;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "alphabetical" => Ok(Self::Alphabetical),
+            "recently_accessed" => Ok(Self::RecentlyAccessed),
+            "user_defined" => Ok(Self::UserDefined),
+            _ => Err("unknown collection sort order"),
+        }
+    }
+}

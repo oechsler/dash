@@ -12,7 +12,7 @@ use crate::{
     preferences::{application::ports::PreferencesReader, domain::UserPreferences},
     shared::application::ApplicationError,
     shared::domain::CollectionSortOrder,
-    user::domain::{GroupId, UserId},
+    shared::domain::{GroupId, UserId},
 };
 
 /// Read-side projection. It intentionally does not provision or mutate a dashboard.
@@ -81,18 +81,15 @@ where
             &mut applications,
             preferences.recently_accessed_application_ids(),
         );
-        let (categories, shelved_categories) =
-            dashboard
-                .categories()
-                .iter()
-                .fold((Vec::new(), Vec::new()), |mut result, category| {
-                    if let Some(category) = category.as_active() {
-                        result.0.push(category.clone());
-                    } else if let Some(category) = category.as_shelved() {
-                        result.1.push(category.clone());
-                    }
-                    result
-                });
+        let mut categories = Vec::new();
+        let mut shelved_categories = Vec::new();
+        for category in dashboard.categories() {
+            if let Some(category) = category.as_active() {
+                categories.push(category.clone());
+            } else if let Some(category) = category.as_shelved() {
+                shelved_categories.push(category.clone());
+            }
+        }
         Ok(DashboardView {
             categories_sort_order,
             categories,

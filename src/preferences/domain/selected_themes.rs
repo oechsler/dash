@@ -9,8 +9,8 @@ pub(super) struct SelectedThemes {
 impl SelectedThemes {
     pub(super) fn get(&self, mode: ThemeMode) -> Option<ThemeId> {
         match mode {
-            ThemeMode::Light => self.light,
-            ThemeMode::Dark => self.dark,
+            ThemeMode::Light => self.light.clone(),
+            ThemeMode::Dark => self.dark.clone(),
         }
     }
 
@@ -29,6 +29,6 @@ impl SelectedThemes {
     }
 
     pub(super) fn contains(&self, theme_id: ThemeId) -> bool {
-        self.light == Some(theme_id) || self.dark == Some(theme_id)
+        self.light.as_ref() == Some(&theme_id) || self.dark.as_ref() == Some(&theme_id)
     }
 }

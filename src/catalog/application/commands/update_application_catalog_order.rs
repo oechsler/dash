@@ -41,6 +41,9 @@ where
             .unwrap_or_else(ApplicationCatalogSettings::default);
         let application_ids = apps.iter().map(|app| app.id()).collect::<Vec<_>>();
         settings.set_manual_order(input.application_ids, &application_ids)?;
-        self.settings.save(&settings).await
+        self.settings
+            .save(&settings)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

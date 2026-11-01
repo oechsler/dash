@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 
 use crate::{
-    shared::application::ApplicationError, transfer::application::models::UserDataSnapshot,
-    user::domain::UserId,
+    shared::application::ApplicationPortError, shared::domain::UserId,
+    transfer::application::models::UserDataSnapshot,
 };
 
 #[async_trait]
@@ -11,5 +11,5 @@ pub trait UserDataSnapshotWriter: Send + Sync {
         &self,
         owner: &UserId,
         snapshot: &UserDataSnapshot,
-    ) -> Result<(), ApplicationError>;
+    ) -> Result<(), ApplicationPortError>;
 }

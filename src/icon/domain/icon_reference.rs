@@ -4,9 +4,10 @@ use super::{IconError, IconReferenceError};
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct IconReference(String);
 
-impl IconReference {
-    pub fn parse(value: impl Into<String>) -> Result<Self, IconError> {
-        let value = value.into();
+impl TryFrom<String> for IconReference {
+    type Error = IconError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
         let trimmed = value.trim();
         if trimmed.is_empty() {
             return Err(IconReferenceError::Empty { value }.into());
@@ -14,7 +15,17 @@ impl IconReference {
 
         Ok(Self(trimmed.to_owned()))
     }
+}
 
+impl TryFrom<&str> for IconReference {
+    type Error = IconError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::try_from(value.to_owned())
+    }
+}
+
+impl IconReference {
     pub fn as_str(&self) -> &str {
         &self.0
     }

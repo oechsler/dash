@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::{session::domain::SessionId, user::domain::UserId};
+use crate::{session::domain::SessionId, shared::domain::UserId};
 
 use crate::{
     session::application::ports::{SessionReader, SessionWriter},
@@ -39,6 +39,9 @@ impl<R: SessionReader + SessionWriter> SetSessionLifetime<R> {
             SessionLifetime::Long => session.upgrade(now, expires_at)?,
             SessionLifetime::Short => session.downgrade(now, expires_at)?,
         };
-        self.repository.save(&updated).await
+        self.repository
+            .save(&updated)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

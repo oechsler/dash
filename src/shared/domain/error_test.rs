@@ -5,12 +5,12 @@ use crate::{
     dashboard::domain::{Category, DashboardError, UserDashboard, WebAddress},
     icon::domain::IconReference,
     shared::domain::DomainError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 #[test]
 fn errors_keep_context_from_the_domain_down_to_the_entity() {
-    let mut dashboard = UserDashboard::new(UserId::new("user-1").unwrap());
+    let mut dashboard = UserDashboard::new(UserId::try_from("user-1").unwrap());
     let category = Category::new("Work").unwrap();
     let category_id = category.id();
     dashboard.add_category(category);
@@ -35,8 +35,8 @@ fn errors_keep_context_from_the_domain_down_to_the_entity() {
 fn application_errors_flow_through_catalog_to_domain_error() {
     let catalog_error = Application::builder()
         .name(" ")
-        .icon(IconReference::parse("pack:app").unwrap())
-        .address(WebAddress::parse("https://app.example").unwrap())
+        .icon(IconReference::try_from("pack:app").unwrap())
+        .address(WebAddress::try_from("https://app.example").unwrap())
         .visibility(ApplicationVisibility::everyone())
         .build()
         .unwrap_err();

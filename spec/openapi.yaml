@@ -11,11 +11,10 @@ info:
     between Dash servers.
 servers:
   - url: https://{host}
-    description: Your self-hosted Dash installation.
+    description: Your self-hosted Dash installation at its public hostname and optional port.
     variables:
       host:
         default: dash.example.com
-        description: Public hostname and optional port of your Dash server.
 tags:
   - name: User
   - name: Dashboard

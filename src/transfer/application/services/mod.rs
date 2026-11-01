@@ -1,3 +1,6 @@
-mod merge_user_data_service;
+mod user_data_merger;
 
-pub use merge_user_data_service::MergeUserDataService;
+#[cfg(test)]
+mod user_data_merger_test;
+
+pub use user_data_merger::UserDataMerger;

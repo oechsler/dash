@@ -6,7 +6,7 @@ use crate::{
         domain::{Session, SessionId, SessionMetadata, ShortLived, UserSession},
     },
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct CreateSessionInput {

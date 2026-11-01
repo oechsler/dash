@@ -1,6 +1,6 @@
 use crate::{
     preferences::domain::UserPreferences, shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 use crate::preferences::application::ports::PreferencesReader;

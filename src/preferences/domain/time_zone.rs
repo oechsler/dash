@@ -9,9 +9,10 @@ pub enum TimeZone {
     Iana(chrono_tz::Tz),
 }
 
-impl TimeZone {
-    pub fn parse(value: impl Into<String>) -> Result<Self, PreferencesError> {
-        let value = value.into();
+impl TryFrom<String> for TimeZone {
+    type Error = PreferencesError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
         if value == "auto" {
             return Ok(Self::Auto);
         }
@@ -23,7 +24,17 @@ impl TimeZone {
         })?;
         Ok(Self::Iana(timezone))
     }
+}
 
+impl TryFrom<&str> for TimeZone {
+    type Error = PreferencesError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::try_from(value.to_owned())
+    }
+}
+
+impl TimeZone {
     pub fn as_str(&self) -> &str {
         match self {
             Self::Auto => "auto",

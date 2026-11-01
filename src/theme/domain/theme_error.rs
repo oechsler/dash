@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::ColorError;
+use super::{ColorError, ThemeId};
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum ThemeError {
@@ -12,4 +12,7 @@ pub enum ThemeError {
 
     #[error("global theme ID must not be empty")]
     EmptyGlobalId,
+
+    #[error("theme {theme_id:?} cannot be deleted")]
+    NotDeletable { theme_id: ThemeId },
 }

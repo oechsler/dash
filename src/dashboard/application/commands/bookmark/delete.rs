@@ -1,7 +1,7 @@
 use crate::{
     dashboard::domain::{BookmarkId, UserDashboard},
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 use crate::dashboard::application::ports::{DashboardReader, DashboardWriter};

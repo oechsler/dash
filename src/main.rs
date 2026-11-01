@@ -1,6 +1,7 @@
-use dash::{dashboard::domain::UserDashboard, user::domain::UserId};
+use dash::{dashboard::domain::UserDashboard, shared::domain::UserId};
 
-fn main() {
-    let owner = UserId::new("local-user").expect("user ID must not be empty");
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let owner = UserId::try_from("local-user")?;
     let _dashboard = UserDashboard::new(owner);
+    Ok(())
 }

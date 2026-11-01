@@ -1,10 +1,10 @@
 use crate::{
     shared::application::ApplicationError,
+    shared::domain::UserId,
     theme::{
         application::ports::ThemeWriter,
         domain::{Color, Theme, ThemeId, ThemeMode, ThemePalette},
     },
-    user::domain::UserId,
 };
 
 pub struct CreateThemeInput {
@@ -27,9 +27,9 @@ impl<R: ThemeWriter> CreateTheme<R> {
 
     pub async fn execute(&self, input: CreateThemeInput) -> Result<ThemeId, ApplicationError> {
         let palette = ThemePalette::new(
-            Color::parse(input.primary)?,
-            Color::parse(input.secondary)?,
-            Color::parse(input.tertiary)?,
+            Color::try_from(input.primary)?,
+            Color::try_from(input.secondary)?,
+            Color::try_from(input.tertiary)?,
         );
         let theme = Theme::user_defined()
             .owner(input.owner)

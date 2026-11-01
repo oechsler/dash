@@ -1,7 +1,7 @@
 use crate::{
     catalog::domain::ApplicationId,
-    theme::domain::{Theme, ThemeId, ThemeMode},
-    user::domain::UserId,
+    shared::domain::UserId,
+    theme::domain::{ThemeId, ThemeMode},
 };
 use getset::Getters;
 
@@ -20,6 +20,30 @@ pub struct UserPreferences {
 }
 
 impl UserPreferences {
+    pub(crate) fn restore(
+        user_id: UserId,
+        light_theme: Option<ThemeId>,
+        dark_theme: Option<ThemeId>,
+        language: Language,
+        recent_application_ids: Vec<ApplicationId>,
+        time_zone: TimeZone,
+    ) -> Self {
+        let mut selected_themes = SelectedThemes::default();
+        if let Some(id) = light_theme {
+            selected_themes.select(ThemeMode::Light, id);
+        }
+        if let Some(id) = dark_theme {
+            selected_themes.select(ThemeMode::Dark, id);
+        }
+        Self {
+            user_id,
+            selected_themes,
+            language,
+            recent_application_ids,
+            time_zone,
+        }
+    }
+
     pub fn for_user(user_id: UserId) -> Self {
         Self {
             user_id,
@@ -49,37 +73,19 @@ impl UserPreferences {
         self.recent_application_ids.truncate(100);
     }
 
-    pub fn select_theme(&mut self, theme: &Theme) -> Result<(), PreferencesError> {
-        self.ensure_theme_available(theme)?;
-        self.selected_themes.select(theme.mode(), theme.id());
-        Ok(())
+    pub fn select_theme(&mut self, mode: ThemeMode, theme_id: ThemeId) {
+        self.selected_themes.select(mode, theme_id);
     }
 
     /// Validates deletion against ownership, global scope, and both mode selections.
-    pub fn ensure_theme_can_be_deleted(&self, theme: &Theme) -> Result<(), PreferencesError> {
-        self.ensure_theme_available(theme)?;
-        if !theme.is_deletable() {
-            return Err(PreferencesError::ThemeNotDeletable {
-                theme_id: theme.id(),
-            });
-        }
-        if self.uses_theme(theme.id()) {
+    pub fn ensure_theme_is_not_selected(&self, theme_id: ThemeId) -> Result<(), PreferencesError> {
+        if self.uses_theme(theme_id.clone()) {
             return Err(PreferencesError::ThemeCurrentlySelected {
-                theme_id: theme.id(),
+                theme_id,
                 user_id: self.user_id.clone(),
             });
         }
         Ok(())
-    }
-
-    fn ensure_theme_available(&self, theme: &Theme) -> Result<(), PreferencesError> {
-        if theme.identity().is_available_to(&self.user_id) {
-            return Ok(());
-        }
-        Err(PreferencesError::ThemeNotAvailableToUser {
-            theme_id: theme.id(),
-            user_id: self.user_id.clone(),
-        })
     }
 
     pub fn clear_theme_selection(&mut self, mode: ThemeMode) {

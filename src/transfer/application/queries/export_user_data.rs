@@ -1,7 +1,7 @@
 use crate::{
     shared::application::ApplicationError,
+    shared::domain::UserId,
     transfer::application::{models::UserDataSnapshot, ports::UserDataSnapshotReader},
-    user::domain::UserId,
 };
 
 pub struct ExportUserDataInput {
@@ -21,6 +21,9 @@ impl<R: UserDataSnapshotReader> ExportUserData<R> {
         &self,
         input: ExportUserDataInput,
     ) -> Result<UserDataSnapshot, ApplicationError> {
-        self.repository.load(&input.owner).await
+        self.repository
+            .load(&input.owner)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

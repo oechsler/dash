@@ -1,4 +1,4 @@
-use crate::{session::domain::SessionId, user::domain::UserId};
+use crate::{session::domain::SessionId, shared::domain::UserId};
 
 use crate::{session::application::ports::SessionWriter, shared::application::ApplicationError};
 
@@ -12,6 +12,9 @@ impl<R: SessionWriter> InvalidateSession<R> {
     }
 
     pub async fn execute(&self, owner: &UserId, id: SessionId) -> Result<(), ApplicationError> {
-        self.repository.delete(owner, id).await
+        self.repository
+            .delete(owner, id)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

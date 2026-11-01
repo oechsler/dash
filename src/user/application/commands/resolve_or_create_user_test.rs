@@ -3,11 +3,9 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 
 use crate::{
-    shared::application::ApplicationError,
-    user::{
-        application::ports::{IdentityWriter, ResolvedUser},
-        domain::UserId,
-    },
+    shared::application::ApplicationPortError,
+    shared::domain::UserId,
+    user::application::ports::{IdentityWriter, ResolvedUser},
 };
 
 use super::{ExternalIdentity, ResolveOrCreateUser};
@@ -23,7 +21,7 @@ impl IdentityWriter for Provisioner {
         &self,
         issuer: &str,
         subject: &str,
-    ) -> Result<ResolvedUser, ApplicationError> {
+    ) -> Result<ResolvedUser, ApplicationPortError> {
         *self.received.lock().unwrap() = Some((issuer.to_owned(), subject.to_owned()));
         Ok(self.result.clone())
     }
@@ -35,7 +33,7 @@ async fn command_resolves_identity_and_returns_creation_status() {
     let provisioner = Provisioner {
         received: received.clone(),
         result: ResolvedUser {
-            user_id: UserId::new("internal-1").unwrap(),
+            user_id: UserId::try_from("internal-1").unwrap(),
             is_new: true,
         },
     };

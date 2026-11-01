@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::{BookmarkError, BookmarkId, CategoryError, CategoryId, WebAddressError};
+use super::{BookmarkError, BookmarkId, CategoryError, CategoryId};
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DashboardError {
@@ -9,9 +9,6 @@ pub enum DashboardError {
 
     #[error("dashboard bookmark operation failed: {0}")]
     Bookmark(#[from] BookmarkError),
-
-    #[error("dashboard web address validation failed: {0}")]
-    WebAddress(#[from] WebAddressError),
 
     #[error("category {category_id:?} does not belong to this dashboard")]
     CategoryNotFound { category_id: CategoryId },

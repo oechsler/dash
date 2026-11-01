@@ -1,11 +1,11 @@
 use async_trait::async_trait;
 
 use crate::{
-    shared::application::ApplicationError, transfer::application::models::UserDataSnapshot,
-    user::domain::UserId,
+    shared::application::ApplicationPortError, shared::domain::UserId,
+    transfer::application::models::UserDataSnapshot,
 };
 
 #[async_trait]
 pub trait UserDataSnapshotReader: Send + Sync {
-    async fn load(&self, owner: &UserId) -> Result<UserDataSnapshot, ApplicationError>;
+    async fn load(&self, owner: &UserId) -> Result<UserDataSnapshot, ApplicationPortError>;
 }

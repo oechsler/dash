@@ -4,7 +4,7 @@ use crate::{
         domain::{CategoryId, DashboardCategory},
     },
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct GetUserCategory<R> {

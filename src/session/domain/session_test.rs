@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use chrono::{DateTime, Utc};
 
-use crate::user::domain::UserId;
+use crate::shared::domain::UserId;
 
 use super::{LongLived, Session, SessionError, SessionMetadata, ShortLived, UserSession};
 
@@ -23,7 +23,7 @@ fn metadata(browser: &str, ip: &str) -> SessionMetadata {
 
 fn short_session() -> Session<ShortLived> {
     Session::<ShortLived>::new(
-        UserId::new("user-1").unwrap(),
+        UserId::try_from("user-1").unwrap(),
         metadata("Firefox", "192.0.2.1"),
         at("2025-01-01T00:00:00Z"),
         at("2025-01-01T01:00:00Z"),
@@ -126,7 +126,7 @@ fn inactive_sessions_cannot_change_lifetime() {
 #[test]
 fn session_rejects_an_expiry_before_issue_time() {
     let result = Session::<ShortLived>::new(
-        UserId::new("user-1").unwrap(),
+        UserId::try_from("user-1").unwrap(),
         SessionMetadata::default(),
         at("2025-01-01T01:00:00Z"),
         at("2025-01-01T00:00:00Z"),

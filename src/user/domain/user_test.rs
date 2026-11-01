@@ -1,14 +1,16 @@
-use super::{GroupId, ProfilePictureUrl, User, UserError, UserId};
+use crate::shared::domain::{GroupId, UserId};
+
+use super::{ProfilePictureUrl, User, UserError};
 
 #[test]
 fn user_contains_provider_independent_profile_and_group_membership() {
-    let engineering = GroupId::new("engineering").unwrap();
+    let engineering = GroupId::try_from("engineering").unwrap();
     let user = User::builder()
-        .id(UserId::new("stable-user-identifier").unwrap())
+        .id(UserId::try_from("stable-user-identifier").unwrap())
         .username("  samuel  ")
         .first_name(" Samuel ".to_owned())
         .last_name(" Example ".to_owned())
-        .profile_picture(ProfilePictureUrl::parse("https://id.example/avatar.png").unwrap())
+        .profile_picture(ProfilePictureUrl::try_from("https://id.example/avatar.png").unwrap())
         .groups([engineering.clone()])
         .build()
         .unwrap();
@@ -22,13 +24,13 @@ fn user_contains_provider_independent_profile_and_group_membership() {
         Some("https://id.example/avatar.png")
     );
     assert!(user.belongs_to(&engineering));
-    assert!(!user.belongs_to(&GroupId::new("operations").unwrap()));
+    assert!(!user.belongs_to(&GroupId::try_from("operations").unwrap()));
 }
 
 #[test]
 fn user_allows_missing_name_claims_but_requires_a_username() {
     let user = User::builder()
-        .id(UserId::new("user-1").unwrap())
+        .id(UserId::try_from("user-1").unwrap())
         .username("samuel")
         .last_name("   ".to_owned())
         .groups([])
@@ -39,7 +41,7 @@ fn user_allows_missing_name_claims_but_requires_a_username() {
     assert_eq!(user.last_name(), None);
     assert_eq!(
         User::builder()
-            .id(UserId::new("user-1").unwrap())
+            .id(UserId::try_from("user-1").unwrap())
             .username(" ")
             .groups([])
             .build(),

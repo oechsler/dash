@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::user::domain::UserId;
+use crate::shared::domain::UserId;
 
 use super::{LongLived, Session, SessionError, SessionId, SessionMetadata, ShortLived};
 

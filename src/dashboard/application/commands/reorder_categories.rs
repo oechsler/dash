@@ -4,7 +4,7 @@ use crate::{
         domain::{CategoryId, UserDashboard},
     },
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct ReorderCategoriesInput {
@@ -28,6 +28,9 @@ impl<R: DashboardReader + DashboardWriter> ReorderCategories<R> {
             .await?
             .unwrap_or_else(|| UserDashboard::new(input.owner.clone()));
         dashboard.reorder_categories(&input.category_ids)?;
-        self.repository.save(&dashboard).await
+        self.repository
+            .save(&dashboard)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

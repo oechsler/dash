@@ -2,7 +2,7 @@ use crate::{
     dashboard::domain::{BookmarkId, CategoryId, UserDashboard, WebAddress},
     icon::domain::IconReference,
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 use crate::dashboard::application::ports::{DashboardReader, DashboardWriter};
@@ -34,8 +34,8 @@ impl<R: DashboardReader + DashboardWriter> UpdateBookmark<R> {
         dashboard.move_bookmark(input.bookmark_id, input.category_id)?;
         let bookmark = dashboard.bookmark_mut(input.bookmark_id)?;
         bookmark.rename(input.name)?;
-        bookmark.change_icon(IconReference::parse(input.icon)?);
-        bookmark.change_address(WebAddress::parse(input.address)?);
+        bookmark.change_icon(IconReference::try_from(input.icon)?);
+        bookmark.change_address(WebAddress::try_from(input.address)?);
         self.repository.save(&dashboard).await?;
         Ok(())
     }

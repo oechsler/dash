@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{shared::application::ApplicationError, user::domain::UserId};
+use crate::{shared::application::ApplicationPortError, shared::domain::UserId};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ResolvedUser {
@@ -14,5 +14,5 @@ pub trait IdentityWriter: Send + Sync {
         &self,
         issuer: &str,
         subject: &str,
-    ) -> Result<ResolvedUser, ApplicationError>;
+    ) -> Result<ResolvedUser, ApplicationPortError>;
 }

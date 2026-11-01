@@ -11,9 +11,8 @@ use crate::{
             ApplicationVisibility, ExpectedStatusClass, HealthCheckUrl,
         },
     },
-    dashboard::domain::WebAddress,
     icon::domain::IconReference,
-    shared::application::ApplicationError,
+    shared::{application::ApplicationPortError, domain::WebAddress},
 };
 
 use crate::catalog::application::ports::{ApplicationReader, ApplicationWriter};
@@ -23,11 +22,11 @@ struct MemoryApplications(Arc<Mutex<Vec<Application>>>);
 
 #[async_trait]
 impl ApplicationReader for MemoryApplications {
-    async fn list(&self) -> Result<Vec<Application>, ApplicationError> {
+    async fn list(&self) -> Result<Vec<Application>, ApplicationPortError> {
         Ok(self.0.lock().unwrap().clone())
     }
 
-    async fn get(&self, id: ApplicationId) -> Result<Option<Application>, ApplicationError> {
+    async fn get(&self, id: ApplicationId) -> Result<Option<Application>, ApplicationPortError> {
         Ok(self
             .0
             .lock()
@@ -40,7 +39,7 @@ impl ApplicationReader for MemoryApplications {
 
 #[async_trait]
 impl ApplicationWriter for MemoryApplications {
-    async fn save(&self, application: &Application) -> Result<(), ApplicationError> {
+    async fn save(&self, application: &Application) -> Result<(), ApplicationPortError> {
         let mut applications = self.0.lock().unwrap();
         if let Some(existing) = applications
             .iter_mut()
@@ -53,7 +52,7 @@ impl ApplicationWriter for MemoryApplications {
         Ok(())
     }
 
-    async fn delete(&self, id: ApplicationId) -> Result<(), ApplicationError> {
+    async fn delete(&self, id: ApplicationId) -> Result<(), ApplicationPortError> {
         self.0
             .lock()
             .unwrap()
@@ -88,13 +87,13 @@ impl HealthCheckProbe for FixedProbe {
 async fn check_all_uses_the_override_and_configured_status_and_tls_options() {
     let mut application = Application::create(
         "Portal",
-        IconReference::parse("mdi:portal").unwrap(),
-        WebAddress::parse("https://portal.example").unwrap(),
+        IconReference::try_from("mdi:portal").unwrap(),
+        WebAddress::try_from("https://portal.example").unwrap(),
         ApplicationVisibility::everyone(),
     )
     .unwrap();
     application.set_health_check(Some(ApplicationHealthCheck::new(
-        Some(HealthCheckUrl::parse("https://portal.example/health").unwrap()),
+        Some(HealthCheckUrl::try_from("https://portal.example/health").unwrap()),
         ExpectedStatusClass::ClientError4xx,
         true,
     )));
@@ -127,8 +126,8 @@ async fn check_all_uses_the_override_and_configured_status_and_tls_options() {
 async fn check_all_does_not_probe_apps_without_health_checks() {
     let application = Application::create(
         "Portal",
-        IconReference::parse("mdi:portal").unwrap(),
-        WebAddress::parse("https://portal.example").unwrap(),
+        IconReference::try_from("mdi:portal").unwrap(),
+        WebAddress::try_from("https://portal.example").unwrap(),
         ApplicationVisibility::everyone(),
     )
     .unwrap();

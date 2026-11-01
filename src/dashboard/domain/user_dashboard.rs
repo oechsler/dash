@@ -5,7 +5,7 @@ use std::{
 
 use chrono::{DateTime, Utc};
 
-use crate::{shared::domain::CollectionSortOrder, user::domain::UserId};
+use crate::{shared::domain::CollectionSortOrder, shared::domain::UserId};
 
 use super::{Bookmark, BookmarkId, CategoryId, DashboardCategory, DashboardError};
 
@@ -18,6 +18,18 @@ pub struct UserDashboard {
 }
 
 impl UserDashboard {
+    pub(crate) fn restore(
+        owner: UserId,
+        categories: Vec<DashboardCategory>,
+        categories_sort_order: CollectionSortOrder,
+    ) -> Self {
+        Self {
+            owner,
+            categories,
+            categories_sort_order,
+        }
+    }
+
     pub fn new(owner: UserId) -> Self {
         Self {
             owner,

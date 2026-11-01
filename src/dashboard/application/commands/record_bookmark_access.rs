@@ -6,7 +6,7 @@ use crate::{
         domain::{BookmarkId, CategoryId},
     },
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct RecordBookmarkAccessInput {
@@ -31,6 +31,9 @@ impl<R: DashboardReader + DashboardWriter> RecordBookmarkAccess<R> {
             .await?
             .ok_or(ApplicationError::NotFound("dashboard"))?;
         dashboard.record_bookmark_access(input.category_id, input.bookmark_id, Utc::now())?;
-        self.repository.save(&dashboard).await
+        self.repository
+            .save(&dashboard)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

@@ -2,9 +2,14 @@ use std::error::Error as StdError;
 use thiserror::Error;
 
 use crate::{
-    catalog::domain::CatalogError, dashboard::domain::DashboardError, icon::domain::IconError,
-    preferences::domain::PreferencesError, session::domain::SessionError,
-    shared::domain::DomainError, theme::domain::ThemeError, transfer::application::TransferError,
+    catalog::domain::CatalogError,
+    dashboard::domain::DashboardError,
+    icon::domain::IconError,
+    preferences::domain::PreferencesError,
+    session::domain::SessionError,
+    shared::domain::{DomainError, IdentityError, WebAddressError},
+    theme::domain::ThemeError,
+    transfer::application::TransferError,
     user::domain::UserError,
 };
 
@@ -13,8 +18,8 @@ pub enum ApplicationError {
     #[error(transparent)]
     Domain(#[from] DomainError),
 
-    #[error("repository operation `{operation}` failed: {source}")]
-    Repository {
+    #[error("infrastructure operation `{operation}` failed: {source}")]
+    Infrastructure {
         operation: &'static str,
         #[source]
         source: Box<dyn StdError + Send + Sync>,
@@ -34,13 +39,25 @@ impl From<serde_json::Error> for ApplicationError {
 }
 
 impl ApplicationError {
-    pub fn repository<E>(operation: &'static str, source: E) -> Self
+    pub fn infrastructure<E>(operation: &'static str, source: E) -> Self
     where
         E: StdError + Send + Sync + 'static,
     {
-        Self::Repository {
+        Self::Infrastructure {
             operation,
             source: Box::new(source),
+        }
+    }
+}
+
+impl From<super::ApplicationPortError> for ApplicationError {
+    fn from(error: super::ApplicationPortError) -> Self {
+        match error {
+            super::ApplicationPortError::Domain(error) => Self::Domain(error),
+            super::ApplicationPortError::NotFound(resource) => Self::NotFound(resource),
+            super::ApplicationPortError::Adapter { operation, source } => {
+                Self::Infrastructure { operation, source }
+            }
         }
     }
 }
@@ -48,6 +65,18 @@ impl ApplicationError {
 impl From<DashboardError> for ApplicationError {
     fn from(error: DashboardError) -> Self {
         Self::Domain(DomainError::Dashboard(error))
+    }
+}
+
+impl From<WebAddressError> for ApplicationError {
+    fn from(error: WebAddressError) -> Self {
+        Self::Domain(DomainError::WebAddress(error))
+    }
+}
+
+impl From<IdentityError> for ApplicationError {
+    fn from(error: IdentityError) -> Self {
+        Self::Domain(DomainError::Identity(error))
     }
 }
 

@@ -1,7 +1,7 @@
 use crate::{
     dashboard::{application::ports::DashboardReader, domain::ShelvedCategory},
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct GetUserShelvedCategories<R> {

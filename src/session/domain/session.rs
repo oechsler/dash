@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use chrono::{DateTime, Utc};
 
-use crate::user::domain::UserId;
+use crate::shared::domain::UserId;
 
 use super::{LongLived, SessionError, SessionId, SessionMetadata, ShortLived};
 
@@ -25,6 +25,35 @@ pub struct Session<Lifetime> {
 }
 
 impl<Lifetime> Session<Lifetime> {
+    pub(crate) fn restore(
+        id: SessionId,
+        owner: UserId,
+        metadata: SessionMetadata,
+        issued_at: DateTime<Utc>,
+        last_accessed_at: DateTime<Utc>,
+        expires_at: DateTime<Utc>,
+        terminated_at: Option<DateTime<Utc>>,
+    ) -> Result<Self, SessionError> {
+        if expires_at <= issued_at {
+            return Err(SessionError::ExpiryNotAfterIssue {
+                issued_at,
+                expires_at,
+            });
+        }
+        Ok(Self {
+            data: SessionData {
+                id,
+                owner,
+                metadata,
+                issued_at,
+                last_accessed_at,
+                expires_at,
+                terminated_at,
+            },
+            lifetime: PhantomData,
+        })
+    }
+
     fn create(
         owner: UserId,
         metadata: SessionMetadata,

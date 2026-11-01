@@ -56,32 +56,28 @@ impl ApplicationCatalogSettings {
                 applications.sort_by_key(|app| app.name().to_lowercase());
             }
             CollectionSortOrder::RecentlyAccessed => {
-                let positions: HashMap<_, _> = recently_accessed_ids
-                    .iter()
-                    .enumerate()
-                    .map(|(index, id)| (*id, index))
-                    .collect();
-                applications.sort_by_key(|app| {
-                    (
-                        positions.get(&app.id()).copied().unwrap_or(usize::MAX),
-                        app.name().to_lowercase(),
-                    )
-                });
+                sort_by_ids(applications, recently_accessed_ids);
             }
             CollectionSortOrder::UserDefined => {
-                let positions: HashMap<_, _> = self
-                    .manual_order
-                    .iter()
-                    .enumerate()
-                    .map(|(index, id)| (*id, index))
-                    .collect();
-                applications.sort_by_key(|app| {
-                    (
-                        positions.get(&app.id()).copied().unwrap_or(usize::MAX),
-                        app.name().to_lowercase(),
-                    )
-                });
+                sort_by_ids(applications, &self.manual_order);
             }
         }
     }
+}
+
+fn sort_by_ids(applications: &mut [Application], ordered_ids: &[ApplicationId]) {
+    let positions: HashMap<_, _> = ordered_ids
+        .iter()
+        .enumerate()
+        .map(|(index, id)| (*id, index))
+        .collect();
+    applications.sort_by_key(|application| {
+        (
+            positions
+                .get(&application.id())
+                .copied()
+                .unwrap_or(usize::MAX),
+            application.name().to_lowercase(),
+        )
+    });
 }

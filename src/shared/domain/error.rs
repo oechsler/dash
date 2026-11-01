@@ -1,5 +1,6 @@
 use thiserror::Error;
 
+use super::{IdentityError, WebAddressError};
 use crate::{
     catalog::domain::CatalogError, dashboard::domain::DashboardError, icon::domain::IconError,
     preferences::domain::PreferencesError, session::domain::SessionError,
@@ -8,6 +9,12 @@ use crate::{
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum DomainError {
+    #[error("shared identity error: {0}")]
+    Identity(#[from] IdentityError),
+
+    #[error("shared web address error: {0}")]
+    WebAddress(#[from] WebAddressError),
+
     #[error("dashboard domain error: {0}")]
     Dashboard(#[from] DashboardError),
 

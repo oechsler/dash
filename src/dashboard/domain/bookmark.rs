@@ -14,6 +14,19 @@ pub struct Bookmark {
 }
 
 impl Bookmark {
+    pub(crate) fn restore(
+        id: BookmarkId,
+        name: String,
+        icon: IconReference,
+        address: WebAddress,
+        last_accessed_at: Option<DateTime<Utc>>,
+    ) -> Result<Self, DashboardError> {
+        let mut bookmark = Self::new(name, icon, address)?;
+        bookmark.id = id;
+        bookmark.last_accessed_at = last_accessed_at;
+        Ok(bookmark)
+    }
+
     pub fn new(
         name: impl Into<String>,
         icon: IconReference,

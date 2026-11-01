@@ -6,8 +6,8 @@ use crate::{
     dashboard::domain::{Bookmark, Category, UserDashboard, WebAddress},
     icon::domain::IconReference,
     shared::domain::CollectionSortOrder,
+    shared::domain::UserId,
     transfer::{application::models::UserDataSnapshot, presentation::formats::TransferFormat},
-    user::domain::UserId,
 };
 
 use super::V2Format;
@@ -15,7 +15,7 @@ use super::V2Format;
 #[test]
 fn v2_supports_import_and_export_through_the_shared_format_contract() {
     let format = V2Format;
-    let owner = UserId::new("user-1").unwrap();
+    let owner = UserId::try_from("user-1").unwrap();
     let payload = format
         .export(UserDataSnapshot::default(), &owner, "sam".to_owned(), false)
         .unwrap();
@@ -33,16 +33,16 @@ fn v2_supports_import_and_export_through_the_shared_format_contract() {
 #[test]
 fn v2_round_trips_application_health_check_settings() {
     let format = V2Format;
-    let owner = UserId::new("user-1").unwrap();
+    let owner = UserId::try_from("user-1").unwrap();
     let mut application = Application::create(
         "Portal",
-        IconReference::parse("mdi:portal").unwrap(),
-        WebAddress::parse("https://portal.example").unwrap(),
+        IconReference::try_from("mdi:portal").unwrap(),
+        WebAddress::try_from("https://portal.example").unwrap(),
         ApplicationVisibility::everyone(),
     )
     .unwrap();
     application.set_health_check(Some(ApplicationHealthCheck::new(
-        Some(HealthCheckUrl::parse("https://portal.example/health").unwrap()),
+        Some(HealthCheckUrl::try_from("https://portal.example/health").unwrap()),
         ExpectedStatusClass::ClientError4xx,
         true,
     )));
@@ -69,15 +69,15 @@ fn v2_round_trips_application_health_check_settings() {
 #[test]
 fn v2_round_trips_category_bookmarks_sort_order_and_access_time() {
     let format = V2Format;
-    let owner = UserId::new("user-1").unwrap();
+    let owner = UserId::try_from("user-1").unwrap();
     let accessed_at = chrono::DateTime::parse_from_rfc3339("2026-05-02T09:30:00Z")
         .unwrap()
         .to_utc();
     let mut category = Category::new("Home lab").unwrap();
     let mut bookmark = Bookmark::new(
         "Router",
-        IconReference::parse("mdi:router-network").unwrap(),
-        WebAddress::parse("http://192.168.1.1").unwrap(),
+        IconReference::try_from("mdi:router-network").unwrap(),
+        WebAddress::try_from("http://192.168.1.1").unwrap(),
     )
     .unwrap();
     category.set_bookmarks_sort_order(CollectionSortOrder::RecentlyAccessed);
@@ -113,18 +113,18 @@ fn v2_round_trips_category_bookmarks_sort_order_and_access_time() {
 #[test]
 fn admin_export_preserves_application_catalog_sort_rule_and_custom_order() {
     let format = V2Format;
-    let owner = UserId::new("admin").unwrap();
+    let owner = UserId::try_from("admin").unwrap();
     let first = Application::create(
         "Alpha",
-        IconReference::parse("mdi:alpha").unwrap(),
-        WebAddress::parse("https://alpha.example").unwrap(),
+        IconReference::try_from("mdi:alpha").unwrap(),
+        WebAddress::try_from("https://alpha.example").unwrap(),
         ApplicationVisibility::everyone(),
     )
     .unwrap();
     let second = Application::create(
         "Beta",
-        IconReference::parse("mdi:beta").unwrap(),
-        WebAddress::parse("https://beta.example").unwrap(),
+        IconReference::try_from("mdi:beta").unwrap(),
+        WebAddress::try_from("https://beta.example").unwrap(),
         ApplicationVisibility::everyone(),
     )
     .unwrap();

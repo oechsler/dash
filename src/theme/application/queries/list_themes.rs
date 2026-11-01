@@ -1,7 +1,7 @@
 use crate::{
     shared::application::ApplicationError,
+    shared::domain::UserId,
     theme::{application::ports::ThemeReader, domain::Theme},
-    user::domain::UserId,
 };
 
 pub struct ListThemes<R> {
@@ -14,6 +14,9 @@ impl<R: ThemeReader> ListThemes<R> {
     }
 
     pub async fn execute(&self, owner: &UserId) -> Result<Vec<Theme>, ApplicationError> {
-        self.repository.list_for(owner).await
+        self.repository
+            .list_for(owner)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

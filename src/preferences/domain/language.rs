@@ -15,3 +15,16 @@ impl Language {
         }
     }
 }
+
+impl TryFrom<&str> for Language {
+    type Error = &'static str;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "auto" => Ok(Self::Auto),
+            "en" => Ok(Self::English),
+            "de" => Ok(Self::German),
+            _ => Err("unknown language"),
+        }
+    }
+}

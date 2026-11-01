@@ -6,7 +6,7 @@ use crate::{
         domain::{SessionId, SessionMetadata},
     },
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct TouchSession<R> {
@@ -31,6 +31,9 @@ impl<R: SessionReader + SessionWriter> TouchSession<R> {
             .await?
             .ok_or(ApplicationError::NotFound("session"))?;
         session.record_access(metadata, now)?;
-        self.repository.save(&session).await
+        self.repository
+            .save(&session)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

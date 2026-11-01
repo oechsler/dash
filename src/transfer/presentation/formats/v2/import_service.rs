@@ -7,9 +7,10 @@ use crate::{
     },
     dashboard::domain::{Bookmark, Category, ShelvedCategory, UserDashboard, WebAddress},
     icon::domain::IconReference,
-    preferences::domain::{Language, TimeZone, UserPreferences},
+    preferences::domain::{TimeZone, UserPreferences},
     shared::application::ApplicationError,
     shared::domain::CollectionSortOrder,
+    shared::domain::{GroupId, UserId},
     theme::domain::{Color, Theme, ThemeId, ThemeMode, ThemePalette},
     transfer::{
         application::{
@@ -17,8 +18,8 @@ use crate::{
             models::{ImportedThemeNames, UserDataSnapshot},
         },
         presentation::formats::v2::*,
+        presentation::formats::{parse_language, record_bookmark_access},
     },
-    user::domain::{GroupId, UserId},
 };
 
 type ThemeIdByNameAndMode = HashMap<(String, ThemeMode), ThemeId>;
@@ -31,8 +32,7 @@ impl ImportService {
         payload: &[u8],
         owner: &UserId,
     ) -> Result<UserDataSnapshot, ApplicationError> {
-        let document = Self::parse(payload)?;
-        Self::into_snapshot(owner, document)
+        super::super::import_document(payload, owner, Self::parse, Self::into_snapshot)
     }
 
     fn parse(payload: &[u8]) -> Result<UserDataModel, ApplicationError> {
@@ -97,13 +97,13 @@ impl ImportService {
                 let groups = record
                     .visible_to_groups
                     .into_iter()
-                    .map(GroupId::new)
+                    .map(GroupId::try_from)
                     .collect::<Result<Vec<_>, _>>()?;
                 let health_check = Self::parse_health_check(record.health_check)?;
                 let mut application = Application::create(
                     record.name,
-                    IconReference::parse(record.icon)?,
-                    WebAddress::parse(record.address)?,
+                    IconReference::try_from(record.icon)?,
+                    WebAddress::try_from(record.address)?,
                     ApplicationVisibility::groups(groups),
                 )?;
                 application.set_health_check(health_check);
@@ -119,7 +119,7 @@ impl ImportService {
             .map(|model| {
                 let url = model
                     .url
-                    .map(HealthCheckUrl::parse)
+                    .map(HealthCheckUrl::try_from)
                     .transpose()
                     .map_err(CatalogError::from)?;
                 let expected_status_class = match model.expected_status_class.as_str() {
@@ -156,19 +156,10 @@ impl ImportService {
             for bookmark in record.bookmarks {
                 let mut domain_bookmark = Bookmark::new(
                     bookmark.name,
-                    IconReference::parse(bookmark.icon)?,
-                    WebAddress::parse(bookmark.address)?,
+                    IconReference::try_from(bookmark.icon)?,
+                    WebAddress::try_from(bookmark.address)?,
                 )?;
-                if let Some(last_accessed_at) = bookmark.last_accessed_at {
-                    let last_accessed_at = chrono::DateTime::parse_from_rfc3339(&last_accessed_at)
-                        .map_err(|error| {
-                            TransferError::InvalidDocument(format!(
-                                "invalid bookmark last_accessed_at: {error}"
-                            ))
-                        })?
-                        .with_timezone(&chrono::Utc);
-                    domain_bookmark.record_access(last_accessed_at);
-                }
+                record_bookmark_access(&mut domain_bookmark, bookmark.last_accessed_at)?;
                 category.add_bookmark(domain_bookmark);
             }
             if record.shelved {
@@ -181,14 +172,9 @@ impl ImportService {
     }
 
     fn parse_sort_order(value: &str) -> Result<CollectionSortOrder, ApplicationError> {
-        match value {
-            "alphabetical" => Ok(CollectionSortOrder::Alphabetical),
-            "recently_accessed" => Ok(CollectionSortOrder::RecentlyAccessed),
-            "user_defined" => Ok(CollectionSortOrder::UserDefined),
-            other => {
-                Err(TransferError::InvalidDocument(format!("unknown sort order `{other}`")).into())
-            }
-        }
+        CollectionSortOrder::try_from(value).map_err(|_| {
+            TransferError::InvalidDocument(format!("unknown sort order `{value}`")).into()
+        })
     }
 
     fn build_preferences(
@@ -198,8 +184,8 @@ impl ImportService {
         theme_ids: &ThemeIdByNameAndMode,
     ) -> Result<UserPreferences, ApplicationError> {
         let mut preferences = UserPreferences::for_user(owner.clone());
-        preferences.set_language(Self::parse_language(&settings.language)?);
-        preferences.set_time_zone(TimeZone::parse(settings.time_zone)?);
+        preferences.set_language(parse_language(&settings.language)?);
+        preferences.set_time_zone(TimeZone::try_from(settings.time_zone)?);
         Self::select_theme(
             &mut preferences,
             ThemeMode::Light,
@@ -232,17 +218,8 @@ impl ImportService {
             .iter()
             .find(|theme| theme.id() == *id)
             .ok_or(ApplicationError::NotFound("theme"))?;
-        preferences.select_theme(theme)?;
+        preferences.select_theme(theme.mode(), theme.id());
         Ok(())
-    }
-
-    fn parse_language(value: &str) -> Result<Language, ApplicationError> {
-        match value {
-            "" | "auto" => Ok(Language::Auto),
-            "en" => Ok(Language::English),
-            "de" => Ok(Language::German),
-            _ => Err(TransferError::InvalidDocument(format!("unknown language `{value}`")).into()),
-        }
     }
 
     fn build_themes(
@@ -258,9 +235,9 @@ impl ImportService {
                     .name(record.name)
                     .mode(mode)
                     .palette(ThemePalette::new(
-                        Color::parse(record.primary)?,
-                        Color::parse(record.secondary)?,
-                        Color::parse(record.tertiary)?,
+                        Color::try_from(record.primary)?,
+                        Color::try_from(record.secondary)?,
+                        Color::try_from(record.tertiary)?,
                     ))
                     .call()?)
             })

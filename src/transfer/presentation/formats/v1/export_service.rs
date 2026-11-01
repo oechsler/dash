@@ -1,7 +1,7 @@
 use crate::{
     shared::application::ApplicationError,
+    shared::domain::UserId,
     transfer::application::{TransferError, models::UserDataSnapshot},
-    user::domain::UserId,
 };
 
 pub(super) struct ExportService;

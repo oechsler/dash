@@ -1,11 +1,11 @@
 use crate::{
     shared::application::ApplicationError,
+    shared::domain::UserId,
     transfer::application::{
         models::UserDataSnapshot,
         ports::{UserDataSnapshotReader, UserDataSnapshotWriter},
-        services::MergeUserDataService,
+        services::UserDataMerger,
     },
-    user::domain::UserId,
 };
 
 pub struct ImportUserDataInput {
@@ -17,22 +17,29 @@ pub struct ImportUserDataInput {
 pub struct ImportUserData<R, W> {
     reader: R,
     writer: W,
-    merge_user_data: MergeUserDataService,
+    user_data_merger: UserDataMerger,
 }
 
 impl<R: UserDataSnapshotReader, W: UserDataSnapshotWriter> ImportUserData<R, W> {
-    pub fn new(reader: R, writer: W, merge_user_data: MergeUserDataService) -> Self {
+    pub fn new(reader: R, writer: W, user_data_merger: UserDataMerger) -> Self {
         Self {
             reader,
             writer,
-            merge_user_data,
+            user_data_merger,
         }
     }
 
     pub async fn execute(&self, input: ImportUserDataInput) -> Result<(), ApplicationError> {
         let mut snapshot = self.reader.load(&input.owner).await?;
-        self.merge_user_data
-            .merge(&mut snapshot, &input.snapshot, &input.owner, input.is_admin)?;
-        self.writer.save(&input.owner, &snapshot).await
+        self.user_data_merger.merge(
+            &mut snapshot,
+            &input.snapshot,
+            &input.owner,
+            input.is_admin,
+        )?;
+        self.writer
+            .save(&input.owner, &snapshot)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{dashboard::domain::WebAddress, icon::domain::IconReference, user::domain::GroupId};
+use crate::{icon::domain::IconReference, shared::domain::GroupId, shared::domain::WebAddress};
 
 use super::{
     Application, ApplicationHealth, ApplicationHealthCheck, ApplicationVisibility,
@@ -8,11 +8,11 @@ use super::{
 };
 
 fn group(id: &str) -> GroupId {
-    GroupId::new(id).unwrap()
+    GroupId::try_from(id).unwrap()
 }
 
 fn icon(value: &str) -> IconReference {
-    IconReference::parse(value).unwrap()
+    IconReference::try_from(value).unwrap()
 }
 
 #[test]
@@ -21,14 +21,14 @@ fn visibility_uses_any_matching_group_and_no_groups_means_everyone() {
     let public = Application::builder()
         .name("Public")
         .icon(icon("mdi:public"))
-        .address(WebAddress::parse("https://public.example").unwrap())
+        .address(WebAddress::try_from("https://public.example").unwrap())
         .visibility(ApplicationVisibility::everyone())
         .build()
         .unwrap();
     let restricted = Application::builder()
         .name("Engineering")
         .icon(icon("custom-pack:engineering"))
-        .address(WebAddress::parse("https://engineering.example").unwrap())
+        .address(WebAddress::try_from("https://engineering.example").unwrap())
         .visibility(ApplicationVisibility::groups([
             group("engineering"),
             group("operations"),
@@ -38,7 +38,7 @@ fn visibility_uses_any_matching_group_and_no_groups_means_everyone() {
     let hidden = Application::builder()
         .name("Admin")
         .icon(icon("https://assets.example/admin.svg"))
-        .address(WebAddress::parse("https://admin.example").unwrap())
+        .address(WebAddress::try_from("https://admin.example").unwrap())
         .visibility(ApplicationVisibility::groups([group("administrators")]))
         .build()
         .unwrap();
@@ -53,14 +53,14 @@ fn application_can_be_edited_without_bypassing_name_validation() {
     let mut application = Application::builder()
         .name("Portal")
         .icon(icon("mdi:portal"))
-        .address(WebAddress::parse("https://portal.example").unwrap())
+        .address(WebAddress::try_from("https://portal.example").unwrap())
         .visibility(ApplicationVisibility::everyone())
         .build()
         .unwrap();
 
     application.rename("  Team portal ").unwrap();
     application.change_icon(icon("brand:portal"));
-    application.change_address(WebAddress::parse("https://team.example").unwrap());
+    application.change_address(WebAddress::try_from("https://team.example").unwrap());
     application.restrict_to([group("engineering")]);
 
     assert_eq!(application.name(), "Team portal");
@@ -74,7 +74,7 @@ fn health_check_is_optional_and_defaults_to_the_application_address() {
     let mut application = Application::create(
         "Portal",
         icon("mdi:portal"),
-        WebAddress::parse("https://portal.example/health").unwrap(),
+        WebAddress::try_from("https://portal.example/health").unwrap(),
         ApplicationVisibility::everyone(),
     )
     .unwrap();
@@ -101,7 +101,7 @@ fn health_check_is_optional_and_defaults_to_the_application_address() {
 #[test]
 fn health_check_can_use_a_custom_url_status_class_and_tls_override() {
     let health_check = ApplicationHealthCheck::new(
-        Some(HealthCheckUrl::parse("https://portal.example/status").unwrap()),
+        Some(HealthCheckUrl::try_from("https://portal.example/status").unwrap()),
         ExpectedStatusClass::ClientError4xx,
         true,
     );
@@ -121,9 +121,9 @@ fn health_check_can_use_a_custom_url_status_class_and_tls_override() {
 
 #[test]
 fn health_check_url_only_accepts_http_or_https() {
-    assert!(HealthCheckUrl::parse("https://portal.example/health").is_ok());
-    assert!(HealthCheckUrl::parse("http://portal.example/health").is_ok());
-    assert!(HealthCheckUrl::parse("ftp://portal.example/health").is_err());
+    assert!(HealthCheckUrl::try_from("https://portal.example/health").is_ok());
+    assert!(HealthCheckUrl::try_from("http://portal.example/health").is_ok());
+    assert!(HealthCheckUrl::try_from("ftp://portal.example/health").is_err());
 }
 
 #[test]
@@ -131,7 +131,7 @@ fn health_check_result_uses_the_configured_status_class() {
     let mut application = Application::create(
         "Portal",
         icon("mdi:portal"),
-        WebAddress::parse("https://portal.example/health").unwrap(),
+        WebAddress::try_from("https://portal.example/health").unwrap(),
         ApplicationVisibility::everyone(),
     )
     .unwrap();

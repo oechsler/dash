@@ -3,20 +3,20 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 
 use crate::{
-    shared::application::ApplicationError,
+    shared::application::ApplicationPortError,
+    shared::domain::UserId,
     transfer::{
         application::commands::{ImportUserData, ImportUserDataInput},
         application::{
             models::UserDataSnapshot,
             ports::{UserDataSnapshotReader, UserDataSnapshotWriter},
-            services::MergeUserDataService,
+            services::UserDataMerger,
         },
         presentation::formats::v2::{
             ApplicationModel, BookmarkModel, CategoryModel, SettingsModel, ThemeModel,
             UserDataModel,
         },
     },
-    user::domain::UserId,
 };
 
 #[derive(Clone, Default)]
@@ -27,7 +27,7 @@ pub(super) struct MemoryUserData {
 
 #[async_trait]
 impl UserDataSnapshotReader for MemoryUserData {
-    async fn load(&self, _owner: &UserId) -> Result<UserDataSnapshot, ApplicationError> {
+    async fn load(&self, _owner: &UserId) -> Result<UserDataSnapshot, ApplicationPortError> {
         Ok(self.snapshot.lock().unwrap().clone())
     }
 }
@@ -38,7 +38,7 @@ impl UserDataSnapshotWriter for MemoryUserData {
         &self,
         _owner: &UserId,
         snapshot: &UserDataSnapshot,
-    ) -> Result<(), ApplicationError> {
+    ) -> Result<(), ApplicationPortError> {
         *self.snapshot.lock().unwrap() = snapshot.clone();
         *self.saves.lock().unwrap() += 1;
         Ok(())
@@ -121,5 +121,5 @@ pub(super) fn raw_input(owner: UserId, is_admin: bool, payload: Vec<u8>) -> Impo
 pub(super) fn command(
     repository: &MemoryUserData,
 ) -> ImportUserData<MemoryUserData, MemoryUserData> {
-    ImportUserData::new(repository.clone(), repository.clone(), MergeUserDataService)
+    ImportUserData::new(repository.clone(), repository.clone(), UserDataMerger)
 }

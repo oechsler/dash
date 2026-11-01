@@ -32,6 +32,9 @@ where
             .await?
             .unwrap_or_else(ApplicationCatalogSettings::default);
         settings.set_sort_order(input.sort_order);
-        self.settings.save(&settings).await
+        self.settings
+            .save(&settings)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

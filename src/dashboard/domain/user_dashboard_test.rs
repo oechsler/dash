@@ -5,20 +5,20 @@ use crate::{
         Bookmark, Category, CategoryId, DashboardError, UserDashboard, WebAddress,
     },
     icon::domain::IconReference,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 #[test]
 fn dashboard_owns_categories_and_bookmarks() {
-    let owner = UserId::new("user-1").unwrap();
+    let owner = UserId::try_from("user-1").unwrap();
     let mut dashboard = UserDashboard::new(owner.clone());
     let mut category = Category::new("  Work  ").unwrap();
     let category_id = category.id();
     category.add_bookmark(
         Bookmark::new(
             "Docs",
-            IconReference::parse("mdi:book").unwrap(),
-            WebAddress::parse("https://docs.example").unwrap(),
+            IconReference::try_from("mdi:book").unwrap(),
+            WebAddress::try_from("https://docs.example").unwrap(),
         )
         .unwrap(),
     );
@@ -32,14 +32,14 @@ fn dashboard_owns_categories_and_bookmarks() {
 
 #[test]
 fn dashboard_can_move_and_remove_bookmarks_across_its_categories() {
-    let mut dashboard = UserDashboard::new(UserId::new("user-1").unwrap());
+    let mut dashboard = UserDashboard::new(UserId::try_from("user-1").unwrap());
     let mut work = Category::new("Work").unwrap();
     let archive = Category::new("Archive").unwrap();
     let archive_id = archive.id();
     let bookmark = Bookmark::new(
         "Docs",
-        IconReference::parse("pack:book").unwrap(),
-        WebAddress::parse("https://docs.example").unwrap(),
+        IconReference::try_from("pack:book").unwrap(),
+        WebAddress::try_from("https://docs.example").unwrap(),
     )
     .unwrap();
     let bookmark_id = bookmark.id();
@@ -69,14 +69,14 @@ fn dashboard_can_move_and_remove_bookmarks_across_its_categories() {
 
 #[test]
 fn removing_category_returns_it_with_bookmarks_for_cascade_removal() {
-    let mut dashboard = UserDashboard::new(UserId::new("user-1").unwrap());
+    let mut dashboard = UserDashboard::new(UserId::try_from("user-1").unwrap());
     let mut category = Category::new("Work").unwrap();
     let category_id = category.id();
     category.add_bookmark(
         Bookmark::new(
             "Docs",
-            IconReference::parse("pack:book").unwrap(),
-            WebAddress::parse("https://docs.example").unwrap(),
+            IconReference::try_from("pack:book").unwrap(),
+            WebAddress::try_from("https://docs.example").unwrap(),
         )
         .unwrap(),
     );
@@ -89,7 +89,7 @@ fn removing_category_returns_it_with_bookmarks_for_cascade_removal() {
 
 #[test]
 fn changing_category_state_preserves_its_identity_and_contents() {
-    let mut dashboard = UserDashboard::new(UserId::new("user-1").unwrap());
+    let mut dashboard = UserDashboard::new(UserId::try_from("user-1").unwrap());
     let category = Category::new("Work").unwrap();
     let category_id = category.id();
     dashboard.add_category(category);
@@ -105,7 +105,7 @@ fn changing_category_state_preserves_its_identity_and_contents() {
 
 #[test]
 fn categories_can_be_reordered_by_a_complete_user_defined_order() {
-    let mut dashboard = UserDashboard::new(UserId::new("user-1").unwrap());
+    let mut dashboard = UserDashboard::new(UserId::try_from("user-1").unwrap());
     let first = Category::new("First").unwrap();
     let first_id = first.id();
     let second = Category::new("Second").unwrap();
@@ -130,8 +130,8 @@ fn category_recency_uses_the_most_recent_bookmark_opened() {
     let mut category = Category::new("Recently used").unwrap();
     let mut bookmark = Bookmark::new(
         "Service",
-        IconReference::parse("mdi:server").unwrap(),
-        WebAddress::parse("https://service.example").unwrap(),
+        IconReference::try_from("mdi:server").unwrap(),
+        WebAddress::try_from("https://service.example").unwrap(),
     )
     .unwrap();
     let opened_at = Utc.with_ymd_and_hms(2026, 5, 2, 9, 30, 0).unwrap();

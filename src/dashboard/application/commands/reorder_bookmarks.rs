@@ -4,7 +4,7 @@ use crate::{
         domain::{BookmarkId, CategoryId},
     },
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct ReorderBookmarksInput {
@@ -32,6 +32,9 @@ impl<R: DashboardReader + DashboardWriter> ReorderBookmarks<R> {
             .category_mut(input.category_id)
             .ok_or(ApplicationError::NotFound("category"))?;
         category.reorder_bookmarks(&input.bookmark_ids)?;
-        self.repository.save(&dashboard).await
+        self.repository
+            .save(&dashboard)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

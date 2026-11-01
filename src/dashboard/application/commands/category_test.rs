@@ -10,8 +10,11 @@ use crate::{
         },
         domain::{CategoryError, DashboardError, UserDashboard},
     },
-    shared::{application::ApplicationError, domain::DomainError},
-    user::domain::UserId,
+    shared::domain::UserId,
+    shared::{
+        application::{ApplicationError, ApplicationPortError},
+        domain::DomainError,
+    },
 };
 
 #[derive(Clone, Default)]
@@ -19,14 +22,14 @@ struct InMemoryDashboards(Arc<Mutex<Option<UserDashboard>>>);
 
 #[async_trait]
 impl DashboardReader for InMemoryDashboards {
-    async fn load(&self, _user_id: &UserId) -> Result<Option<UserDashboard>, ApplicationError> {
+    async fn load(&self, _user_id: &UserId) -> Result<Option<UserDashboard>, ApplicationPortError> {
         Ok(self.0.lock().unwrap().clone())
     }
 }
 
 #[async_trait]
 impl DashboardWriter for InMemoryDashboards {
-    async fn save(&self, dashboard: &UserDashboard) -> Result<(), ApplicationError> {
+    async fn save(&self, dashboard: &UserDashboard) -> Result<(), ApplicationPortError> {
         *self.0.lock().unwrap() = Some(dashboard.clone());
         Ok(())
     }
@@ -36,7 +39,7 @@ impl DashboardWriter for InMemoryDashboards {
 async fn create_category_persists_it_in_the_owners_dashboard() {
     let repository = InMemoryDashboards::default();
     let command = CreateCategory::new(repository.clone());
-    let owner = UserId::new("user-1").unwrap();
+    let owner = UserId::try_from("user-1").unwrap();
 
     let category_id = command
         .execute(CreateCategoryInput {
@@ -62,7 +65,7 @@ async fn create_category_keeps_domain_error_context_in_application_error() {
 
     let result = command
         .execute(CreateCategoryInput {
-            owner: UserId::new("user-1").unwrap(),
+            owner: UserId::try_from("user-1").unwrap(),
             name: "   ".into(),
             shelved: false,
             sort_order: None,

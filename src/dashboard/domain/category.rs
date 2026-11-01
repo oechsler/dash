@@ -18,6 +18,19 @@ pub struct Category {
 }
 
 impl Category {
+    pub(crate) fn restore(
+        id: CategoryId,
+        name: String,
+        bookmarks: Vec<Bookmark>,
+        bookmarks_sort_order: CollectionSortOrder,
+    ) -> Result<Self, DashboardError> {
+        let mut category = Self::new(name)?;
+        category.id = id;
+        category.bookmarks = bookmarks;
+        category.bookmarks_sort_order = bookmarks_sort_order;
+        Ok(category)
+    }
+
     pub fn new(name: impl Into<String>) -> Result<Self, DashboardError> {
         let name = name.into();
         let trimmed = name.trim();

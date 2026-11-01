@@ -2,7 +2,8 @@ use sha2::{Digest, Sha256};
 
 use crate::{
     catalog::domain::{Application, ApplicationCatalogSettings},
-    dashboard::domain::{Bookmark, DashboardCategory},
+    dashboard::domain::{Bookmark, DashboardCategory, UserDashboard},
+    preferences::domain::UserPreferences,
     theme::domain::{Theme, ThemeMode},
 };
 
@@ -14,10 +15,10 @@ pub struct ImportedThemeNames {
 
 #[derive(Debug, Clone, Default)]
 pub struct UserDataSnapshot {
-    pub dashboard: Option<crate::dashboard::domain::UserDashboard>,
-    pub preferences: Option<crate::preferences::domain::UserPreferences>,
-    pub themes: Vec<crate::theme::domain::Theme>,
-    pub applications: Vec<crate::catalog::domain::Application>,
+    pub dashboard: Option<UserDashboard>,
+    pub preferences: Option<UserPreferences>,
+    pub themes: Vec<Theme>,
+    pub applications: Vec<Application>,
     pub application_catalog_settings: Option<ApplicationCatalogSettings>,
     pub imported_theme_names: Option<ImportedThemeNames>,
 }
@@ -26,28 +27,27 @@ impl UserDataSnapshot {
     pub(crate) fn application_hash(application: &Application) -> String {
         let mut groups = Self::application_groups(application);
         groups.sort();
-        let joined = groups.join(",");
-        let health_check = application.health_check().map(|check| {
-            [
+        let mut parts = vec![
+            application.icon().as_str().to_owned(),
+            application.name().to_owned(),
+            application.address().as_str().to_owned(),
+            groups.len().to_string(),
+        ];
+        parts.extend(groups);
+        if let Some(check) = application.health_check() {
+            parts.extend([
+                "enabled".to_owned(),
                 check
                     .url()
-                    .map_or(application.address().as_str(), |url| url.as_str()),
-                check.expected_status_class().as_str(),
-                if check.ignore_tls_errors() {
-                    "true"
-                } else {
-                    "false"
-                },
-            ]
-            .join("|")
-        });
-        content_hash(&[
-            application.icon().as_str(),
-            application.name(),
-            application.address().as_str(),
-            &joined,
-            health_check.as_deref().unwrap_or("disabled"),
-        ])
+                    .map_or(application.address().as_str(), |url| url.as_str())
+                    .to_owned(),
+                check.expected_status_class().as_str().to_owned(),
+                check.ignore_tls_errors().to_string(),
+            ]);
+        } else {
+            parts.push("disabled".to_owned());
+        }
+        content_hash(parts.iter().map(String::as_str))
     }
 
     pub(crate) fn application_groups(application: &Application) -> Vec<String> {
@@ -64,7 +64,7 @@ impl UserDataSnapshot {
     }
 
     pub(crate) fn category_hash(category: &DashboardCategory) -> String {
-        content_hash(&[
+        content_hash([
             category.name(),
             if matches!(category, DashboardCategory::Shelved(_)) {
                 "true"
@@ -75,7 +75,7 @@ impl UserDataSnapshot {
     }
 
     pub(crate) fn bookmark_hash(bookmark: &Bookmark) -> String {
-        content_hash(&[
+        content_hash([
             bookmark.icon().as_str(),
             bookmark.name(),
             bookmark.address().as_str(),
@@ -87,7 +87,7 @@ impl UserDataSnapshot {
             ThemeMode::Light => "light",
             ThemeMode::Dark => "dark",
         };
-        content_hash(&[
+        content_hash([
             theme.name(),
             mode,
             theme.palette().primary().as_str(),
@@ -97,14 +97,28 @@ impl UserDataSnapshot {
     }
 }
 
-fn content_hash(parts: &[&str]) -> String {
-    let joined = parts.join("\0");
-    let digest: [u8; 32] = Sha256::digest(joined.as_bytes()).into();
-    const DIGITS: &[u8; 16] = b"0123456789abcdef";
-    let mut output = String::with_capacity(32);
-    for byte in &digest[..8] {
-        output.push(DIGITS[(byte >> 4) as usize] as char);
-        output.push(DIGITS[(byte & 0x0f) as usize] as char);
+fn content_hash<'a>(parts: impl IntoIterator<Item = &'a str>) -> String {
+    let mut hasher = Sha256::new();
+    for part in parts {
+        hasher.update((part.len() as u64).to_be_bytes());
+        hasher.update(part.as_bytes());
     }
-    output
+    let digest = hasher.finalize();
+    const HEX_DIGITS: &[u8; 16] = b"0123456789abcdef";
+    let mut hexadecimal = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        hexadecimal.push(HEX_DIGITS[usize::from(byte >> 4)] as char);
+        hexadecimal.push(HEX_DIGITS[usize::from(byte & 0x0f)] as char);
+    }
+    hexadecimal
+}
+
+#[cfg(test)]
+mod tests {
+    use super::content_hash;
+
+    #[test]
+    fn content_hash_preserves_field_boundaries() {
+        assert_ne!(content_hash(["ab", "c"]), content_hash(["a", "bc"]));
+    }
 }

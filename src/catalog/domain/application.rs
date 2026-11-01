@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use bon::bon;
 use getset::Getters;
 
-use crate::{dashboard::domain::WebAddress, icon::domain::IconReference, user::domain::GroupId};
+use crate::{icon::domain::IconReference, shared::domain::GroupId, shared::domain::WebAddress};
 
 use super::{
     ApplicationError, ApplicationHealth, ApplicationHealthCheck, ApplicationId,
@@ -25,6 +25,22 @@ pub struct Application {
 
 #[bon]
 impl Application {
+    pub(crate) fn restore(
+        id: ApplicationId,
+        name: String,
+        icon: IconReference,
+        address: WebAddress,
+        visibility: ApplicationVisibility,
+        health_check: Option<ApplicationHealthCheck>,
+        health: Option<ApplicationHealth>,
+    ) -> Result<Self, CatalogError> {
+        let mut application = Self::__orig_new(name, icon, address, visibility)?;
+        application.id = id;
+        application.health_check = health_check;
+        application.health = health;
+        Ok(application)
+    }
+
     pub fn create(
         name: impl Into<String>,
         icon: IconReference,

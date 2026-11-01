@@ -2,16 +2,16 @@ use crate::{
     catalog::domain::{
         Application, ApplicationCatalogSettings, ApplicationId, ApplicationVisibility,
     },
-    dashboard::domain::WebAddress,
     icon::domain::IconReference,
     shared::domain::CollectionSortOrder,
+    shared::domain::WebAddress,
 };
 
 fn application(name: &str) -> Application {
     Application::create(
         name,
-        IconReference::parse("mdi:home").unwrap(),
-        WebAddress::parse("https://example.test").unwrap(),
+        IconReference::try_from("mdi:home").unwrap(),
+        WebAddress::try_from("https://example.test").unwrap(),
         ApplicationVisibility::everyone(),
     )
     .unwrap()

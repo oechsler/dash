@@ -3,8 +3,8 @@ use crate::{
         application::ports::{DashboardReader, DashboardWriter},
         domain::UserDashboard,
     },
+    shared::domain::UserId,
     shared::{application::ApplicationError, domain::CollectionSortOrder},
-    user::domain::UserId,
 };
 
 pub struct UpdateCategoriesSortOrderInput {
@@ -31,6 +31,9 @@ impl<R: DashboardReader + DashboardWriter> UpdateCategoriesSortOrder<R> {
             .await?
             .unwrap_or_else(|| UserDashboard::new(input.owner.clone()));
         dashboard.set_categories_sort_order(input.sort_order);
-        self.repository.save(&dashboard).await
+        self.repository
+            .save(&dashboard)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

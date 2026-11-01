@@ -3,9 +3,10 @@ use super::{ProfilePictureUrlError, UserError};
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ProfilePictureUrl(String);
 
-impl ProfilePictureUrl {
-    pub fn parse(value: impl Into<String>) -> Result<Self, UserError> {
-        let value = value.into();
+impl TryFrom<String> for ProfilePictureUrl {
+    type Error = UserError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
         let parsed =
             url::Url::parse(&value).map_err(|source| ProfilePictureUrlError::InvalidUrl {
                 value: value.clone(),
@@ -22,7 +23,17 @@ impl ProfilePictureUrl {
 
         Ok(Self(value))
     }
+}
 
+impl TryFrom<&str> for ProfilePictureUrl {
+    type Error = UserError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::try_from(value.to_owned())
+    }
+}
+
+impl ProfilePictureUrl {
     pub fn as_str(&self) -> &str {
         &self.0
     }

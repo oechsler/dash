@@ -1,7 +1,7 @@
 use crate::{
     dashboard::{application::ports::DashboardReader, domain::Category},
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct GetUserCategories<R> {

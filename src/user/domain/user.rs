@@ -3,7 +3,9 @@ use std::collections::HashSet;
 use bon::bon;
 use thiserror::Error;
 
-use super::{GroupId, IdentifierError, ProfilePictureUrl, ProfilePictureUrlError, UserId};
+use crate::shared::domain::{GroupId, IdentityError, UserId};
+
+use super::{ProfilePictureUrl, ProfilePictureUrlError};
 
 /// Provider-independent user information used by the Dash domain.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -82,7 +84,7 @@ fn normalize_optional_name(name: Option<String>) -> Option<String> {
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum UserError {
     #[error("user identifier is invalid: {0}")]
-    Identifier(#[from] IdentifierError),
+    Identity(#[from] IdentityError),
 
     #[error("user profile picture is invalid: {0}")]
     ProfilePicture(#[from] ProfilePictureUrlError),

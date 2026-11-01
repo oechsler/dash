@@ -1,3 +1,11 @@
+//! Domain-oriented application for managing dashboards, shared applications,
+//! preferences, themes, sessions, users, and portable user-data backups.
+//!
+//! Each business context keeps its domain model separate from application
+//! use-cases and infrastructure adapters. [`shared`] contains only concepts
+//! intentionally used across those contexts; adapters implement application
+//! ports rather than leaking persistence details into domain code.
+
 pub mod catalog;
 pub mod dashboard;
 pub mod icon;

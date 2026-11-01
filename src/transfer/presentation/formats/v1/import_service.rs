@@ -6,15 +6,15 @@ use crate::{
     catalog::domain::{Application, ApplicationVisibility},
     dashboard::domain::{Bookmark, Category, ShelvedCategory, UserDashboard, WebAddress},
     icon::domain::IconReference,
-    preferences::domain::{Language, TimeZone, UserPreferences},
+    preferences::domain::{TimeZone, UserPreferences},
     shared::application::ApplicationError,
     shared::domain::CollectionSortOrder,
+    shared::domain::{GroupId, UserId},
     theme::domain::{Color, Theme, ThemeId, ThemeMode, ThemePalette},
     transfer::{
         application::{TransferError, models::UserDataSnapshot},
-        presentation::formats::sha256_hex,
+        presentation::formats::{parse_language, record_bookmark_access, sha256_hex},
     },
-    user::domain::{GroupId, UserId},
 };
 
 use super::transfer_model::{GoApplicationV1, GoCategoryV1, GoExportV1, GoSettingsV1, GoThemeV1};
@@ -27,8 +27,7 @@ impl ImportService {
         payload: &[u8],
         owner: &UserId,
     ) -> Result<UserDataSnapshot, ApplicationError> {
-        let document = Self::parse(payload)?;
-        Self::into_snapshot(owner, document)
+        super::super::import_document(payload, owner, Self::parse, Self::into_snapshot)
     }
 
     fn parse(payload: &[u8]) -> Result<GoExportV1, ApplicationError> {
@@ -81,12 +80,12 @@ impl ImportService {
                 let groups = record
                     .visible_to_groups
                     .into_iter()
-                    .map(GroupId::new)
+                    .map(GroupId::try_from)
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(Application::create(
                     record.display_name,
-                    IconReference::parse(record.icon)?,
-                    WebAddress::parse(record.url)?,
+                    IconReference::try_from(record.icon)?,
+                    WebAddress::try_from(record.url)?,
                     ApplicationVisibility::groups(groups),
                 )?)
             })
@@ -110,19 +109,10 @@ impl ImportService {
             for bookmark in record.bookmarks {
                 let mut domain_bookmark = Bookmark::new(
                     bookmark.display_name,
-                    IconReference::parse(bookmark.icon)?,
-                    WebAddress::parse(bookmark.url)?,
+                    IconReference::try_from(bookmark.icon)?,
+                    WebAddress::try_from(bookmark.url)?,
                 )?;
-                if let Some(last_accessed_at) = bookmark.last_accessed_at {
-                    let last_accessed_at = chrono::DateTime::parse_from_rfc3339(&last_accessed_at)
-                        .map_err(|error| {
-                            TransferError::InvalidDocument(format!(
-                                "invalid bookmark last_accessed_at: {error}"
-                            ))
-                        })?
-                        .with_timezone(&chrono::Utc);
-                    domain_bookmark.record_access(last_accessed_at);
-                }
+                record_bookmark_access(&mut domain_bookmark, bookmark.last_accessed_at)?;
                 category.add_bookmark(domain_bookmark);
             }
             if record.is_shelved {
@@ -135,15 +125,9 @@ impl ImportService {
     }
 
     fn parse_bookmarks_sort_order(value: &str) -> Result<CollectionSortOrder, ApplicationError> {
-        match value {
-            "alphabetical" => Ok(CollectionSortOrder::Alphabetical),
-            "recently_accessed" => Ok(CollectionSortOrder::RecentlyAccessed),
-            "user_defined" => Ok(CollectionSortOrder::UserDefined),
-            other => Err(TransferError::InvalidDocument(format!(
-                "unknown bookmark sort order `{other}`"
-            ))
-            .into()),
-        }
+        CollectionSortOrder::try_from(value).map_err(|_| {
+            TransferError::InvalidDocument(format!("unknown bookmark sort order `{value}`")).into()
+        })
     }
 
     fn build_preferences(
@@ -153,28 +137,19 @@ impl ImportService {
         theme_ids: &HashMap<String, ThemeId>,
     ) -> Result<UserPreferences, ApplicationError> {
         let mut preferences = UserPreferences::for_user(owner.clone());
-        preferences.set_language(Self::parse_language(&settings.language)?);
-        preferences.set_time_zone(TimeZone::parse(settings.timezone)?);
+        preferences.set_language(parse_language(&settings.language)?);
+        preferences.set_time_zone(TimeZone::try_from(settings.timezone)?);
         if let Some(id) = settings
             .theme_name
-            .and_then(|name| theme_ids.get(&name).copied())
+            .and_then(|name| theme_ids.get(&name).cloned())
         {
             let theme = themes
                 .iter()
                 .find(|theme| theme.id() == id)
                 .ok_or(ApplicationError::NotFound("theme"))?;
-            preferences.select_theme(theme)?;
+            preferences.select_theme(theme.mode(), theme.id());
         }
         Ok(preferences)
-    }
-
-    fn parse_language(value: &str) -> Result<Language, ApplicationError> {
-        match value {
-            "" | "auto" => Ok(Language::Auto),
-            "en" => Ok(Language::English),
-            "de" => Ok(Language::German),
-            _ => Err(TransferError::InvalidDocument(format!("unknown language `{value}`")).into()),
-        }
     }
 
     fn build_themes(
@@ -189,9 +164,9 @@ impl ImportService {
                     .name(record.name)
                     .mode(ThemeMode::Light)
                     .palette(ThemePalette::new(
-                        Color::parse(record.primary)?,
-                        Color::parse(record.secondary)?,
-                        Color::parse(record.tertiary)?,
+                        Color::try_from(record.primary)?,
+                        Color::try_from(record.secondary)?,
+                        Color::try_from(record.tertiary)?,
                     ))
                     .call()?)
             })

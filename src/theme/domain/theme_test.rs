@@ -1,4 +1,4 @@
-use crate::user::domain::UserId;
+use crate::shared::domain::UserId;
 
 use super::{
     Color, GlobalThemeId, Theme, ThemeAppearance, ThemeId, ThemeIdentity, ThemeMode, ThemePalette,
@@ -11,9 +11,9 @@ fn global_theme_is_global_and_not_user_deletable() {
         .name("Catppuccin Mocha (Mauve)")
         .mode(ThemeMode::Dark)
         .palette(ThemePalette::new(
-            Color::parse("#1e1e2e").unwrap(),
-            Color::parse("#cdd6f4").unwrap(),
-            Color::parse("#cba6f7").unwrap(),
+            Color::try_from("#1e1e2e").unwrap(),
+            Color::try_from("#cdd6f4").unwrap(),
+            Color::try_from("#cba6f7").unwrap(),
         ))
         .call()
         .unwrap();
@@ -29,15 +29,21 @@ fn global_theme_is_global_and_not_user_deletable() {
     assert_eq!(theme.palette().secondary().as_str(), "#cdd6f4");
     assert_eq!(theme.palette().tertiary().as_str(), "#cba6f7");
     assert!(!theme.is_deletable());
+    assert_eq!(
+        theme.ensure_deletable(),
+        Err(super::ThemeError::NotDeletable {
+            theme_id: theme.id(),
+        })
+    );
 }
 
 #[test]
 fn user_defined_theme_is_owned_by_a_user_and_deletable() {
-    let owner = UserId::new("user-1").unwrap();
+    let owner = UserId::try_from("user-1").unwrap();
     let palette = ThemePalette::new(
-        Color::parse("#111111").unwrap(),
-        Color::parse("#222222").unwrap(),
-        Color::parse("#333333").unwrap(),
+        Color::try_from("#111111").unwrap(),
+        Color::try_from("#222222").unwrap(),
+        Color::try_from("#333333").unwrap(),
     );
     let theme = Theme::user_defined()
         .owner(owner.clone())
@@ -64,9 +70,9 @@ fn user_defined_theme_is_owned_by_a_user_and_deletable() {
 #[test]
 fn theme_appearance_keeps_mode_and_palette_together() {
     let palette = ThemePalette::new(
-        Color::parse("#111111").unwrap(),
-        Color::parse("#222222").unwrap(),
-        Color::parse("#333333").unwrap(),
+        Color::try_from("#111111").unwrap(),
+        Color::try_from("#222222").unwrap(),
+        Color::try_from("#333333").unwrap(),
     );
     let appearance = ThemeAppearance::new(ThemeMode::Dark, palette.clone());
 

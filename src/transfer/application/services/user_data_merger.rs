@@ -5,16 +5,16 @@ use crate::{
     preferences::domain::UserPreferences,
     shared::application::ApplicationError,
     shared::domain::CollectionSortOrder,
+    shared::domain::UserId,
     theme::domain::{Theme, ThemeId, ThemeIdentity, ThemeMode},
     transfer::application::models::UserDataSnapshot,
-    user::domain::UserId,
 };
 
-pub struct MergeUserDataService;
+pub struct UserDataMerger;
 
 type ThemeIdMap = HashMap<ThemeId, ThemeId>;
 
-impl MergeUserDataService {
+impl UserDataMerger {
     pub fn merge(
         &self,
         target: &mut UserDataSnapshot,
@@ -22,7 +22,7 @@ impl MergeUserDataService {
         owner: &UserId,
         is_admin: bool,
     ) -> Result<(), ApplicationError> {
-        let theme_ids = self.merge_themes(target, imported)?;
+        let theme_ids = self.merge_themes(target, imported);
         self.merge_dashboard(target, imported, owner)?;
         if is_admin {
             self.merge_applications(target, imported)?;
@@ -34,7 +34,7 @@ impl MergeUserDataService {
         &self,
         target: &mut UserDataSnapshot,
         imported: &UserDataSnapshot,
-    ) -> Result<ThemeIdMap, ApplicationError> {
+    ) -> ThemeIdMap {
         let mut known = HashMap::new();
         for theme in target
             .themes
@@ -52,7 +52,7 @@ impl MergeUserDataService {
         {
             let key = UserDataSnapshot::theme_hash(theme);
             let target_id = match known.get(&key) {
-                Some(id) => *id,
+                Some(id) => id.clone(),
                 None => {
                     target.themes.push(theme.clone());
                     known.insert(key, theme.id());
@@ -61,7 +61,7 @@ impl MergeUserDataService {
             };
             id_map.insert(theme.id(), target_id);
         }
-        Ok(id_map)
+        id_map
     }
 
     fn merge_dashboard(
@@ -70,12 +70,12 @@ impl MergeUserDataService {
         imported: &UserDataSnapshot,
         owner: &UserId,
     ) -> Result<(), ApplicationError> {
-        let target_dashboard = target
-            .dashboard
-            .get_or_insert_with(|| UserDashboard::new(owner.clone()));
         let Some(imported_dashboard) = &imported.dashboard else {
             return Ok(());
         };
+        let target_dashboard = target
+            .dashboard
+            .get_or_insert_with(|| UserDashboard::new(owner.clone()));
 
         for imported_category in imported_dashboard.categories() {
             let imported_hash = UserDataSnapshot::category_hash(imported_category);
@@ -148,21 +148,22 @@ impl MergeUserDataService {
                     .collect::<Vec<_>>();
                 let available: HashSet<_> = available_ids.iter().copied().collect();
                 let mut ordered_ids = Vec::new();
+                let mut included_ids = HashSet::new();
                 for id in imported_settings.manual_order() {
                     if let Some(target_id) = imported_id_map.get(id).copied()
                         && available.contains(&target_id)
-                        && !ordered_ids.contains(&target_id)
+                        && included_ids.insert(target_id)
                     {
                         ordered_ids.push(target_id);
                     }
                 }
                 for id in settings.manual_order() {
-                    if available.contains(id) && !ordered_ids.contains(id) {
+                    if available.contains(id) && included_ids.insert(*id) {
                         ordered_ids.push(*id);
                     }
                 }
                 for id in &available_ids {
-                    if !ordered_ids.contains(id) {
+                    if included_ids.insert(*id) {
                         ordered_ids.push(*id);
                     }
                 }
@@ -223,7 +224,7 @@ impl MergeUserDataService {
                 .iter()
                 .find(|theme| theme.id() == *target_id)
                 .ok_or(ApplicationError::NotFound("theme"))?;
-            preferences.select_theme(theme)?;
+            preferences.select_theme(mode, theme.id());
             return Ok(());
         }
 
@@ -237,78 +238,8 @@ impl MergeUserDataService {
                 && theme.mode() == mode
                 && matches!(theme.identity(), ThemeIdentity::Global(_))
         }) {
-            preferences.select_theme(theme)?;
+            preferences.select_theme(mode, theme.id());
         }
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{
-        theme::domain::{Color, GlobalThemeId, ThemePalette},
-        transfer::application::models::ImportedThemeNames,
-    };
-
-    fn global_dark_theme() -> Theme {
-        Theme::global()
-            .id(GlobalThemeId::new("destination-ocean").unwrap())
-            .name("Ocean")
-            .mode(ThemeMode::Dark)
-            .palette(ThemePalette::new(
-                Color::parse("#111111").unwrap(),
-                Color::parse("#222222").unwrap(),
-                Color::parse("#333333").unwrap(),
-            ))
-            .call()
-            .unwrap()
-    }
-
-    #[test]
-    fn import_reselects_a_matching_global_theme_by_name_and_mode() {
-        let owner = UserId::new("user-1").unwrap();
-        let theme = global_dark_theme();
-        let mut target = UserDataSnapshot {
-            themes: vec![theme.clone()],
-            ..UserDataSnapshot::default()
-        };
-        let imported = UserDataSnapshot {
-            preferences: Some(UserPreferences::for_user(owner.clone())),
-            imported_theme_names: Some(ImportedThemeNames {
-                light: None,
-                dark: Some("Ocean".to_owned()),
-            }),
-            ..UserDataSnapshot::default()
-        };
-
-        MergeUserDataService
-            .merge(&mut target, &imported, &owner, false)
-            .unwrap();
-
-        assert_eq!(
-            target.preferences.unwrap().theme_id(ThemeMode::Dark),
-            Some(theme.id())
-        );
-    }
-
-    #[test]
-    fn import_uses_the_default_when_a_global_theme_is_unavailable() {
-        let owner = UserId::new("user-1").unwrap();
-        let mut target = UserDataSnapshot::default();
-        let imported = UserDataSnapshot {
-            preferences: Some(UserPreferences::for_user(owner.clone())),
-            imported_theme_names: Some(ImportedThemeNames {
-                light: None,
-                dark: Some("Ocean".to_owned()),
-            }),
-            ..UserDataSnapshot::default()
-        };
-
-        MergeUserDataService
-            .merge(&mut target, &imported, &owner, false)
-            .unwrap();
-
-        assert_eq!(target.preferences.unwrap().theme_id(ThemeMode::Dark), None);
     }
 }

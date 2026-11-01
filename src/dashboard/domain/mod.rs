@@ -8,8 +8,6 @@ mod dashboard_category;
 mod dashboard_error;
 mod shelved_category;
 mod user_dashboard;
-mod web_address;
-mod web_address_error;
 
 #[cfg(test)]
 mod bookmark_test;
@@ -17,9 +15,8 @@ mod bookmark_test;
 mod category_test;
 #[cfg(test)]
 mod user_dashboard_test;
-#[cfg(test)]
-mod web_address_test;
 
+pub use crate::shared::domain::{WebAddress, WebAddressError};
 pub use bookmark::Bookmark;
 pub use bookmark_error::BookmarkError;
 pub use bookmark_id::BookmarkId;
@@ -30,5 +27,3 @@ pub use dashboard_category::DashboardCategory;
 pub use dashboard_error::DashboardError;
 pub use shelved_category::ShelvedCategory;
 pub use user_dashboard::UserDashboard;
-pub use web_address::WebAddress;
-pub use web_address_error::WebAddressError;

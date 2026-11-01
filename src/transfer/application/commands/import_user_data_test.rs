@@ -1,6 +1,6 @@
 use crate::{
-    dashboard::domain::Category, shared::application::ApplicationError, theme::domain::ThemeMode,
-    transfer::application::models::UserDataSnapshot, user::domain::UserId,
+    dashboard::domain::Category, shared::application::ApplicationError, shared::domain::UserId,
+    theme::domain::ThemeMode, transfer::application::models::UserDataSnapshot,
 };
 use sha2::{Digest, Sha256};
 
@@ -10,7 +10,7 @@ use super::import_user_data_test_support::{MemoryUserData, command, export, inpu
 async fn import_merges_idempotently_and_only_imports_catalog_for_admins() {
     let repository = MemoryUserData::default();
     let command = command(&repository);
-    let owner = UserId::new("target-user").unwrap();
+    let owner = UserId::try_from("target-user").unwrap();
 
     command
         .execute(input(owner.clone(), false, export()))
@@ -36,7 +36,7 @@ async fn import_merges_idempotently_and_only_imports_catalog_for_admins() {
 #[tokio::test]
 async fn import_adds_bookmarks_to_an_existing_matching_category() {
     let repository = MemoryUserData::default();
-    let owner = UserId::new("target-user").unwrap();
+    let owner = UserId::try_from("target-user").unwrap();
     let mut snapshot = UserDataSnapshot::default();
     let mut dashboard = crate::dashboard::domain::UserDashboard::new(owner.clone());
     dashboard.add_category(Category::new("Work").unwrap());
@@ -59,7 +59,7 @@ async fn admin_imports_shared_catalog_applications() {
     let repository = MemoryUserData::default();
 
     command(&repository)
-        .execute(input(UserId::new("admin").unwrap(), true, export()))
+        .execute(input(UserId::try_from("admin").unwrap(), true, export()))
         .await
         .unwrap();
 
@@ -81,7 +81,7 @@ async fn import_rejects_a_tampered_payload_before_writing() {
 
     let payload = serde_json::to_vec(&data).unwrap();
     let error = crate::transfer::presentation::formats::ImportFormatRegistry::supported_versions()
-        .import(&payload, &UserId::new("target-user").unwrap())
+        .import(&payload, &UserId::try_from("target-user").unwrap())
         .unwrap_err();
 
     assert!(matches!(
@@ -108,7 +108,7 @@ async fn command_imports_current_go_v1_backup_into_the_snapshot() {
 
     command(&repository)
         .execute(raw_input(
-            UserId::new("target-user").unwrap(),
+            UserId::try_from("target-user").unwrap(),
             false,
             payload.into_bytes(),
         ))

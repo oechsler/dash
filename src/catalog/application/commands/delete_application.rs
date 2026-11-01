@@ -16,6 +16,9 @@ impl<R: ApplicationReader + ApplicationWriter> DeleteApplication<R> {
             .get(id)
             .await?
             .ok_or(ApplicationError::NotFound("application"))?;
-        self.repository.delete(id).await
+        self.repository
+            .delete(id)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

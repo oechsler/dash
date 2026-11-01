@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::user::domain::GroupId;
+use crate::shared::domain::GroupId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ApplicationVisibility(Audience);

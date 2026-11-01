@@ -3,6 +3,7 @@ use crate::{
     dashboard::domain::{Bookmark, DashboardCategory},
     preferences::domain::UserPreferences,
     shared::application::ApplicationError,
+    shared::domain::UserId,
     theme::domain::{Theme, ThemeIdentity, ThemeMode},
     transfer::{
         application::models::UserDataSnapshot,
@@ -11,7 +12,6 @@ use crate::{
             ThemeModel, UserDataModel,
         },
     },
-    user::domain::UserId,
 };
 
 pub(super) struct ExportService;

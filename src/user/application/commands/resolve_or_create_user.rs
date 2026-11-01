@@ -1,4 +1,4 @@
-use crate::user::domain::UserId;
+use crate::shared::domain::UserId;
 
 use crate::{shared::application::ApplicationError, user::application::ports::IdentityWriter};
 

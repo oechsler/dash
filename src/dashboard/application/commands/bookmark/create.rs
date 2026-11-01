@@ -2,7 +2,7 @@ use crate::{
     dashboard::domain::{Bookmark, BookmarkId, CategoryId, UserDashboard, WebAddress},
     icon::domain::IconReference,
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 use crate::dashboard::application::ports::{DashboardReader, DashboardWriter};
@@ -35,8 +35,8 @@ impl<R: DashboardReader + DashboardWriter> CreateBookmark<R> {
             .unwrap_or_else(|| UserDashboard::new(input.owner));
         let bookmark = Bookmark::new(
             input.name,
-            IconReference::parse(input.icon)?,
-            WebAddress::parse(input.address)?,
+            IconReference::try_from(input.icon)?,
+            WebAddress::try_from(input.address)?,
         )?;
         let id = bookmark.id();
         dashboard.add_bookmark(input.category_id, bookmark)?;

@@ -4,7 +4,7 @@ use crate::{
     catalog::{application::ports::ApplicationReader, domain::ApplicationId},
     preferences::application::ports::{PreferencesReader, PreferencesWriter},
     shared::application::ApplicationError,
-    user::domain::{GroupId, UserId},
+    shared::domain::{GroupId, UserId},
 };
 
 pub struct RecordApplicationAccess<A, P> {
@@ -42,6 +42,9 @@ where
             crate::preferences::domain::UserPreferences::for_user(user_id.clone())
         });
         preferences.record_application_access(application_id);
-        self.preferences.save(&preferences).await
+        self.preferences
+            .save(&preferences)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

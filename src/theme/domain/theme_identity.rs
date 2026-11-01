@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use crate::user::domain::UserId;
+use crate::shared::domain::UserId;
 
 use super::{GlobalThemeId, ThemeId};
 
@@ -18,9 +18,13 @@ impl ThemeIdentity {
         }
     }
 
+    pub(crate) fn restore_user_defined(id: Uuid, owner: UserId) -> Self {
+        Self::UserDefined { id, owner }
+    }
+
     pub fn id(&self) -> ThemeId {
         match self {
-            Self::Global(id) => ThemeId::Global(*id),
+            Self::Global(id) => ThemeId::Global(id.clone()),
             Self::UserDefined { id, .. } => ThemeId::UserDefined(*id),
         }
     }

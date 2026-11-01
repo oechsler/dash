@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::{session::domain::SessionId, user::domain::UserId};
+use crate::{session::domain::SessionId, shared::domain::UserId};
 
 use crate::{
     session::application::ports::{SessionReader, SessionWriter},
@@ -28,6 +28,9 @@ impl<R: SessionReader + SessionWriter> TerminateSession<R> {
             .await?
             .ok_or(ApplicationError::NotFound("session"))?;
         session.terminate(now);
-        self.repository.save(&session).await
+        self.repository
+            .save(&session)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

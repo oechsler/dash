@@ -1,6 +1,6 @@
 use crate::{
-    shared::application::ApplicationError, transfer::application::models::UserDataSnapshot,
-    user::domain::UserId,
+    shared::application::ApplicationError, shared::domain::UserId,
+    transfer::application::models::UserDataSnapshot,
 };
 
 pub trait TransferFormat: Send + Sync {

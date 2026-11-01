@@ -4,8 +4,8 @@ use crate::{
         domain::{Application, ApplicationCatalogSettings},
     },
     preferences::application::ports::PreferencesReader,
+    shared::domain::UserId,
     shared::{application::ApplicationError, domain::CollectionSortOrder},
-    user::domain::UserId,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1,10 +1,10 @@
 use crate::{
     shared::application::ApplicationError,
+    shared::domain::UserId,
     theme::{
         application::ports::ThemeReader,
         domain::{Theme, ThemeId},
     },
-    user::domain::UserId,
 };
 
 pub struct GetTheme<R> {

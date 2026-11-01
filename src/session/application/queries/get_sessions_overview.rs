@@ -6,7 +6,7 @@ use crate::{
         domain::{SessionId, SessionMetadata, UserSession},
     },
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct SessionOverviewInput {

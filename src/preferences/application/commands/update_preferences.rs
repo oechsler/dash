@@ -4,11 +4,11 @@ use crate::{
         domain::{Language, TimeZone, UserPreferences},
     },
     shared::application::ApplicationError,
+    shared::domain::UserId,
     theme::{
         application::ports::ThemeReader,
         domain::{ThemeId, ThemeMode},
     },
-    user::domain::UserId,
 };
 
 pub struct UpdatePreferencesInput {
@@ -39,7 +39,7 @@ impl<P: PreferencesReader + PreferencesWriter, T: ThemeReader> UpdatePreferences
             .await?
             .unwrap_or_else(|| UserPreferences::for_user(input.owner.clone()));
         preferences.set_language(input.language);
-        preferences.set_time_zone(TimeZone::parse(input.time_zone)?);
+        preferences.set_time_zone(TimeZone::try_from(input.time_zone)?);
         self.set_theme(
             &mut preferences,
             &input.owner,
@@ -54,7 +54,10 @@ impl<P: PreferencesReader + PreferencesWriter, T: ThemeReader> UpdatePreferences
             input.dark_theme_id,
         )
         .await?;
-        self.preferences.save(&preferences).await
+        self.preferences
+            .save(&preferences)
+            .await
+            .map_err(ApplicationError::from)
     }
 
     async fn set_theme(
@@ -71,7 +74,7 @@ impl<P: PreferencesReader + PreferencesWriter, T: ThemeReader> UpdatePreferences
                     .get_for(owner, id)
                     .await?
                     .ok_or(ApplicationError::NotFound("theme"))?;
-                preferences.select_theme(&theme)?;
+                preferences.select_theme(mode, theme.id());
             }
             None => preferences.clear_theme_selection(mode),
         }

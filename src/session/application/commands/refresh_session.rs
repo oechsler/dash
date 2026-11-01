@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-use crate::{session::domain::SessionId, user::domain::UserId};
+use crate::{session::domain::SessionId, shared::domain::UserId};
 
 use crate::{
     session::application::ports::{SessionReader, SessionWriter},
@@ -29,6 +29,9 @@ impl<R: SessionReader + SessionWriter> RefreshSession<R> {
             .await?
             .ok_or(ApplicationError::NotFound("session"))?;
         session.refresh_expiry(expires_at, now)?;
-        self.repository.save(&session).await
+        self.repository
+            .save(&session)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

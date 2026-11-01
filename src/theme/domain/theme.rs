@@ -1,4 +1,4 @@
-use crate::user::domain::UserId;
+use crate::shared::domain::UserId;
 use bon::bon;
 
 use super::{
@@ -14,6 +14,24 @@ pub struct Theme {
 
 #[bon]
 impl Theme {
+    pub(crate) fn restore_user_defined(
+        id: uuid::Uuid,
+        owner: UserId,
+        name: String,
+        mode: ThemeMode,
+        palette: ThemePalette,
+    ) -> Result<Self, ThemeError> {
+        let trimmed = name.trim();
+        if trimmed.is_empty() {
+            return Err(ThemeError::EmptyName { value: name });
+        }
+        Ok(Self {
+            identity: ThemeIdentity::restore_user_defined(id, owner),
+            appearance: ThemeAppearance::new(mode, palette),
+            name: trimmed.to_owned(),
+        })
+    }
+
     #[builder]
     pub fn global(
         id: GlobalThemeId,
@@ -75,5 +93,14 @@ impl Theme {
 
     pub fn is_deletable(&self) -> bool {
         self.identity.is_user_defined()
+    }
+
+    pub fn ensure_deletable(&self) -> Result<(), ThemeError> {
+        if self.is_deletable() {
+            return Ok(());
+        }
+        Err(ThemeError::NotDeletable {
+            theme_id: self.id(),
+        })
     }
 }

@@ -1,9 +1,9 @@
 use crate::{
     catalog::domain::{Application, ApplicationHealthCheck, ApplicationId, ApplicationVisibility},
-    dashboard::domain::WebAddress,
     icon::domain::IconReference,
     shared::application::ApplicationError,
-    user::domain::GroupId,
+    shared::domain::GroupId,
+    shared::domain::WebAddress,
 };
 
 use crate::catalog::application::ports::{ApplicationReader, ApplicationWriter};
@@ -32,8 +32,8 @@ impl<R: ApplicationReader + ApplicationWriter> CreateApplication<R> {
         let groups = parse_groups(input.visible_to_groups)?;
         let mut application = Application::create(
             input.name,
-            IconReference::parse(input.icon)?,
-            WebAddress::parse(input.address)?,
+            IconReference::try_from(input.icon)?,
+            WebAddress::try_from(input.address)?,
             ApplicationVisibility::groups(groups),
         )?;
         application.set_health_check(input.health_check);
@@ -46,7 +46,7 @@ impl<R: ApplicationReader + ApplicationWriter> CreateApplication<R> {
 fn parse_groups(groups: Vec<String>) -> Result<Vec<GroupId>, ApplicationError> {
     groups
         .into_iter()
-        .map(GroupId::new)
+        .map(GroupId::try_from)
         .collect::<Result<_, _>>()
         .map_err(Into::into)
 }

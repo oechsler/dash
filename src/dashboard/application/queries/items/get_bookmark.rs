@@ -4,7 +4,7 @@ use crate::{
         domain::{Bookmark, BookmarkId},
     },
     shared::application::ApplicationError,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 pub struct GetUserBookmark<R> {

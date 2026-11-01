@@ -1,9 +1,9 @@
 use crate::{
     catalog::domain::{ApplicationHealthCheck, ApplicationId},
-    dashboard::domain::WebAddress,
     icon::domain::IconReference,
     shared::application::ApplicationError,
-    user::domain::GroupId,
+    shared::domain::GroupId,
+    shared::domain::WebAddress,
 };
 
 use crate::catalog::application::ports::{ApplicationReader, ApplicationWriter};
@@ -33,15 +33,18 @@ impl<R: ApplicationReader + ApplicationWriter> UpdateApplication<R> {
             .await?
             .ok_or(ApplicationError::NotFound("application"))?;
         application.rename(input.name)?;
-        application.change_icon(IconReference::parse(input.icon)?);
-        application.change_address(WebAddress::parse(input.address)?);
+        application.change_icon(IconReference::try_from(input.icon)?);
+        application.change_address(WebAddress::try_from(input.address)?);
         let groups = input
             .visible_to_groups
             .into_iter()
-            .map(GroupId::new)
+            .map(GroupId::try_from)
             .collect::<Result<Vec<_>, _>>()?;
         application.restrict_to(groups);
         application.set_health_check(input.health_check);
-        self.repository.save(&application).await
+        self.repository
+            .save(&application)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

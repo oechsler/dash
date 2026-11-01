@@ -12,6 +12,9 @@ impl<R: SessionWriter> CleanupExpiredSessions<R> {
     }
 
     pub async fn execute(&self, now: DateTime<Utc>) -> Result<(), ApplicationError> {
-        self.repository.delete_expired(now).await
+        self.repository
+            .delete_expired(now)
+            .await
+            .map_err(ApplicationError::from)
     }
 }

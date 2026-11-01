@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::{
     dashboard::domain::{BookmarkError, DashboardError},
-    shared::domain::DomainError,
+    shared::{domain::DomainError, infrastructure::DatabaseError},
 };
 
 use super::error::ApplicationError;
@@ -31,12 +31,35 @@ fn domain_failures_keep_the_full_chain_to_application_error() {
 
 #[test]
 fn repository_failures_retain_the_original_error_as_source() {
-    let application_error =
-        ApplicationError::repository("load dashboard", std::io::Error::other("connection reset"));
+    let application_error = ApplicationError::infrastructure(
+        "load dashboard",
+        std::io::Error::other("connection reset"),
+    );
 
     assert!(application_error.to_string().contains("load dashboard"));
     assert_eq!(
         application_error.source().unwrap().to_string(),
+        "connection reset"
+    );
+}
+
+#[test]
+fn port_error_conversion_preserves_the_infrastructure_error_chain() {
+    let port_error = super::ApplicationPortError::adapter(
+        "load dashboard",
+        DatabaseError::source(std::io::Error::other("connection reset")),
+    );
+    let application_error = ApplicationError::from(port_error);
+
+    assert!(application_error.to_string().contains("load dashboard"));
+    let infrastructure_source = application_error.source().unwrap();
+    assert!(
+        infrastructure_source
+            .to_string()
+            .contains("database operation failed")
+    );
+    assert_eq!(
+        infrastructure_source.source().unwrap().to_string(),
         "connection reset"
     );
 }

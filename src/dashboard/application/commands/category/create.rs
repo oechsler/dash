@@ -2,7 +2,7 @@ use crate::{
     dashboard::domain::{Category, CategoryId, DashboardCategory, ShelvedCategory, UserDashboard},
     shared::application::ApplicationError,
     shared::domain::CollectionSortOrder,
-    user::domain::UserId,
+    shared::domain::UserId,
 };
 
 use crate::dashboard::application::ports::{DashboardReader, DashboardWriter};

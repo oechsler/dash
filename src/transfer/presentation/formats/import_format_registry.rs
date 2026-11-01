@@ -1,10 +1,10 @@
 use crate::{
     shared::application::ApplicationError,
+    shared::domain::UserId,
     transfer::{
         application::{TransferError, models::UserDataSnapshot},
         presentation::formats::{TransferFormat, V1Format, V2Format},
     },
-    user::domain::UserId,
 };
 
 /// Selects and invokes the adapter matching an imported document's version.
