@@ -36,11 +36,13 @@ impl IdentityWriter for UserRepository {
                 DatabaseError::invalid_value("external identity", "empty issuer or subject"),
             ));
         }
+
         let tx = self
             .connection
             .begin()
             .await
             .map_err(|e| InfrastructureError::database("begin identity resolution", e))?;
+
         if let Some(existing) = identity::Entity::find()
             .filter(identity::Column::Issuer.eq(issuer))
             .filter(identity::Column::Subject.eq(subject))
@@ -57,12 +59,15 @@ impl IdentityWriter for UserRepository {
                 is_new: false,
             });
         }
+
         let user_id =
             UserId::try_from(Uuid::new_v4().to_string()).map_err(ApplicationPortError::from)?;
+
         user::ActiveModel::for_external_identity(&user_id, subject)
             .insert(&tx)
             .await
             .map_err(|e| InfrastructureError::database("create user", e))?;
+
         let result = identity::Entity::insert(identity::ActiveModel::for_external_identity(
             issuer, subject, &user_id,
         ))
@@ -74,6 +79,7 @@ impl IdentityWriter for UserRepository {
         .exec_without_returning(&tx)
         .await
         .map_err(|e| InfrastructureError::database("create external identity", e))?;
+
         match result {
             0 => {
                 user::Entity::delete_by_id(user_id.as_str().to_owned())
@@ -92,6 +98,7 @@ impl IdentityWriter for UserRepository {
                             DatabaseError::expected_record_missing("external identity"),
                         )
                     })?;
+
                 let user_id =
                     UserId::try_from(existing.user_id).map_err(ApplicationPortError::from)?;
                 tx.commit()

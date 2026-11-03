@@ -1,4 +1,3 @@
-use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 
@@ -8,8 +7,11 @@ use crate::{
         ApplicationVisibility, CatalogError, ExpectedStatusClass, HealthCheckUrl,
     },
     icon::domain::IconReference,
-    shared::domain::GroupId,
-    shared::{application::ApplicationPortError, domain::WebAddress},
+    shared::domain::{GroupId, WebAddress},
+    shared::{
+        application::{ApplicationPortError, PortResult},
+        infrastructure::{DatabaseAdapterError as InfrastructureError, DatabaseError},
+    },
 };
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -41,12 +43,9 @@ impl Model {
                     "3xx" => ExpectedStatusClass::Redirect3xx,
                     "4xx" => ExpectedStatusClass::ClientError4xx,
                     _ => {
-                        return Err(ApplicationPortError::adapter(
+                        return Err(InfrastructureError::persistence(
                             "decode expected status",
-                            super::super::super::error::InfrastructureError::invalid_value(
-                                "health_check_status_class",
-                                class,
-                            ),
+                            DatabaseError::invalid_value("health_check_status_class", class),
                         ));
                     }
                 };
@@ -66,12 +65,9 @@ impl Model {
             Some("up") => Some(ApplicationHealth::Up),
             Some("down") => Some(ApplicationHealth::Down),
             Some(value) => {
-                return Err(ApplicationPortError::adapter(
+                return Err(InfrastructureError::persistence(
                     "decode health state",
-                    super::super::super::error::InfrastructureError::invalid_value(
-                        "health_status",
-                        value,
-                    ),
+                    DatabaseError::invalid_value("health_status", value),
                 ));
             }
             None => None,
@@ -89,8 +85,8 @@ impl Model {
     }
 }
 
-impl From<&Application> for ActiveModel {
-    fn from(value: &Application) -> Self {
+impl ActiveModel {
+    pub fn from_domain(value: &Application) -> Self {
         let (url, class, tls) = value
             .health_check()
             .map(|check| {

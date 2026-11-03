@@ -40,7 +40,8 @@ impl CatalogRepository {
             .exec(tx)
             .await
             .map_err(|e| InfrastructureError::database("replace application visibility", e))?;
-        let active = app::ActiveModel::from(value);
+
+        let active = app::ActiveModel::from_domain(value);
         app::Entity::insert(active)
             .on_conflict(
                 OnConflict::column(app::Column::Id)
@@ -58,10 +59,17 @@ impl CatalogRepository {
             .exec_without_returning(tx)
             .await
             .map_err(|e| InfrastructureError::database("save catalog application", e))?;
+
         if let Some(groups) = value.visibility().visible_to_groups() {
-            for group in groups {
-                visibility_group::ActiveModel::for_application(value.id().as_uuid(), group)
-                    .insert(tx)
+            let groups = groups
+                .iter()
+                .map(|group| {
+                    visibility_group::ActiveModel::for_application(value.id().as_uuid(), group)
+                })
+                .collect::<Vec<_>>();
+            if !groups.is_empty() {
+                visibility_group::Entity::insert_many(groups)
+                    .exec(tx)
                     .await
                     .map_err(|e| InfrastructureError::database("save application visibility", e))?;
             }
@@ -74,7 +82,7 @@ impl CatalogRepository {
         tx: &DatabaseTransaction,
         value: &ApplicationCatalogSettings,
     ) -> PortResult<()> {
-        let model = settings::ActiveModel::from(value);
+        let model = settings::ActiveModel::from_domain(value);
         settings::Entity::insert(model)
             .on_conflict(
                 OnConflict::column(settings::Column::Singleton)
@@ -99,6 +107,7 @@ impl ApplicationReader for CatalogRepository {
             .all(self.connection.as_ref())
             .await
             .map_err(|e| InfrastructureError::database("list catalog applications", e))?;
+
         let application_ids = rows.iter().map(|row| row.id).collect::<Vec<_>>();
         let mut groups_by_application: HashMap<Uuid, Vec<_>> = HashMap::new();
         if !application_ids.is_empty() {
@@ -107,6 +116,7 @@ impl ApplicationReader for CatalogRepository {
                 .all(self.connection.as_ref())
                 .await
                 .map_err(|e| InfrastructureError::database("load application visibility", e))?;
+
             for row in visibility_groups {
                 groups_by_application
                     .entry(row.application_id)
@@ -114,6 +124,7 @@ impl ApplicationReader for CatalogRepository {
                     .push(row.group_id()?);
             }
         }
+
         let mut result = Vec::with_capacity(rows.len());
         for row in rows {
             let groups = groups_by_application.remove(&row.id).unwrap_or_default();
@@ -152,6 +163,7 @@ impl ApplicationWriter for CatalogRepository {
             .begin()
             .await
             .map_err(|e| InfrastructureError::database("begin application save", e))?;
+
         self.save_application_in(&tx, value).await?;
         tx.commit()
             .await
@@ -164,6 +176,7 @@ impl ApplicationWriter for CatalogRepository {
             .begin()
             .await
             .map_err(|e| InfrastructureError::database("begin application delete", e))?;
+
         app::Entity::delete_by_id(id.as_uuid())
             .exec(&tx)
             .await
@@ -172,6 +185,7 @@ impl ApplicationWriter for CatalogRepository {
             .one(&tx)
             .await
             .map_err(|e| InfrastructureError::database("load catalog settings for delete", e))?;
+
         if let Some(current) = current {
             settings::ActiveModel::without_application(current, id)
                 .update(&tx)
@@ -194,7 +208,7 @@ impl ApplicationCatalogSettingsReader for CatalogRepository {
         else {
             return Ok(None);
         };
-        Ok(Some(ApplicationCatalogSettings::try_from(row)?))
+        Ok(Some(row.into_domain()?))
     }
 }
 
@@ -206,6 +220,7 @@ impl ApplicationCatalogSettingsWriter for CatalogRepository {
             .begin()
             .await
             .map_err(|e| InfrastructureError::database("begin catalog settings save", e))?;
+
         self.save_settings_in(&tx, value).await?;
         tx.commit()
             .await

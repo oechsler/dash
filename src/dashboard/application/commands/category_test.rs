@@ -16,19 +16,21 @@ use crate::{
 };
 
 #[derive(Clone, Default)]
-struct InMemoryDashboards(Arc<Mutex<Option<UserDashboard>>>);
+struct InMemoryDashboards {
+    dashboard: Arc<Mutex<Option<UserDashboard>>>,
+}
 
 #[async_trait]
 impl DashboardReader for InMemoryDashboards {
     async fn load(&self, _user_id: &UserId) -> PortResult<Option<UserDashboard>> {
-        Ok(self.0.lock().unwrap().clone())
+        Ok(self.dashboard.lock().unwrap().clone())
     }
 }
 
 #[async_trait]
 impl DashboardWriter for InMemoryDashboards {
     async fn save(&self, dashboard: &UserDashboard) -> PortResult<()> {
-        *self.0.lock().unwrap() = Some(dashboard.clone());
+        *self.dashboard.lock().unwrap() = Some(dashboard.clone());
         Ok(())
     }
 }
@@ -76,5 +78,5 @@ async fn create_category_keeps_domain_error_context_in_application_error() {
             DashboardError::Category(CategoryError::EmptyName { .. })
         )))
     ));
-    assert!(repository.0.lock().unwrap().is_none());
+    assert!(repository.dashboard.lock().unwrap().is_none());
 }

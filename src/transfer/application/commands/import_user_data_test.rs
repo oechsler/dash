@@ -30,7 +30,7 @@ async fn import_merges_idempotently_and_only_imports_catalog_for_admins() {
     let preferences = snapshot.preferences.unwrap();
     assert_eq!(preferences.language().as_str(), "de");
     assert!(preferences.theme_id(ThemeMode::Light).is_some());
-    assert_eq!(*repository.saves.lock().unwrap(), 2);
+    assert_eq!(*repository.save_count.lock().unwrap(), 2);
 }
 
 #[tokio::test]
@@ -90,7 +90,7 @@ async fn import_rejects_a_tampered_payload_before_writing() {
             crate::transfer::application::error::TransferError::InvalidSignature
         )
     ));
-    assert_eq!(*repository.saves.lock().unwrap(), 0);
+    assert_eq!(*repository.save_count.lock().unwrap(), 0);
 }
 
 #[tokio::test]

@@ -22,7 +22,7 @@ use crate::{
 #[derive(Clone, Default)]
 pub(super) struct MemoryUserData {
     pub snapshot: Arc<Mutex<UserDataSnapshot>>,
-    pub saves: Arc<Mutex<usize>>,
+    pub save_count: Arc<Mutex<usize>>,
 }
 
 #[async_trait]
@@ -36,7 +36,7 @@ impl UserDataSnapshotReader for MemoryUserData {
 impl UserDataSnapshotWriter for MemoryUserData {
     async fn save(&self, _owner: &UserId, snapshot: &UserDataSnapshot) -> PortResult<()> {
         *self.snapshot.lock().unwrap() = snapshot.clone();
-        *self.saves.lock().unwrap() += 1;
+        *self.save_count.lock().unwrap() += 1;
         Ok(())
     }
 }

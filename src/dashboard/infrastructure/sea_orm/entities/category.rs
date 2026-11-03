@@ -1,11 +1,14 @@
-use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 
 use crate::{
-    dashboard::domain::{Category, CategoryId, DashboardCategory, ShelvedCategory},
+    dashboard::domain::{Bookmark, Category, CategoryId, DashboardCategory, ShelvedCategory},
+    shared::application::{ApplicationPortError, PortResult},
     shared::domain::UserId,
-    shared::{application::ApplicationPortError, domain::CollectionSortOrder},
+    shared::{
+        domain::CollectionSortOrder,
+        infrastructure::{DatabaseAdapterError as InfrastructureError, DatabaseError},
+    },
 };
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -34,17 +37,11 @@ pub enum Relation {
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
-    pub fn into_domain(
-        self,
-        bookmarks: Vec<crate::dashboard::domain::Bookmark>,
-    ) -> PortResult<DashboardCategory> {
+    pub fn into_domain(self, bookmarks: Vec<Bookmark>) -> PortResult<DashboardCategory> {
         let sort_order = CollectionSortOrder::try_from(self.sort_order.as_str()).map_err(|_| {
-            ApplicationPortError::adapter(
+            InfrastructureError::persistence(
                 "decode category sort order",
-                super::super::super::error::InfrastructureError::invalid_value(
-                    "category sort_order",
-                    self.sort_order.clone(),
-                ),
+                DatabaseError::invalid_value("category sort_order", self.sort_order.clone()),
             )
         })?;
         let category =

@@ -2,8 +2,8 @@ use crate::shared::application::PortResult;
 use async_trait::async_trait;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, DatabaseTransaction, EntityTrait,
-    QueryFilter, QueryOrder, TransactionTrait,
+    ColumnTrait, DatabaseConnection, DatabaseTransaction, EntityTrait, QueryFilter, QueryOrder,
+    TransactionTrait,
 };
 use std::sync::Arc;
 
@@ -35,7 +35,7 @@ impl PreferencesRepository {
         tx: &DatabaseTransaction,
         value: &UserPreferences,
     ) -> PortResult<()> {
-        let model = pref::ActiveModel::from(value);
+        let model = pref::ActiveModel::from_domain(value);
         pref::Entity::insert(model)
             .on_conflict(
                 OnConflict::column(pref::Column::OwnerId)
@@ -50,16 +50,30 @@ impl PreferencesRepository {
             .exec_without_returning(tx)
             .await
             .map_err(|e| InfrastructureError::database("save preferences", e))?;
+
         recent_application::Entity::delete_many()
             .filter(recent_application::Column::OwnerId.eq(value.user_id().as_str()))
             .exec(tx)
             .await
             .map_err(|e| InfrastructureError::database("replace recent applications", e))?;
-        for (position, id) in value.recently_accessed_application_ids().iter().enumerate() {
-            recent_application::ActiveModel::from_preferences(value, id.as_uuid(), position as i32)
-                .insert(tx)
+
+        let recent = value
+            .recently_accessed_application_ids()
+            .iter()
+            .enumerate()
+            .map(|(position, id)| {
+                recent_application::ActiveModel::from_preferences(
+                    value,
+                    id.as_uuid(),
+                    position as i32,
+                )
+            })
+            .collect::<Vec<_>>();
+        if !recent.is_empty() {
+            recent_application::Entity::insert_many(recent)
+                .exec(tx)
                 .await
-                .map_err(|e| InfrastructureError::database("save recent application", e))?;
+                .map_err(|e| InfrastructureError::database("save recent applications", e))?;
         }
         Ok(())
     }
@@ -75,6 +89,7 @@ impl PreferencesReader for PreferencesRepository {
         else {
             return Ok(None);
         };
+
         let recent = recent_application::Entity::find()
             .filter(recent_application::Column::OwnerId.eq(owner.as_str()))
             .order_by_asc(recent_application::Column::Position)
@@ -97,6 +112,7 @@ impl PreferencesWriter for PreferencesRepository {
             .begin()
             .await
             .map_err(|e| InfrastructureError::database("begin preferences save", e))?;
+
         self.save_in(&tx, value).await?;
         tx.commit()
             .await

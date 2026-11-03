@@ -1,8 +1,6 @@
 use async_trait::async_trait;
 use sea_orm_migration::prelude::*;
 
-use crate::shared::infrastructure::schema::execute_postgres_ddl;
-
 /// Result returned by this migration's SeaORM hooks.
 pub type MigrationResult<T> = Result<T, DbErr>;
 
@@ -12,42 +10,99 @@ pub struct CatalogSchemaV1;
 #[async_trait]
 impl MigrationTrait for CatalogSchemaV1 {
     async fn up(&self, manager: &SchemaManager) -> MigrationResult<()> {
-        execute_postgres_ddl(
-            manager,
-            &[
-                r#"
-                    CREATE TABLE "catalog_applications" (
-                        "id" uuid NOT NULL PRIMARY KEY,
-                        "name" varchar NOT NULL,
-                        "icon" varchar NOT NULL,
-                        "address" varchar NOT NULL,
-                        "health_check_url" varchar,
-                        "health_check_status_class" varchar,
-                        "health_check_ignore_tls_errors" bool NOT NULL,
-                        "health_status" varchar
+        manager
+            .create_table(
+                Table::create()
+                    .table(CatalogApplications::Table)
+                    .col(
+                        ColumnDef::new(CatalogApplications::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
                     )
-                "#,
-                r#"
-                    CREATE TABLE "application_visibility_groups" (
-                        "application_id" uuid NOT NULL,
-                        "group_id" varchar NOT NULL,
-                        CONSTRAINT "pk-application_visibility_groups"
-                            PRIMARY KEY ("application_id", "group_id"),
-                        CONSTRAINT "fk-application_visibility_groups-application_id"
-                            FOREIGN KEY ("application_id")
-                            REFERENCES "catalog_applications" ("id") ON DELETE CASCADE
+                    .col(
+                        ColumnDef::new(CatalogApplications::Name)
+                            .string()
+                            .not_null(),
                     )
-                "#,
-                r#"
-                    CREATE TABLE "application_catalog_settings" (
-                        "singleton" bool NOT NULL PRIMARY KEY,
-                        "sort_order" varchar NOT NULL,
-                        "application_order" varchar NOT NULL
+                    .col(
+                        ColumnDef::new(CatalogApplications::Icon)
+                            .string()
+                            .not_null(),
                     )
-                "#,
-            ],
-        )
-        .await
+                    .col(
+                        ColumnDef::new(CatalogApplications::Address)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(CatalogApplications::HealthCheckUrl).string())
+                    .col(ColumnDef::new(CatalogApplications::HealthCheckStatusClass).string())
+                    .col(
+                        ColumnDef::new(CatalogApplications::HealthCheckIgnoreTlsErrors)
+                            .boolean()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(CatalogApplications::HealthStatus).string())
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(ApplicationVisibilityGroups::Table)
+                    .col(
+                        ColumnDef::new(ApplicationVisibilityGroups::ApplicationId)
+                            .uuid()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationVisibilityGroups::GroupId)
+                            .string()
+                            .not_null(),
+                    )
+                    .primary_key(
+                        Index::create()
+                            .name("pk-application_visibility_groups")
+                            .col(ApplicationVisibilityGroups::ApplicationId)
+                            .col(ApplicationVisibilityGroups::GroupId),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-application_visibility_groups-application_id")
+                            .from(
+                                ApplicationVisibilityGroups::Table,
+                                ApplicationVisibilityGroups::ApplicationId,
+                            )
+                            .to(CatalogApplications::Table, CatalogApplications::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(ApplicationCatalogSettings::Table)
+                    .col(
+                        ColumnDef::new(ApplicationCatalogSettings::Singleton)
+                            .boolean()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationCatalogSettings::SortOrder)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(ApplicationCatalogSettings::ApplicationOrder)
+                            .string()
+                            .not_null(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> MigrationResult<()> {
@@ -62,4 +117,30 @@ impl MigrationTrait for CatalogSchemaV1 {
         }
         Ok(())
     }
+}
+
+#[derive(DeriveIden)]
+enum CatalogApplications {
+    Table,
+    Id,
+    Name,
+    Icon,
+    Address,
+    HealthCheckUrl,
+    HealthCheckStatusClass,
+    HealthCheckIgnoreTlsErrors,
+    HealthStatus,
+}
+#[derive(DeriveIden)]
+enum ApplicationVisibilityGroups {
+    Table,
+    ApplicationId,
+    GroupId,
+}
+#[derive(DeriveIden)]
+enum ApplicationCatalogSettings {
+    Table,
+    Singleton,
+    SortOrder,
+    ApplicationOrder,
 }

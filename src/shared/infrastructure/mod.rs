@@ -1,5 +1,4 @@
 mod error;
-pub(crate) mod schema;
 
 pub use error::{DatabaseAdapterError, DatabaseError};
 

@@ -1,8 +1,6 @@
 use async_trait::async_trait;
 use sea_orm_migration::prelude::*;
 
-use crate::shared::infrastructure::schema::execute_postgres_ddl;
-
 /// Result returned by this migration's SeaORM hooks.
 pub type MigrationResult<T> = Result<T, DbErr>;
 
@@ -12,37 +10,87 @@ pub struct PreferencesSchemaV1;
 #[async_trait]
 impl MigrationTrait for PreferencesSchemaV1 {
     async fn up(&self, manager: &SchemaManager) -> MigrationResult<()> {
-        execute_postgres_ddl(
-            manager,
-            &[
-                r#"
-                    CREATE TABLE "user_preferences" (
-                        "owner_id" varchar NOT NULL PRIMARY KEY,
-                        "light_theme_id" varchar,
-                        "dark_theme_id" varchar,
-                        "language" varchar NOT NULL,
-                        "time_zone" varchar NOT NULL,
-                        CONSTRAINT "fk-user_preferences-owner_id"
-                            FOREIGN KEY ("owner_id") REFERENCES "users" ("id") ON DELETE CASCADE
+        manager
+            .create_table(
+                Table::create()
+                    .table(UserPreferences::Table)
+                    .col(
+                        ColumnDef::new(UserPreferences::OwnerId)
+                            .string()
+                            .not_null()
+                            .primary_key(),
                     )
-                "#,
-                r#"
-                    CREATE TABLE "user_recent_applications" (
-                        "owner_id" varchar NOT NULL,
-                        "application_id" uuid NOT NULL,
-                        "position" integer NOT NULL,
-                        CONSTRAINT "pk-user_recent_applications"
-                            PRIMARY KEY ("owner_id", "application_id"),
-                        CONSTRAINT "fk-user_recent_applications-owner_id"
-                            FOREIGN KEY ("owner_id") REFERENCES "users" ("id") ON DELETE CASCADE,
-                        CONSTRAINT "fk-user_recent_applications-application_id"
-                            FOREIGN KEY ("application_id")
-                            REFERENCES "catalog_applications" ("id") ON DELETE CASCADE
+                    .col(ColumnDef::new(UserPreferences::LightThemeId).string())
+                    .col(ColumnDef::new(UserPreferences::DarkThemeId).string())
+                    .col(
+                        ColumnDef::new(UserPreferences::Language)
+                            .string()
+                            .not_null(),
                     )
-                "#,
-            ],
-        )
-        .await
+                    .col(
+                        ColumnDef::new(UserPreferences::TimeZone)
+                            .string()
+                            .not_null(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-user_preferences-owner_id")
+                            .from(UserPreferences::Table, UserPreferences::OwnerId)
+                            .to(Users::Table, Users::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(UserRecentApplications::Table)
+                    .col(
+                        ColumnDef::new(UserRecentApplications::OwnerId)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(UserRecentApplications::ApplicationId)
+                            .uuid()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(UserRecentApplications::Position)
+                            .integer()
+                            .not_null(),
+                    )
+                    .primary_key(
+                        Index::create()
+                            .name("pk-user_recent_applications")
+                            .col(UserRecentApplications::OwnerId)
+                            .col(UserRecentApplications::ApplicationId),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-user_recent_applications-owner_id")
+                            .from(
+                                UserRecentApplications::Table,
+                                UserRecentApplications::OwnerId,
+                            )
+                            .to(Users::Table, Users::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-user_recent_applications-application_id")
+                            .from(
+                                UserRecentApplications::Table,
+                                UserRecentApplications::ApplicationId,
+                            )
+                            .to(CatalogApplications::Table, CatalogApplications::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> MigrationResult<()> {
@@ -53,4 +101,31 @@ impl MigrationTrait for PreferencesSchemaV1 {
         }
         Ok(())
     }
+}
+
+#[derive(DeriveIden)]
+enum Users {
+    Table,
+    Id,
+}
+#[derive(DeriveIden)]
+enum CatalogApplications {
+    Table,
+    Id,
+}
+#[derive(DeriveIden)]
+enum UserPreferences {
+    Table,
+    OwnerId,
+    LightThemeId,
+    DarkThemeId,
+    Language,
+    TimeZone,
+}
+#[derive(DeriveIden)]
+enum UserRecentApplications {
+    Table,
+    OwnerId,
+    ApplicationId,
+    Position,
 }

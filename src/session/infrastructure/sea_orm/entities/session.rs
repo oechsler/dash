@@ -8,7 +8,7 @@ use crate::{
     shared::domain::UserId,
     shared::{
         application::{ApplicationPortError, PortResult},
-        infrastructure::DatabaseError,
+        infrastructure::DatabaseAdapterError as InfrastructureError,
     },
 };
 
@@ -41,48 +41,40 @@ pub enum Relation {
 
 impl ActiveModelBehavior for ActiveModel {}
 
-impl TryFrom<Model> for UserSession {
-    type Error = ApplicationPortError;
-
-    fn try_from(model: Model) -> PortResult<Self> {
-        let owner = UserId::try_from(model.owner_id).map_err(ApplicationPortError::from)?;
-        let ip = model
+impl Model {
+    pub fn into_domain(self) -> PortResult<UserSession> {
+        let owner = UserId::try_from(self.owner_id).map_err(ApplicationPortError::from)?;
+        let ip = self
             .ip_address
             .map(|value| {
-                IpAddr::from_str(&value).map_err(|error| {
-                    ApplicationPortError::adapter(
-                        "decode session IP",
-                        super::super::super::error::InfrastructureError::from(
-                            DatabaseError::source(error),
-                        ),
-                    )
-                })
+                IpAddr::from_str(&value)
+                    .map_err(|error| InfrastructureError::database("decode session IP", error))
             })
             .transpose()?;
-        let metadata = SessionMetadata::new(model.browser, model.operating_system, ip);
-        if model.long_lived {
+        let metadata = SessionMetadata::new(self.browser, self.operating_system, ip);
+        if self.long_lived {
             Ok(UserSession::LongLived(
                 Session::<LongLived>::restore(
-                    SessionId::from(model.id),
+                    SessionId::from(self.id),
                     owner,
                     metadata,
-                    model.issued_at,
-                    model.last_accessed_at,
-                    model.expires_at,
-                    model.terminated_at,
+                    self.issued_at,
+                    self.last_accessed_at,
+                    self.expires_at,
+                    self.terminated_at,
                 )
                 .map_err(ApplicationPortError::from)?,
             ))
         } else {
             Ok(UserSession::ShortLived(
                 Session::<ShortLived>::restore(
-                    SessionId::from(model.id),
+                    SessionId::from(self.id),
                     owner,
                     metadata,
-                    model.issued_at,
-                    model.last_accessed_at,
-                    model.expires_at,
-                    model.terminated_at,
+                    self.issued_at,
+                    self.last_accessed_at,
+                    self.expires_at,
+                    self.terminated_at,
                 )
                 .map_err(ApplicationPortError::from)?,
             ))
@@ -90,8 +82,8 @@ impl TryFrom<Model> for UserSession {
     }
 }
 
-impl From<&UserSession> for ActiveModel {
-    fn from(value: &UserSession) -> Self {
+impl ActiveModel {
+    pub fn from_domain(value: &UserSession) -> Self {
         let metadata = value.metadata();
         Self {
             id: Set(value.id().as_uuid()),

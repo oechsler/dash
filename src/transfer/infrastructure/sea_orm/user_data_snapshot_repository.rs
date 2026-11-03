@@ -93,18 +93,21 @@ impl UserDataSnapshotWriter for UserDataSnapshotRepository {
             .begin()
             .await
             .map_err(|error| InfrastructureError::database("begin snapshot save", error))?;
+
         for application in &snapshot.applications {
             self.catalog.save_application_in(&tx, application).await?;
         }
         if let Some(settings) = &snapshot.application_catalog_settings {
             self.catalog.save_settings_in(&tx, settings).await?;
         }
+
         if let Some(dashboard) = &snapshot.dashboard {
             self.dashboard.save_in(&tx, dashboard).await?;
         }
         for theme in &snapshot.themes {
             self.themes.save_in(&tx, theme).await?;
         }
+
         if let Some(preferences) = &snapshot.preferences {
             self.preferences.save_in(&tx, preferences).await?;
         }

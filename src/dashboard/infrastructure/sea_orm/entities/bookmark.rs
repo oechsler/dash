@@ -34,16 +34,14 @@ pub enum Relation {
 
 impl ActiveModelBehavior for ActiveModel {}
 
-impl TryFrom<Model> for Bookmark {
-    type Error = ApplicationPortError;
-
-    fn try_from(model: Model) -> PortResult<Self> {
+impl Model {
+    pub fn into_domain(self) -> PortResult<Bookmark> {
         Bookmark::restore(
-            BookmarkId::from(model.id),
-            model.name,
-            IconReference::try_from(model.icon).map_err(ApplicationPortError::from)?,
-            WebAddress::try_from(model.address).map_err(ApplicationPortError::from)?,
-            model.last_accessed_at,
+            BookmarkId::from(self.id),
+            self.name,
+            IconReference::try_from(self.icon).map_err(ApplicationPortError::from)?,
+            WebAddress::try_from(self.address).map_err(ApplicationPortError::from)?,
+            self.last_accessed_at,
         )
         .map_err(ApplicationPortError::from)
     }

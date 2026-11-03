@@ -1,11 +1,13 @@
-use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 use uuid::Uuid;
 
 use crate::{
-    shared::application::ApplicationPortError,
-    shared::domain::UserId,
+    shared::{
+        application::{ApplicationPortError, PortResult},
+        domain::UserId,
+        infrastructure::{DatabaseAdapterError as InfrastructureError, DatabaseError},
+    },
     theme::domain::{Color, Theme, ThemeId, ThemeMode, ThemePalette},
 };
 
@@ -37,23 +39,15 @@ impl ActiveModelBehavior for ActiveModel {}
 
 impl Model {
     pub fn into_domain(self, owner: &UserId) -> PortResult<Theme> {
-        let id = Uuid::parse_str(&self.id).map_err(|error| {
-            ApplicationPortError::adapter(
-                "decode theme id",
-                super::super::super::error::InfrastructureError::from(
-                    crate::shared::infrastructure::DatabaseError::source(error),
-                ),
-            )
-        })?;
+        let id = Uuid::parse_str(&self.id)
+            .map_err(|error| InfrastructureError::database("decode theme id", error))?;
         let mode = match self.mode.as_str() {
             "light" => ThemeMode::Light,
             "dark" => ThemeMode::Dark,
             _ => {
-                return Err(ApplicationPortError::adapter(
+                return Err(InfrastructureError::persistence(
                     "decode theme mode",
-                    super::super::super::error::InfrastructureError::invalid_value(
-                        "mode", self.mode,
-                    ),
+                    DatabaseError::invalid_value("mode", self.mode),
                 ));
             }
         };
@@ -67,10 +61,8 @@ impl Model {
     }
 }
 
-impl TryFrom<&Theme> for ActiveModel {
-    type Error = ApplicationPortError;
-
-    fn try_from(theme: &Theme) -> PortResult<Self> {
+impl ActiveModel {
+    pub fn try_from_domain(theme: &Theme) -> PortResult<Self> {
         let ThemeId::UserDefined(id) = theme.id() else {
             return Err(ApplicationPortError::NotFound("user-defined theme"));
         };

@@ -30,7 +30,7 @@ impl ThemeRepository {
     }
 
     pub(crate) async fn save_in(&self, tx: &DatabaseTransaction, theme: &Theme) -> PortResult<()> {
-        let model = ActiveModel::try_from(theme)?;
+        let model = ActiveModel::try_from_domain(theme)?;
         Entity::insert(model)
             .on_conflict(
                 OnConflict::column(Column::Id)
@@ -87,6 +87,7 @@ impl ThemeWriter for ThemeRepository {
             .begin()
             .await
             .map_err(|e| InfrastructureError::database("begin theme save", e))?;
+
         self.save_in(&tx, theme).await?;
         tx.commit()
             .await

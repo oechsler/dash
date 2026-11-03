@@ -1,11 +1,11 @@
-use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 
 use crate::{
     dashboard::domain::{DashboardCategory, UserDashboard},
-    shared::domain::UserId,
-    shared::{application::ApplicationPortError, domain::CollectionSortOrder},
+    shared::application::{ApplicationPortError, PortResult},
+    shared::domain::{CollectionSortOrder, UserId},
+    shared::infrastructure::{DatabaseAdapterError as InfrastructureError, DatabaseError},
 };
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -33,9 +33,9 @@ impl Model {
     pub fn into_domain(self, categories: Vec<DashboardCategory>) -> PortResult<UserDashboard> {
         let sort_order = CollectionSortOrder::try_from(self.categories_sort_order.as_str())
             .map_err(|_| {
-                ApplicationPortError::adapter(
+                InfrastructureError::persistence(
                     "decode dashboard sort order",
-                    super::super::super::error::InfrastructureError::invalid_value(
+                    DatabaseError::invalid_value(
                         "dashboard categories_sort_order",
                         self.categories_sort_order.clone(),
                     ),
@@ -49,8 +49,8 @@ impl Model {
     }
 }
 
-impl From<&UserDashboard> for ActiveModel {
-    fn from(dashboard: &UserDashboard) -> Self {
+impl ActiveModel {
+    pub fn from_domain(dashboard: &UserDashboard) -> Self {
         Self {
             owner_id: Set(dashboard.owner().as_str().to_owned()),
             categories_sort_order: Set(dashboard.categories_sort_order().as_str().to_owned()),

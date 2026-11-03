@@ -1,8 +1,6 @@
 use async_trait::async_trait;
 use sea_orm_migration::prelude::*;
 
-use crate::shared::infrastructure::schema::execute_postgres_ddl;
-
 /// Result returned by this migration's SeaORM hooks.
 pub type MigrationResult<T> = Result<T, DbErr>;
 
@@ -12,47 +10,118 @@ pub struct DashboardSchemaV1;
 #[async_trait]
 impl MigrationTrait for DashboardSchemaV1 {
     async fn up(&self, manager: &SchemaManager) -> MigrationResult<()> {
-        execute_postgres_ddl(
-            manager,
-            &[
-                r#"
-                    CREATE TABLE "dashboards" (
-                        "owner_id" varchar NOT NULL PRIMARY KEY,
-                        "categories_sort_order" varchar NOT NULL,
-                        CONSTRAINT "fk-dashboards-owner_id"
-                            FOREIGN KEY ("owner_id") REFERENCES "users" ("id") ON DELETE CASCADE
+        manager
+            .create_table(
+                Table::create()
+                    .table(Dashboards::Table)
+                    .col(
+                        ColumnDef::new(Dashboards::OwnerId)
+                            .string()
+                            .not_null()
+                            .primary_key(),
                     )
-                "#,
-                r#"
-                    CREATE TABLE "dashboard_categories" (
-                        "id" uuid NOT NULL PRIMARY KEY,
-                        "owner_id" varchar NOT NULL,
-                        "name" varchar NOT NULL,
-                        "is_shelved" bool NOT NULL,
-                        "sort_order" varchar NOT NULL,
-                        "position" integer NOT NULL,
-                        CONSTRAINT "fk-dashboard_categories-owner_id"
-                            FOREIGN KEY ("owner_id")
-                            REFERENCES "dashboards" ("owner_id") ON DELETE CASCADE
+                    .col(
+                        ColumnDef::new(Dashboards::CategoriesSortOrder)
+                            .string()
+                            .not_null(),
                     )
-                "#,
-                r#"
-                    CREATE TABLE "dashboard_bookmarks" (
-                        "id" uuid NOT NULL PRIMARY KEY,
-                        "category_id" uuid NOT NULL,
-                        "name" varchar NOT NULL,
-                        "icon" varchar NOT NULL,
-                        "address" varchar NOT NULL,
-                        "last_accessed_at" timestamp with time zone,
-                        "position" integer NOT NULL,
-                        CONSTRAINT "fk-dashboard_bookmarks-category_id"
-                            FOREIGN KEY ("category_id")
-                            REFERENCES "dashboard_categories" ("id") ON DELETE CASCADE
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-dashboards-owner_id")
+                            .from(Dashboards::Table, Dashboards::OwnerId)
+                            .to(Users::Table, Users::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
                     )
-                "#,
-            ],
-        )
-        .await
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(DashboardCategories::Table)
+                    .col(
+                        ColumnDef::new(DashboardCategories::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(DashboardCategories::OwnerId)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(DashboardCategories::Name)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(DashboardCategories::IsShelved)
+                            .boolean()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(DashboardCategories::SortOrder)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(DashboardCategories::Position)
+                            .integer()
+                            .not_null(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-dashboard_categories-owner_id")
+                            .from(DashboardCategories::Table, DashboardCategories::OwnerId)
+                            .to(Dashboards::Table, Dashboards::OwnerId)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .create_table(
+                Table::create()
+                    .table(DashboardBookmarks::Table)
+                    .col(
+                        ColumnDef::new(DashboardBookmarks::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(DashboardBookmarks::CategoryId)
+                            .uuid()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(DashboardBookmarks::Name).string().not_null())
+                    .col(ColumnDef::new(DashboardBookmarks::Icon).string().not_null())
+                    .col(
+                        ColumnDef::new(DashboardBookmarks::Address)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(DashboardBookmarks::LastAccessedAt)
+                            .timestamp_with_time_zone(),
+                    )
+                    .col(
+                        ColumnDef::new(DashboardBookmarks::Position)
+                            .integer()
+                            .not_null(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-dashboard_bookmarks-category_id")
+                            .from(DashboardBookmarks::Table, DashboardBookmarks::CategoryId)
+                            .to(DashboardCategories::Table, DashboardCategories::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> MigrationResult<()> {
@@ -63,4 +132,37 @@ impl MigrationTrait for DashboardSchemaV1 {
         }
         Ok(())
     }
+}
+
+#[derive(DeriveIden)]
+enum Users {
+    Table,
+    Id,
+}
+#[derive(DeriveIden)]
+enum Dashboards {
+    Table,
+    OwnerId,
+    CategoriesSortOrder,
+}
+#[derive(DeriveIden)]
+enum DashboardCategories {
+    Table,
+    Id,
+    OwnerId,
+    Name,
+    IsShelved,
+    SortOrder,
+    Position,
+}
+#[derive(DeriveIden)]
+enum DashboardBookmarks {
+    Table,
+    Id,
+    CategoryId,
+    Name,
+    Icon,
+    Address,
+    LastAccessedAt,
+    Position,
 }

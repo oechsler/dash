@@ -36,7 +36,7 @@ impl SessionReader for SessionRepository {
             .one(self.connection.as_ref())
             .await
             .map_err(|e| InfrastructureError::database("load session", e))?;
-        row.map(UserSession::try_from).transpose()
+        row.map(|model| model.into_domain()).transpose()
     }
 
     async fn list_for(&self, owner: &UserId) -> PortResult<Vec<UserSession>> {
@@ -47,7 +47,7 @@ impl SessionReader for SessionRepository {
             .await
             .map_err(|e| InfrastructureError::database("list sessions", e))?
             .into_iter()
-            .map(UserSession::try_from)
+            .map(|model| model.into_domain())
             .collect()
     }
 }
@@ -60,7 +60,8 @@ impl SessionWriter for SessionRepository {
             .begin()
             .await
             .map_err(|e| InfrastructureError::database("begin session save", e))?;
-        Entity::insert(session::ActiveModel::from(value))
+
+        Entity::insert(session::ActiveModel::from_domain(value))
             .on_conflict(
                 OnConflict::column(session::Column::Id)
                     .update_columns([

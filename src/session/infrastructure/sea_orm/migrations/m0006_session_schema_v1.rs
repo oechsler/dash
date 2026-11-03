@@ -1,8 +1,6 @@
 use async_trait::async_trait;
 use sea_orm_migration::prelude::*;
 
-use crate::shared::infrastructure::schema::execute_postgres_ddl;
-
 /// Result returned by this migration's SeaORM hooks.
 pub type MigrationResult<T> = Result<T, DbErr>;
 
@@ -12,26 +10,42 @@ pub struct SessionSchemaV1;
 #[async_trait]
 impl MigrationTrait for SessionSchemaV1 {
     async fn up(&self, manager: &SchemaManager) -> MigrationResult<()> {
-        execute_postgres_ddl(
-            manager,
-            &[r#"
-                CREATE TABLE "sessions" (
-                    "id" uuid NOT NULL PRIMARY KEY,
-                    "owner_id" varchar NOT NULL,
-                    "long_lived" bool NOT NULL,
-                    "browser" varchar,
-                    "operating_system" varchar,
-                    "ip_address" varchar,
-                    "issued_at" timestamp with time zone NOT NULL,
-                    "last_accessed_at" timestamp with time zone NOT NULL,
-                    "expires_at" timestamp with time zone NOT NULL,
-                    "terminated_at" timestamp with time zone,
-                    CONSTRAINT "fk-sessions-owner_id"
-                        FOREIGN KEY ("owner_id") REFERENCES "users" ("id") ON DELETE CASCADE
-                )
-            "#],
-        )
-        .await
+        manager
+            .create_table(
+                Table::create()
+                    .table(Sessions::Table)
+                    .col(ColumnDef::new(Sessions::Id).uuid().not_null().primary_key())
+                    .col(ColumnDef::new(Sessions::OwnerId).string().not_null())
+                    .col(ColumnDef::new(Sessions::LongLived).boolean().not_null())
+                    .col(ColumnDef::new(Sessions::Browser).string())
+                    .col(ColumnDef::new(Sessions::OperatingSystem).string())
+                    .col(ColumnDef::new(Sessions::IpAddress).string())
+                    .col(
+                        ColumnDef::new(Sessions::IssuedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Sessions::LastAccessedAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Sessions::ExpiresAt)
+                            .timestamp_with_time_zone()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Sessions::TerminatedAt).timestamp_with_time_zone())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-sessions-owner_id")
+                            .from(Sessions::Table, Sessions::OwnerId)
+                            .to(Users::Table, Users::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> MigrationResult<()> {
@@ -39,4 +53,25 @@ impl MigrationTrait for SessionSchemaV1 {
             .drop_table(Table::drop().table(Alias::new("sessions")).to_owned())
             .await
     }
+}
+
+#[derive(DeriveIden)]
+enum Users {
+    Table,
+    Id,
+}
+
+#[derive(DeriveIden)]
+enum Sessions {
+    Table,
+    Id,
+    OwnerId,
+    LongLived,
+    Browser,
+    OperatingSystem,
+    IpAddress,
+    IssuedAt,
+    LastAccessedAt,
+    ExpiresAt,
+    TerminatedAt,
 }

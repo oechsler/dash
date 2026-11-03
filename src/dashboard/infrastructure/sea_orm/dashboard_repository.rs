@@ -2,8 +2,8 @@ use crate::shared::application::PortResult;
 use async_trait::async_trait;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DatabaseConnection, DatabaseTransaction, EntityTrait,
-    QueryFilter, QueryOrder, TransactionTrait,
+    ColumnTrait, DatabaseConnection, DatabaseTransaction, EntityTrait, QueryFilter, QueryOrder,
+    TransactionTrait,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -17,6 +17,37 @@ use crate::{
     },
     shared::domain::UserId,
 };
+
+fn category_models(value: &UserDashboard) -> Vec<category::ActiveModel> {
+    value
+        .categories()
+        .iter()
+        .enumerate()
+        .map(|(position, category)| {
+            category::ActiveModel::from_domain(category, value.owner(), position as i32)
+        })
+        .collect()
+}
+
+fn bookmark_models(value: &UserDashboard) -> Vec<bookmark::ActiveModel> {
+    value
+        .categories()
+        .iter()
+        .flat_map(|category| {
+            category
+                .bookmarks()
+                .iter()
+                .enumerate()
+                .map(move |(position, bookmark)| {
+                    bookmark::ActiveModel::from_domain(
+                        bookmark,
+                        category.id().as_uuid(),
+                        position as i32,
+                    )
+                })
+        })
+        .collect()
+}
 
 #[derive(Clone, Debug)]
 pub struct DashboardRepository {
@@ -40,7 +71,8 @@ impl DashboardRepository {
             .exec(tx)
             .await
             .map_err(|e| InfrastructureError::database("replace dashboard categories", e))?;
-        let model = dashboard::ActiveModel::from(value);
+
+        let model = dashboard::ActiveModel::from_domain(value);
         dashboard::Entity::insert(model)
             .on_conflict(
                 OnConflict::column(dashboard::Column::OwnerId)
@@ -50,21 +82,20 @@ impl DashboardRepository {
             .exec_without_returning(tx)
             .await
             .map_err(|e| InfrastructureError::database("save dashboard", e))?;
-        for (position, item) in value.categories().iter().enumerate() {
-            category::ActiveModel::from_domain(item, value.owner(), position as i32)
-                .insert(tx)
+        let categories = category_models(value);
+        if !categories.is_empty() {
+            category::Entity::insert_many(categories)
+                .exec(tx)
                 .await
-                .map_err(|e| InfrastructureError::database("save dashboard category", e))?;
-            for (bookmark_position, row) in item.bookmarks().iter().enumerate() {
-                bookmark::ActiveModel::from_domain(
-                    row,
-                    item.id().as_uuid(),
-                    bookmark_position as i32,
-                )
-                .insert(tx)
+                .map_err(|e| InfrastructureError::database("save dashboard categories", e))?;
+        }
+
+        let bookmarks = bookmark_models(value);
+        if !bookmarks.is_empty() {
+            bookmark::Entity::insert_many(bookmarks)
+                .exec(tx)
                 .await
-                .map_err(|e| InfrastructureError::database("save dashboard bookmark", e))?;
-            }
+                .map_err(|e| InfrastructureError::database("save dashboard bookmarks", e))?;
         }
         Ok(())
     }
@@ -80,12 +111,14 @@ impl DashboardReader for DashboardRepository {
         else {
             return Ok(None);
         };
+
         let stored_categories = category::Entity::find()
             .filter(category::Column::OwnerId.eq(owner.as_str()))
             .order_by_asc(category::Column::Position)
             .all(self.connection.as_ref())
             .await
             .map_err(|e| InfrastructureError::database("load dashboard categories", e))?;
+
         let ids = stored_categories
             .iter()
             .map(|row| row.id)
@@ -101,13 +134,15 @@ impl DashboardReader for DashboardRepository {
                 .await
                 .map_err(|e| InfrastructureError::database("load dashboard bookmarks", e))?
         };
+
         let mut bookmarks_by_category: HashMap<uuid::Uuid, Vec<Bookmark>> = HashMap::new();
         for row in stored_bookmarks {
             bookmarks_by_category
                 .entry(row.category_id)
                 .or_default()
-                .push(Bookmark::try_from(row)?);
+                .push(row.into_domain()?);
         }
+
         let mut restored = Vec::with_capacity(stored_categories.len());
         for row in stored_categories {
             let bookmarks = bookmarks_by_category.remove(&row.id).unwrap_or_default();
@@ -125,6 +160,7 @@ impl DashboardWriter for DashboardRepository {
             .begin()
             .await
             .map_err(|e| InfrastructureError::database("begin dashboard save", e))?;
+
         self.save_in(&tx, value).await?;
         tx.commit()
             .await

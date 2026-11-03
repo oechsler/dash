@@ -1,11 +1,13 @@
-use crate::shared::application::PortResult;
 use sea_orm::Set;
 use sea_orm::entity::prelude::*;
 
 use crate::{
     preferences::domain::{Language, TimeZone, UserPreferences},
-    shared::domain::UserId,
-    shared::{application::ApplicationPortError, infrastructure::DatabaseError},
+    shared::{
+        application::{ApplicationPortError, PortResult},
+        domain::UserId,
+        infrastructure::{DatabaseAdapterError as InfrastructureError, DatabaseError},
+    },
     theme::domain::{ThemeId, ThemeMode},
 };
 
@@ -47,11 +49,9 @@ impl Model {
         let light = parse_theme(self.light_theme_id)?;
         let dark = parse_theme(self.dark_theme_id)?;
         let language = Language::try_from(self.language.as_str()).map_err(|_| {
-            ApplicationPortError::adapter(
+            InfrastructureError::persistence(
                 "decode language",
-                super::super::super::error::InfrastructureError::from(
-                    DatabaseError::invalid_value("language", self.language.clone()),
-                ),
+                DatabaseError::invalid_value("language", self.language.clone()),
             )
         })?;
         let timezone = TimeZone::try_from(self.time_zone).map_err(ApplicationPortError::from)?;
@@ -66,8 +66,8 @@ impl Model {
     }
 }
 
-impl From<&UserPreferences> for ActiveModel {
-    fn from(value: &UserPreferences) -> Self {
+impl ActiveModel {
+    pub fn from_domain(value: &UserPreferences) -> Self {
         Self {
             owner_id: Set(value.user_id().as_str().to_owned()),
             light_theme_id: Set(value.theme_id(ThemeMode::Light).map(String::from)),

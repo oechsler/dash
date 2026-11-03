@@ -19,17 +19,19 @@ use crate::{
 use crate::catalog::application::ports::{ApplicationReader, ApplicationWriter};
 
 #[derive(Clone, Default)]
-struct MemoryApplications(Arc<Mutex<Vec<Application>>>);
+struct MemoryApplications {
+    applications: Arc<Mutex<Vec<Application>>>,
+}
 
 #[async_trait]
 impl ApplicationReader for MemoryApplications {
     async fn list(&self) -> PortResult<Vec<Application>> {
-        Ok(self.0.lock().unwrap().clone())
+        Ok(self.applications.lock().unwrap().clone())
     }
 
     async fn get(&self, id: ApplicationId) -> PortResult<Option<Application>> {
         Ok(self
-            .0
+            .applications
             .lock()
             .unwrap()
             .iter()
@@ -41,7 +43,7 @@ impl ApplicationReader for MemoryApplications {
 #[async_trait]
 impl ApplicationWriter for MemoryApplications {
     async fn save(&self, application: &Application) -> PortResult<()> {
-        let mut applications = self.0.lock().unwrap();
+        let mut applications = self.applications.lock().unwrap();
         if let Some(existing) = applications
             .iter_mut()
             .find(|existing| existing.id() == application.id())
@@ -54,7 +56,7 @@ impl ApplicationWriter for MemoryApplications {
     }
 
     async fn delete(&self, id: ApplicationId) -> PortResult<()> {
-        self.0
+        self.applications
             .lock()
             .unwrap()
             .retain(|application| application.id() != id);

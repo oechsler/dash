@@ -7,6 +7,7 @@ use crate::{
     shared::{
         application::{ApplicationPortError, PortResult},
         domain::CollectionSortOrder,
+        infrastructure::{DatabaseAdapterError as InfrastructureError, DatabaseError},
     },
 };
 
@@ -24,23 +25,17 @@ pub enum Relation {}
 
 impl ActiveModelBehavior for ActiveModel {}
 
-impl TryFrom<Model> for ApplicationCatalogSettings {
-    type Error = ApplicationPortError;
-
-    fn try_from(model: Model) -> PortResult<Self> {
+impl Model {
+    pub fn into_domain(self) -> PortResult<ApplicationCatalogSettings> {
         let mut settings = ApplicationCatalogSettings::default();
-        let sort_order =
-            CollectionSortOrder::try_from(model.sort_order.as_str()).map_err(|_| {
-                ApplicationPortError::adapter(
-                    "decode catalog sort order",
-                    super::super::super::error::InfrastructureError::invalid_value(
-                        "sort_order",
-                        model.sort_order.clone(),
-                    ),
-                )
-            })?;
+        let sort_order = CollectionSortOrder::try_from(self.sort_order.as_str()).map_err(|_| {
+            InfrastructureError::persistence(
+                "decode catalog sort order",
+                DatabaseError::invalid_value("sort_order", self.sort_order.clone()),
+            )
+        })?;
         settings.set_sort_order(sort_order);
-        let ids = model
+        let ids = self
             .application_order
             .split(',')
             .filter(|id| !id.is_empty())
@@ -48,12 +43,7 @@ impl TryFrom<Model> for ApplicationCatalogSettings {
                 Uuid::parse_str(id)
                     .map(ApplicationId::from)
                     .map_err(|error| {
-                        ApplicationPortError::adapter(
-                            "decode application order",
-                            super::super::super::error::InfrastructureError::from(
-                                crate::shared::infrastructure::DatabaseError::source(error),
-                            ),
-                        )
+                        InfrastructureError::database("decode application order", error)
                     })
             })
             .collect::<Result<Vec<_>, _>>()?;
@@ -66,8 +56,8 @@ impl TryFrom<Model> for ApplicationCatalogSettings {
     }
 }
 
-impl From<&ApplicationCatalogSettings> for ActiveModel {
-    fn from(value: &ApplicationCatalogSettings) -> Self {
+impl ActiveModel {
+    pub fn from_domain(value: &ApplicationCatalogSettings) -> Self {
         Self {
             singleton: Set(true),
             sort_order: Set(value.sort_order().as_str().to_owned()),
