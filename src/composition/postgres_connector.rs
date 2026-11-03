@@ -27,6 +27,11 @@ impl PostgresConnector {
         self.connection.as_ref()
     }
 
+    /// Cloned handle for constructing independent infrastructure adapters.
+    pub fn connection_handle(&self) -> Arc<DatabaseConnection> {
+        Arc::clone(&self.connection)
+    }
+
     /// Applies versioned schema migrations to the configured database.
     pub async fn migrate(&self) -> PostgresConnectorResult<()> {
         Migrator::up(self.connection.as_ref(), None).await

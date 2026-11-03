@@ -4,3 +4,4 @@
 //! the boundary; application use cases operate only on `UserDataSnapshot`.
 
 pub mod formats;
+pub mod http;

@@ -39,6 +39,15 @@ impl SessionReader for SessionRepository {
         row.map(|model| model.into_domain()).transpose()
     }
 
+    async fn load_by_id(&self, id: SessionId) -> PortResult<Option<UserSession>> {
+        Entity::find_by_id(id.as_uuid())
+            .one(self.connection.as_ref())
+            .await
+            .map_err(|e| InfrastructureError::database("load session by id", e))?
+            .map(|model| model.into_domain())
+            .transpose()
+    }
+
     async fn list_for(&self, owner: &UserId) -> PortResult<Vec<UserSession>> {
         Entity::find()
             .filter(session::Column::OwnerId.eq(owner.as_str()))

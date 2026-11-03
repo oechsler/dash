@@ -17,11 +17,17 @@ name = "dash"
 path = "src/lib.rs"
 
 [dependencies]
+axum = "0.8"
+axum-extra = { version = "0.12", features = ["cookie", "query", "typed-header"] }
 async-trait = "0.1"
 bon = "3"
 chrono = { version = "0.4", features = ["serde"] }
 chrono-tz = "0.10"
 getset = "0.1"
+headers = "0.4"
+hmac = "0.13"
+http = "1"
+openidconnect = "4.1"
 reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
 sea-orm = { version = "2", default-features = false, features = ["macros", "with-uuid", "with-chrono"] }
 sea-orm-migration = { version = "2", default-features = false }
@@ -33,6 +39,11 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
 tracing = "0.1"
 uuid = { version = "1", features = ["serde", "v4"] }
 url = "2"
+dash-api = { package = "dash_api", path = "generated/openapi" }
+
+[workspace]
+members = ["generated/openapi"]
+resolver = "3"
 
 [dev-dependencies]
 sea-orm = { version = "2", default-features = false, features = ["mock"] }

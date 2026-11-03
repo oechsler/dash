@@ -11,6 +11,7 @@ pub mod composition;
 pub mod dashboard;
 pub mod icon;
 pub mod preferences;
+pub mod presentation;
 pub mod session;
 pub mod shared;
 pub mod theme;

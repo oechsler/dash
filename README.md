@@ -84,6 +84,26 @@ cargo test
 cargo check --no-default-features
 ```
 
+The HTTP server contract is generated from `spec/openapi.yaml` with OpenAPI
+Generator 7.26.0. Regenerate it with `scripts/generate-openapi-server.sh` after
+changing the schema. The generated Axum router is exposed at
+`dash::presentation::http::router`; the binary builds the PostgreSQL/OIDC
+composition and serves it with Axum. Endpoint-to-application adapters belong in
+handwritten, per-operation handler modules, not in generated files.
+
+The server reads `DATABASE_URL`, `DASH_OIDC_ISSUER_URL`, `DASH_OIDC_CLIENT_ID`,
+and `DASH_OIDC_REDIRECT_URL`. `DASH_OIDC_CLIENT_SECRET` is optional;
+`DASH_OIDC_ADMIN_GROUP` configures the administrator group, and
+`DASH_OIDC_GROUPS_CLAIM` / `DASH_OIDC_SCOPES_CLAIM` select the provider claim
+names (defaults: `groups` / `scope`). `DASH_OIDC_SCOPES` controls requested
+OIDC scopes, and `DASH_OIDC_POST_LOGOUT_REDIRECT_URL` optionally overrides the
+post-logout return URL. Ensure the provider supplies the Dash API scopes
+declared in `spec/openapi.yaml` and advertises an RP-initiated logout endpoint.
+Set `DASH_SESSION_SIGNING_KEY` to a
+random secret of at least 32 bytes; it signs the browser session's authorization
+claims. The optional listener address is `DASH_HTTP_BIND` (default
+`127.0.0.1:3000`).
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).

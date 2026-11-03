@@ -9,7 +9,7 @@ schemas:
         time_zone: Europe/Berlin
         selected_themes:
           light: null
-          dark: 197fbdc4-92fd-4b18-b805-b2ad6d08aa92
+          dark: 'user:197fbdc4-92fd-4b18-b805-b2ad6d08aa92'
     properties:
       language:
         $ref: '#/schemas/language'
@@ -24,10 +24,8 @@ schemas:
         properties:
           light:
             type: [string, 'null']
-            format: uuid
           dark:
             type: [string, 'null']
-            format: uuid
 
   language:
     type: string

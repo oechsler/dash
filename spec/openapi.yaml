@@ -661,7 +661,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: './schemas/common.yaml#/schemas/problem'
+                $ref: '#/components/schemas/Problem'
   /api/v1/applications/order:
     put:
       tags: [Applications]
@@ -1193,6 +1193,9 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationError'
 components:
+  schemas:
+    Problem:
+      $ref: './schemas/common.yaml#/schemas/problem'
   securitySchemes:
     session_cookie:
       type: apiKey
@@ -1256,7 +1259,6 @@ components:
       required: true
       schema:
         type: string
-        format: uuid
       example: 197fbdc4-92fd-4b18-b805-b2ad6d08aa92
     session_id:
       name: session_id
@@ -1273,7 +1275,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: './schemas/common.yaml#/schemas/problem'
+            $ref: '#/components/schemas/Problem'
           examples:
             invalid_request:
               summary: A request contains invalid values
@@ -1288,7 +1290,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: './schemas/common.yaml#/schemas/problem'
+            $ref: '#/components/schemas/Problem'
           examples:
             sign_in_required:
               summary: No active sign-in
@@ -1303,7 +1305,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: './schemas/common.yaml#/schemas/problem'
+            $ref: '#/components/schemas/Problem'
           examples:
             not_allowed:
               summary: The action is not allowed
@@ -1318,7 +1320,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: './schemas/common.yaml#/schemas/problem'
+            $ref: '#/components/schemas/Problem'
           examples:
             missing_item:
               summary: The requested item does not exist
@@ -1334,7 +1336,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: './schemas/common.yaml#/schemas/problem'
+            $ref: '#/components/schemas/Problem'
           examples:
             item_in_use:
               summary: An item can't be changed in its current state
@@ -1349,7 +1351,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: './schemas/common.yaml#/schemas/problem'
+            $ref: '#/components/schemas/Problem'
           examples:
             invalid_field:
               summary: A field needs correction
@@ -1364,7 +1366,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: './schemas/common.yaml#/schemas/problem'
+            $ref: '#/components/schemas/Problem'
           examples:
             server_problem:
               summary: An unexpected error occurred

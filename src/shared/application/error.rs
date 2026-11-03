@@ -32,6 +32,12 @@ pub enum ApplicationError {
 
     #[error("{0} was not found")]
     NotFound(&'static str),
+
+    #[error("the authenticated principal is not allowed to perform this operation")]
+    Forbidden,
+
+    #[error("the request is invalid")]
+    BadRequest,
 }
 
 /// Result returned by application use cases and format adapters.
