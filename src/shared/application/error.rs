@@ -38,6 +38,9 @@ pub enum ApplicationError {
 
     #[error("the request is invalid")]
     BadRequest,
+
+    #[error("authentication is required")]
+    Unauthorized,
 }
 
 /// Result returned by application use cases and format adapters.

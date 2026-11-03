@@ -1,11 +1,8 @@
 use std::{collections::HashSet, sync::Arc};
 
-use async_trait::async_trait;
 use axum_extra::extract::CookieJar;
-use dash_api::apis::{ApiAuthBasic, BasicAuthKind, CookieAuthentication};
-use headers::Host;
 use hmac::{Hmac, KeyInit, Mac};
-use http::{HeaderMap, Method, StatusCode};
+use http::HeaderMap;
 use sea_orm::DatabaseConnection;
 use sha2::Sha256;
 use uuid::Uuid;
@@ -26,7 +23,7 @@ use crate::{
 
 use super::auth::{OidcIdentity, OidcProvider};
 
-/// Claims passed from the generated server's authentication hooks into endpoint handlers.
+/// Verified identity and authorization data attached by the HTTP auth extractor.
 #[derive(Clone, Debug)]
 pub struct HttpClaims {
     pub user_id: UserId,
@@ -72,7 +69,7 @@ struct SessionCookieClaims {
     expires_at: chrono::DateTime<chrono::Utc>,
 }
 
-/// Concrete application adapter for all generated OpenAPI tags.
+/// HTTP application state shared by the feature routers and auth extractor.
 #[derive(Clone)]
 pub struct HttpApi {
     pub(crate) catalog: CatalogRepository,
@@ -109,40 +106,36 @@ impl HttpApi {
     }
 
     pub fn router(self) -> axum::Router {
-        dash_api::server::new(self)
+        super::routes::router(self)
     }
 }
 
-impl AsRef<HttpApi> for HttpApi {
-    fn as_ref(&self) -> &HttpApi {
-        self
+impl HttpApi {
+    pub(crate) fn signed_session_cookie(
+        &self,
+        id: Uuid,
+        user_id: &UserId,
+        identity: &OidcIdentity,
+        expires_at: chrono::DateTime<chrono::Utc>,
+    ) -> Option<String> {
+        let key = self.session_signing_key.as_ref();
+        let claims = SessionCookieClaims {
+            session_id: id,
+            user_id: user_id.as_str().to_owned(),
+            groups: identity.groups.clone(),
+            scopes: identity.scopes.clone(),
+            is_administrator: identity.is_administrator,
+            identity: identity.clone(),
+            expires_at,
+        };
+        let payload = encode_hex(&serde_json::to_vec(&claims).ok()?);
+        let mut mac = Hmac::<Sha256>::new_from_slice(key).ok()?;
+        mac.update(payload.as_bytes());
+        Some(format!(
+            "{payload}.{}",
+            encode_hex(&mac.finalize().into_bytes())
+        ))
     }
-}
-
-pub(crate) fn signed_session_cookie(
-    api: &HttpApi,
-    id: Uuid,
-    user_id: &UserId,
-    identity: &OidcIdentity,
-    expires_at: chrono::DateTime<chrono::Utc>,
-) -> Option<String> {
-    let key = api.session_signing_key.as_ref();
-    let claims = SessionCookieClaims {
-        session_id: id,
-        user_id: user_id.as_str().to_owned(),
-        groups: identity.groups.clone(),
-        scopes: identity.scopes.clone(),
-        is_administrator: identity.is_administrator,
-        identity: identity.clone(),
-        expires_at,
-    };
-    let payload = encode_hex(&serde_json::to_vec(&claims).ok()?);
-    let mut mac = Hmac::<Sha256>::new_from_slice(key).ok()?;
-    mac.update(payload.as_bytes());
-    Some(format!(
-        "{payload}.{}",
-        encode_hex(&mac.finalize().into_bytes())
-    ))
 }
 
 fn encode_hex(bytes: &[u8]) -> String {
@@ -176,15 +169,12 @@ fn decode_hex(value: &str) -> Option<Vec<u8>> {
         .collect()
 }
 
-#[async_trait]
-impl CookieAuthentication for HttpApi {
-    type Claims = HttpClaims;
-
-    async fn extract_claims_from_cookie(
+impl HttpApi {
+    pub(crate) async fn claims_from_cookie(
         &self,
         cookies: &CookieJar,
         key: &str,
-    ) -> Option<Self::Claims> {
+    ) -> Option<HttpClaims> {
         let signing_key = self.session_signing_key.as_ref();
         let mut parts = cookies.get(key)?.value().splitn(3, '.');
         let payload = parts.next()?;
@@ -225,21 +215,12 @@ impl CookieAuthentication for HttpApi {
             authenticated_by_session: true,
         })
     }
-}
 
-#[async_trait]
-impl ApiAuthBasic for HttpApi {
-    type Claims = HttpClaims;
-
-    async fn extract_claims_from_auth_header(
+    pub(crate) async fn claims_from_bearer(
         &self,
-        kind: BasicAuthKind,
         headers: &HeaderMap,
         key: &str,
-    ) -> Option<Self::Claims> {
-        if kind != BasicAuthKind::Bearer {
-            return None;
-        }
+    ) -> Option<HttpClaims> {
         let header = headers.get(key)?.to_str().ok()?;
         let token = header
             .strip_prefix("Bearer ")
@@ -254,101 +235,5 @@ impl ApiAuthBasic for HttpApi {
             .await
             .ok()?;
         Some(HttpClaims::from_oidc(user_id, identity))
-    }
-}
-
-#[async_trait]
-impl dash_api::apis::ErrorHandler<crate::shared::application::ApplicationError> for HttpApi {
-    async fn handle_error(
-        &self,
-        _method: &Method,
-        _host: &Host,
-        _cookies: &CookieJar,
-        error: crate::shared::application::ApplicationError,
-    ) -> Result<axum::response::Response, StatusCode> {
-        let (status, code, message) = match &error {
-            crate::shared::application::ApplicationError::NotFound(_) => {
-                (404, "not_found", "The requested item was not found.")
-            }
-            crate::shared::application::ApplicationError::Forbidden => (
-                403,
-                "forbidden",
-                "You do not have permission to perform this operation.",
-            ),
-            crate::shared::application::ApplicationError::BadRequest => {
-                (400, "invalid_request", "The request is invalid.")
-            }
-            crate::shared::application::ApplicationError::Domain(_) => {
-                (422, "validation_error", "One or more values are invalid.")
-            }
-            crate::shared::application::ApplicationError::Transfer(_) => {
-                (400, "invalid_request", "The transfer document is invalid.")
-            }
-            crate::shared::application::ApplicationError::Infrastructure { .. } => (
-                500,
-                "internal_error",
-                "Something went wrong while handling the request.",
-            ),
-        };
-        tracing::error!(error = ?error, status, "HTTP endpoint failed");
-        let body = serde_json::json!({"type":"about:blank", "title":message, "status":status, "code":code, "message":message});
-        axum::response::Response::builder()
-            .status(status)
-            .header(http::header::CONTENT_TYPE, "application/problem+json")
-            .body(axum::body::Body::from(body.to_string()))
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
-    }
-}
-
-#[async_trait]
-impl dash_api::apis::user::User<crate::shared::application::ApplicationError> for HttpApi {
-    type Claims = HttpClaims;
-
-    async fn delete_current_user(
-        &self,
-        _method: &Method,
-        _host: &Host,
-        _cookies: &CookieJar,
-        claims: &Self::Claims,
-    ) -> Result<
-        dash_api::apis::user::DeleteCurrentUserResponse,
-        crate::shared::application::ApplicationError,
-    > {
-        if !claims.allows("dash_user_delete") {
-            return Err(crate::shared::application::ApplicationError::NotFound(
-                "user",
-            ));
-        }
-        crate::user::presentation::http::handlers::delete_current_user_handler::handle(
-            self.users.clone(),
-            &claims.user_id,
-        )
-        .await?;
-        Ok(dash_api::apis::user::DeleteCurrentUserResponse::Status204_YourDataHasBeenDeleted)
-    }
-
-    async fn get_current_user(
-        &self,
-        _method: &Method,
-        _host: &Host,
-        _cookies: &CookieJar,
-        claims: &Self::Claims,
-    ) -> Result<
-        dash_api::apis::user::GetCurrentUserResponse,
-        crate::shared::application::ApplicationError,
-    > {
-        if !claims.allows("dash_user_read") {
-            return Err(crate::shared::application::ApplicationError::NotFound(
-                "user",
-            ));
-        }
-        let identity = claims.oidc_identity.as_ref().ok_or(
-            crate::shared::application::ApplicationError::NotFound("verified identity"),
-        )?;
-        let body = crate::user::presentation::http::handlers::get_current_user_handler::handle(
-            &claims.user_id,
-            identity,
-        );
-        Ok(dash_api::apis::user::GetCurrentUserResponse::Status200_YourProfileAndTheGroupsThatGiveYouAccessToSharedApps(body))
     }
 }

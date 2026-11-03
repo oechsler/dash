@@ -86,10 +86,12 @@ cargo check --no-default-features
 
 The HTTP server contract is generated from `spec/openapi.yaml` with OpenAPI
 Generator 7.26.0. Regenerate it with `scripts/generate-openapi-server.sh` after
-changing the schema. The generated Axum router is exposed at
-`dash::presentation::http::router`; the binary builds the PostgreSQL/OIDC
-composition and serves it with Axum. Endpoint-to-application adapters belong in
-handwritten, per-operation handler modules, not in generated files.
+changing the schema. Handwritten feature routers under
+`src/presentation/http/routes` are exposed through
+`dash::presentation::http::router`; generated code supplies OpenAPI models only
+and is not the runtime router/controller. The binary builds the PostgreSQL/OIDC
+composition and serves it with Axum. Endpoint handlers delegate to the feature
+presentation handlers and application use-cases.
 
 The server reads `DATABASE_URL`, `DASH_OIDC_ISSUER_URL`, `DASH_OIDC_CLIENT_ID`,
 and `DASH_OIDC_REDIRECT_URL`. `DASH_OIDC_CLIENT_SECRET` is optional;
